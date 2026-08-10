@@ -4,7 +4,7 @@ interface LoadingScreenProps {
 }
 
 export default function LoadingScreen({
-  title = "Graduation Thesis",
+  title = "HomeSpace",
   subtitle = "Đang tải...",
 }: LoadingScreenProps) {
   return (

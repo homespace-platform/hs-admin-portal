@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import AuthGuard from "@/components/AuthGuard";
+import AuthGuard from "@/components/custom/AuthGuard";
 import HomePage from "@/pages/home";
 
 function App() {

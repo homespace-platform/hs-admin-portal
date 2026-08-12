@@ -1,6 +1,6 @@
 import { useAuth } from "@/features/auth/useAuth";
 import LoginPage from "@/pages/login";
-import LoadingScreen from "@/components/LoadingScreen";
+import LoadingScreen from "@/components/custom/LoadingScreen";
 
 interface AuthGuardProps {
   children: React.ReactNode;

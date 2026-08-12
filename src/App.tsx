@@ -1,6 +1,19 @@
+import { Route, Routes } from "react-router-dom";
+import AuthGuard from "@/components/AuthGuard";
+import HomePage from "@/pages/home";
+
 function App() {
   return (
-    <h1 className="text-red-500">123</h1>
+    <Routes>
+      <Route
+        path="/*"
+        element={
+          <AuthGuard>
+            <HomePage />
+          </AuthGuard>
+        }
+      />
+    </Routes>
   );
 }
 

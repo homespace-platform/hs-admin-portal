@@ -14,6 +14,7 @@ import {
   Ban,
   ShieldCheck,
   UserCheck,
+  KeyRound,
   AlertTriangle,
   Newspaper,
   BarChart3,
@@ -42,8 +43,9 @@ const MENU_ITEMS: MenuItem[] = [
     title: "Quản lý tài khoản",
     icon: Users,
     children: [
-      { title: "Quản trị viên", path: "/users/admins", icon: ShieldCheck },
       { title: "Người dùng hệ thống", path: "/users/members", icon: UserCheck },
+      { title: "Vai trò", path: "/users/roles", icon: ShieldCheck },
+      { title: "Quyền hạn", path: "/users/permissions", icon: KeyRound },
     ],
   },
   {

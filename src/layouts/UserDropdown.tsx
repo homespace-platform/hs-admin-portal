@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export default function UserDropdown() {
-  const { username, fullName, role, avatarUrl, logout } = useAuth();
+  const { username, fullName, avatarUrl, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

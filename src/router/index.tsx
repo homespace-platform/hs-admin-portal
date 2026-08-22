@@ -9,7 +9,8 @@ import PendingPropertiesPage from "@/pages/properties/PendingPropertiesPage";
 import ApprovedPropertiesPage from "@/pages/properties/ApprovedPropertiesPage";
 import RejectedPropertiesPage from "@/pages/properties/RejectedPropertiesPage";
 import MembersPage from "@/pages/users/MembersPage";
-import AdminsPage from "@/pages/users/AdminsPage";
+import RolesPage from "@/pages/users/RolesPage";
+import PermissionsPage from "@/pages/users/PermissionsPage";
 import ComplaintsPage from "@/pages/operations/ComplaintsPage";
 import NewsManagementPage from "@/pages/operations/NewsManagementPage";
 import BlockchainExplorerPage from "@/pages/blockchain/BlockchainExplorerPage";
@@ -36,19 +37,20 @@ export default function AppRouter() {
         <Route index element={<DashboardPage />} />
         <Route path="dashboard" element={<Navigate to="/" replace />} />
 
+        {/* User Management */}
+        <Route path="users">
+          <Route index element={<Navigate to="/users/members" replace />} />
+          <Route path="members" element={<MembersPage />} />
+          <Route path="roles" element={<RolesPage />} />
+          <Route path="permissions" element={<PermissionsPage />} />
+        </Route>
+
         {/* Property Management */}
         <Route path="properties">
           <Route index element={<Navigate to="/properties/pending" replace />} />
           <Route path="pending" element={<PendingPropertiesPage />} />
           <Route path="approved" element={<ApprovedPropertiesPage />} />
           <Route path="rejected" element={<RejectedPropertiesPage />} />
-        </Route>
-
-        {/* User Management */}
-        <Route path="users">
-          <Route index element={<Navigate to="/users/members" replace />} />
-          <Route path="members" element={<MembersPage />} />
-          <Route path="admins" element={<AdminsPage />} />
         </Route>
 
         {/* Operations & Support */}

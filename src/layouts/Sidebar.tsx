@@ -39,20 +39,20 @@ const MENU_ITEMS: MenuItem[] = [
     icon: LayoutDashboard,
   },
   {
+    title: "Quản lý tài khoản",
+    icon: Users,
+    children: [
+      { title: "Quản trị viên", path: "/users/admins", icon: ShieldCheck },
+      { title: "Người dùng hệ thống", path: "/users/members", icon: UserCheck },
+    ],
+  },
+  {
     title: "Quản lý tin đăng",
     icon: Building2,
     children: [
       { title: "Chờ duyệt", path: "/properties/pending", icon: Clock },
       { title: "Đã duyệt", path: "/properties/approved", icon: FileCheck2 },
       { title: "Từ chối", path: "/properties/rejected", icon: Ban },
-    ],
-  },
-  {
-    title: "Quản lý tài khoản",
-    icon: Users,
-    children: [
-      { title: "Quản trị viên", path: "/users/admins", icon: ShieldCheck },
-      { title: "Người dùng hệ thống", path: "/users/members", icon: UserCheck },
     ],
   },
   {
@@ -140,8 +140,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                 key={item.title}
                 to={item.path || "#"}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${isActive
-                    ? "bg-primary/15 text-primary font-bold shadow-2xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                  ? "bg-primary/15 text-primary font-bold shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
                   } ${collapsed ? "justify-center px-0" : ""}`}
                 title={collapsed ? item.title : undefined}
               >
@@ -161,8 +161,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                 type="button"
                 onClick={() => toggleGroup(item.title)}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${hasActiveChild
-                    ? "text-primary font-bold bg-primary/5"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                  ? "text-primary font-bold bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
                   } ${collapsed ? "justify-center px-0" : ""}`}
                 title={collapsed ? item.title : undefined}
               >
@@ -192,8 +192,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                         key={sub.path}
                         to={sub.path}
                         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${isSubActive
-                            ? "text-primary font-bold bg-primary/10"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          ? "text-primary font-bold bg-primary/10"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                           }`}
                       >
                         <span

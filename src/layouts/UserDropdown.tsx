@@ -49,11 +49,10 @@ export default function UserDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`h-10 flex items-center gap-2 pl-1 pr-3.5 rounded-full border transition-all cursor-pointer select-none ${
-          isOpen
-            ? "border-primary/50 bg-muted shadow-sm"
-            : "border-border bg-card text-foreground hover:border-primary/30 hover:bg-muted"
-        }`}
+        className={`h-10 flex items-center gap-2 pl-1 pr-3.5 rounded-full border transition-all cursor-pointer select-none ${isOpen
+          ? "border-primary/50 bg-muted shadow-sm"
+          : "border-border bg-card text-foreground hover:border-primary/30 hover:bg-muted"
+          }`}
       >
         {/* Avatar with status indicator */}
         <div className="relative">
@@ -88,9 +87,9 @@ export default function UserDropdown() {
       {/* Dropdown Menu Panel */}
       {isOpen && (
         <div className="absolute right-0 mt-2.5 w-[calc(100vw-32px)] sm:w-80 max-w-sm bg-popover text-popover-foreground rounded-3xl shadow-2xl border border-border p-3.5 z-50 animate-in fade-in-50 zoom-in-95 duration-150 max-h-[85vh] overflow-y-auto no-scrollbar select-none">
-          {/* 1. Admin Info Card */}
+          {/* Admin Info Card */}
           <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-3.5 mb-3">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-primary">
                 <ShieldCheck className="w-4 h-4" />
                 <span className="text-xs font-extrabold uppercase tracking-wide">
@@ -105,23 +104,6 @@ export default function UserDropdown() {
                 <span>Hồ sơ</span>
                 <ArrowRight className="w-3 h-3" />
               </Link>
-            </div>
-
-            {/* 2 Sub-Boxes */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-card rounded-xl p-2.5 border border-border shadow-2xs">
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase">Vai trò</p>
-                <p className="text-xs font-bold text-foreground mt-0.5 truncate">
-                  {role || "Admin"}
-                </p>
-              </div>
-              <div className="bg-card rounded-xl p-2.5 border border-border shadow-2xs">
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase">Trạng thái</p>
-                <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span>Hoạt động</span>
-                </div>
-              </div>
             </div>
           </div>
 

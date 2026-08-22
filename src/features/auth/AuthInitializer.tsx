@@ -40,7 +40,19 @@ export default function AuthInitializer({
 
         dispatch(sessionInitialized(session));
         if (session.authenticated && session.userId) {
-          dispatch(fetchCurrentUser({ userId: session.userId }));
+          dispatch(fetchCurrentUser({ userId: session.userId }))
+            .unwrap()
+            .then((profile) => {
+              if (!active) return;
+              if (profile?.role?.toUpperCase() !== "ADMIN") {
+                console.warn(
+                  `[Security Notice] User @${profile?.username} logged in with non-admin role [${profile?.role}]. AuthGuard will handle the 10s countdown warning and logout.`,
+                );
+              }
+            })
+            .catch((error) => {
+              console.error("[hs-admin-portal] Fetch user profile failed:", error);
+            });
         } else {
           dispatch(userCleared());
         }

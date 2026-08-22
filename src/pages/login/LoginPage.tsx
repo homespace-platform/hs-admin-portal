@@ -21,16 +21,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 rounded-3xl bg-card border border-border shadow-2xl text-center space-y-6 animate-in fade-in-50 zoom-in-95 duration-200">
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center p-2 shadow-2xs">
+          <div className="flex items-center justify-center p-2">
             <img
-              src="/logo/homespace-logo-favicon-removebg.png"
+              src="/logo/homespace-horizontal-logo-crop-removebg.png"
               alt="HomeSpace Logo"
-              className="w-full h-full object-contain"
+              className="h-12 w-auto object-contain"
             />
           </div>
-          <h1 className="text-2xl font-extrabold font-heading text-foreground tracking-tight">
-            EstateAdmin Portal
-          </h1>
           <p className="text-xs text-muted-foreground">
             Hệ thống quản trị và kiểm duyệt nền tảng HomeSpace
           </p>

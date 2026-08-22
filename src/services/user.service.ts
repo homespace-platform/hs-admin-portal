@@ -1,6 +1,11 @@
 import axiosClient from "@/lib/axios-client";
 import type { ApiResponse } from "@/types/api.type";
-import type { UpdateUserProfileRequest, UserProfile } from "@/types/user.type";
+import type {
+  UpdatePasswordRequest,
+  UpdateUserAvatarRequest,
+  UpdateUserProfileRequest,
+  UserProfile,
+} from "@/types/user.type";
 
 let profileRequest: Promise<UserProfile> | null = null;
 
@@ -20,6 +25,20 @@ const userService = {
   async updateProfile(request: UpdateUserProfileRequest): Promise<void> {
     await axiosClient.post<ApiResponse<null>>(
       "/api/v1/users/me/profile",
+      request,
+    );
+  },
+
+  async updateAvatar(request: UpdateUserAvatarRequest): Promise<void> {
+    await axiosClient.put<ApiResponse<null>>(
+      "/api/v1/users/me/avatar",
+      request,
+    );
+  },
+
+  async updatePassword(request: UpdatePasswordRequest): Promise<void> {
+    await axiosClient.post<ApiResponse<null>>(
+      "/api/v1/users/me/password",
       request,
     );
   },

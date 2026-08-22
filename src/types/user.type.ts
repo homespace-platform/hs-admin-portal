@@ -26,3 +26,12 @@ export type UpdateUserProfileRequest = {
   dob: string | null;
   gender: "FEMALE" | "MALE" | "OTHER" | null;
 };
+
+export type UpdatePasswordRequest = {
+  oldPassword: string;
+  newPassword: string;
+};
+
+export type UpdateUserAvatarRequest = {
+  storageId: string;
+};

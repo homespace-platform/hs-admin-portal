@@ -1,30 +1,68 @@
 import { useState } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
-const ROUTE_NAMES: Record<string, string> = {
-  "/": "Bảng điều khiển",
-  "/dashboard": "Bảng điều khiển",
-  "/properties/pending": "Tin đăng chờ duyệt",
-  "/properties/approved": "Tin đăng đã duyệt",
-  "/properties/rejected": "Tin đăng từ chối",
-  "/users/members": "Người dùng hệ thống",
-  "/users/admins": "Quản trị viên",
-  "/operations/complaints": "Xử lý khiếu nại",
-  "/operations/news": "Quản lý tin tức",
-  "/blockchain": "Blockchain Explorer",
-  "/analytics/statistics": "Thống kê số liệu",
-  "/analytics/ai-forecast": "Dự báo & AI",
-  "/settings": "Cài đặt hệ thống",
+interface BreadcrumbItem {
+  parent?: { title: string; path?: string };
+  title: string;
+}
+
+const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
+  "/": { title: "Tổng quan" },
+  "/dashboard": { title: "Tổng quan" },
+  "/properties/pending": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/pending" },
+    title: "Chờ duyệt",
+  },
+  "/properties/approved": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/pending" },
+    title: "Đã duyệt",
+  },
+  "/properties/rejected": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/pending" },
+    title: "Từ chối",
+  },
+  "/users/admins": {
+    parent: { title: "Quản lý tài khoản", path: "/users/admins" },
+    title: "Quản trị viên",
+  },
+  "/users/members": {
+    parent: { title: "Quản lý tài khoản", path: "/users/admins" },
+    title: "Người dùng hệ thống",
+  },
+  "/operations/complaints": {
+    parent: { title: "Vận hành & Hỗ trợ", path: "/operations/complaints" },
+    title: "Xử lý khiếu nại",
+  },
+  "/operations/news": {
+    parent: { title: "Vận hành & Hỗ trợ", path: "/operations/complaints" },
+    title: "Quản lý tin tức",
+  },
+  "/blockchain": {
+    title: "Blockchain Explorer",
+  },
+  "/analytics/statistics": {
+    parent: { title: "Báo cáo & Phân tích", path: "/analytics/statistics" },
+    title: "Thống kê số liệu",
+  },
+  "/analytics/ai-forecast": {
+    parent: { title: "Báo cáo & Phân tích", path: "/analytics/statistics" },
+    title: "Dự báo & AI",
+  },
+  "/settings": {
+    title: "Cài đặt",
+  },
 };
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
-  const currentTitle = ROUTE_NAMES[location.pathname] || "Bảng điều khiển";
+  const currentBreadcrumb = BREADCRUMB_MAP[location.pathname] || {
+    title: "Tổng quan",
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex transition-colors">
@@ -49,16 +87,31 @@ export default function AdminLayout() {
         {/* Page Content Container with Breadcrumb below Header */}
         <div className="flex-1 p-6 lg:p-8 bg-slate-50/50 dark:bg-background overflow-x-hidden space-y-4">
           {/* Dynamic Breadcrumbs */}
-          <nav className="flex items-center gap-2 text-xs font-semibold text-muted-foreground select-none">
-            <Link
-              to="/"
-              className="flex items-center gap-1.5 hover:text-primary transition-colors"
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span>Ứng dụng</span>
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
-            <span className="text-foreground font-bold">{currentTitle}</span>
+          <nav className="flex items-center gap-2 text-xs font-semibold select-none">
+            {currentBreadcrumb.parent ? (
+              <>
+                {currentBreadcrumb.parent.path ? (
+                  <Link
+                    to={currentBreadcrumb.parent.path}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {currentBreadcrumb.parent.title}
+                  </Link>
+                ) : (
+                  <span className="text-muted-foreground">
+                    {currentBreadcrumb.parent.title}
+                  </span>
+                )}
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+                <span className="text-foreground font-bold">
+                  {currentBreadcrumb.title}
+                </span>
+              </>
+            ) : (
+              <span className="text-foreground font-bold">
+                {currentBreadcrumb.title}
+              </span>
+            )}
           </nav>
 
           {/* Page Outlet */}

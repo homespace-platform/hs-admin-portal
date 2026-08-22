@@ -51,8 +51,8 @@ const MENU_ITEMS: MenuItem[] = [
     title: "Quản lý tài khoản",
     icon: Users,
     children: [
-      { title: "Người dùng hệ thống", path: "/users/members", icon: UserCheck },
       { title: "Quản trị viên", path: "/users/admins", icon: ShieldCheck },
+      { title: "Người dùng hệ thống", path: "/users/members", icon: UserCheck },
     ],
   },
   {
@@ -105,9 +105,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed top-0 left-0 z-40 h-screen bg-card border-r border-border flex flex-col transition-all duration-300 select-none ${
-        collapsed ? "w-20" : "w-64"
-      }`}
+      className={`fixed top-0 left-0 z-40 h-screen bg-card border-r border-border flex flex-col transition-all duration-300 select-none ${collapsed ? "w-20" : "w-64"
+        }`}
     >
       {/* 1. Brand Logo Header - Horizontal logo image only */}
       <div className="h-20 px-4 border-b border-border/80 flex items-center justify-center shrink-0">
@@ -140,11 +139,10 @@ export default function Sidebar({ collapsed }: SidebarProps) {
               <Link
                 key={item.title}
                 to={item.path || "#"}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                  isActive
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${isActive
                     ? "bg-primary/15 text-primary font-bold shadow-2xs"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
-                } ${collapsed ? "justify-center px-0" : ""}`}
+                  } ${collapsed ? "justify-center px-0" : ""}`}
                 title={collapsed ? item.title : undefined}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-primary" : ""}`} />
@@ -162,27 +160,24 @@ export default function Sidebar({ collapsed }: SidebarProps) {
               <button
                 type="button"
                 onClick={() => toggleGroup(item.title)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
-                  hasActiveChild
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${hasActiveChild
                     ? "text-primary font-bold bg-primary/5"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
-                } ${collapsed ? "justify-center px-0" : ""}`}
+                  } ${collapsed ? "justify-center px-0" : ""}`}
                 title={collapsed ? item.title : undefined}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Icon
-                    className={`w-4 h-4 shrink-0 ${
-                      hasActiveChild ? "text-primary" : ""
-                    }`}
+                    className={`w-4 h-4 shrink-0 ${hasActiveChild ? "text-primary" : ""
+                      }`}
                   />
                   {!collapsed && <span className="truncate">{item.title}</span>}
                 </div>
 
                 {!collapsed && (
                   <ChevronDown
-                    className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                      }`}
                   />
                 )}
               </button>
@@ -196,16 +191,14 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                       <Link
                         key={sub.path}
                         to={sub.path}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${
-                          isSubActive
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${isSubActive
                             ? "text-primary font-bold bg-primary/10"
                             : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                        }`}
+                          }`}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isSubActive ? "bg-primary" : "bg-muted-foreground/40"
-                          }`}
+                          className={`w-1.5 h-1.5 rounded-full ${isSubActive ? "bg-primary" : "bg-muted-foreground/40"
+                            }`}
                         />
                         <span className="truncate">{sub.title}</span>
                       </Link>

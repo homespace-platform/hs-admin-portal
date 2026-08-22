@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import axios from "axios";
 import {
   Users,
   UserCheck,
   UserX,
+  UserPlus,
   Search,
   RefreshCw,
   Eye,
@@ -16,6 +18,7 @@ import {
   Calendar,
   X,
   LoaderCircle,
+  Check,
 } from "lucide-react";
 import {
   Table,
@@ -34,8 +37,9 @@ import {
   getAdminUsers,
   setAdminUserActive,
   getAdminUserById,
+  createAdminUser,
 } from "@/services/admin-user.service";
-import type { AdminUser } from "@/types/user.type";
+import type { AdminUser, CreateAdminUserRequest } from "@/types/user.type";
 import { toast } from "sonner";
 
 export default function UsersPage() {
@@ -56,6 +60,17 @@ export default function UsersPage() {
 
   // User action lock/unlock loading state
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // Create user modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createFirstName, setCreateFirstName] = useState("");
+  const [createLastName, setCreateLastName] = useState("");
+  const [createUsername, setCreateUsername] = useState("");
+  const [createEmail, setCreateEmail] = useState("");
+  const [createPhone, setCreatePhone] = useState("");
+  const [createEnabled, setCreateEnabled] = useState(true);
+  const [createSendInvitation, setCreateSendInvitation] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
 
   // Fetch users from API
   const fetchUsers = async () => {
@@ -113,6 +128,53 @@ export default function UsersPage() {
       toast.error(`Không thể ${actionText} tài khoản. Vui lòng thử lại!`);
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  // Handle create user submit
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createUsername.trim() || !createEmail.trim()) {
+      toast.error("Vui lòng điền đầy đủ tên đăng nhập và email.");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const payload: CreateAdminUserRequest = {
+        username: createUsername.trim(),
+        email: createEmail.trim(),
+        firstName: createFirstName.trim(),
+        lastName: createLastName.trim(),
+        phone: createPhone.trim() || null,
+        enabled: createEnabled,
+        sendInvitation: createSendInvitation,
+      };
+
+      await createAdminUser(payload);
+      toast.success(`Tạo người dùng @${createUsername.trim()} thành công!`);
+
+      // Reset create form
+      setCreateFirstName("");
+      setCreateLastName("");
+      setCreateUsername("");
+      setCreateEmail("");
+      setCreatePhone("");
+      setCreateEnabled(true);
+      setCreateSendInvitation(true);
+      setIsCreateModalOpen(false);
+
+      // Refresh list
+      fetchUsers();
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : error instanceof Error
+          ? error.message
+          : "Không thể tạo người dùng mới.";
+      toast.error(message);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -223,7 +285,7 @@ export default function UsersPage() {
           />
         </div>
 
-        {/* Filters and Refresh Button */}
+        {/* Filters, Create Button and Refresh Button */}
         <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
           {/* Status Filter */}
           <select
@@ -258,6 +320,17 @@ export default function UsersPage() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-primary" : ""}`} />
             <span className="hidden sm:inline">Làm mới</span>
+          </Button>
+
+          {/* Create User Button */}
+          <Button
+            variant="default"
+            size="default"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 shadow-md shadow-primary/20 cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Tạo người dùng</span>
           </Button>
         </div>
       </div>
@@ -353,9 +426,8 @@ export default function UsersPage() {
                             sizeClassName="w-10 h-10 text-sm"
                           />
                           <span
-                            className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card ${
-                              user.active ? "bg-emerald-500" : "bg-destructive"
-                            }`}
+                            className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card ${user.active ? "bg-emerald-500" : "bg-destructive"
+                              }`}
                           />
                         </div>
 
@@ -517,7 +589,160 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* 5. User Details Modal Popup */}
+      {/* 5. Create User Modal Popup */}
+      {isCreateModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm select-none"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-5 animate-in fade-in-50 zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Tạo người dùng mới</h3>
+                  <p className="text-xs text-muted-foreground">Thêm tài khoản người dùng trực tiếp vào hệ thống</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Create User Form */}
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* First Name */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-foreground">Tên</label>
+                  <Input
+                    type="text"
+                    placeholder="Minh"
+                    value={createFirstName}
+                    onChange={(e) => setCreateFirstName(e.target.value)}
+                    className="h-10 rounded-xl text-xs sm:text-sm bg-muted/40"
+                  />
+                </div>
+
+                {/* Last Name */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-foreground">Họ</label>
+                  <Input
+                    type="text"
+                    placeholder="Nguyen"
+                    value={createLastName}
+                    onChange={(e) => setCreateLastName(e.target.value)}
+                    className="h-10 rounded-xl text-xs sm:text-sm bg-muted/40"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Username */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-foreground">
+                    Tên đăng nhập <span className="text-destructive">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    required
+                    placeholder="nvminh1602"
+                    value={createUsername}
+                    onChange={(e) => setCreateUsername(e.target.value)}
+                    className="h-10 rounded-xl text-xs sm:text-sm bg-muted/40"
+                  />
+                </div>
+
+                {/* Phone */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-foreground">Số điện thoại</label>
+                  <Input
+                    type="tel"
+                    placeholder="0388800723"
+                    value={createPhone}
+                    onChange={(e) => setCreatePhone(e.target.value)}
+                    className="h-10 rounded-xl text-xs sm:text-sm bg-muted/40"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-foreground">
+                  Email <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  type="email"
+                  required
+                  placeholder="nvminh1602@gmail.com"
+                  value={createEmail}
+                  onChange={(e) => setCreateEmail(e.target.value)}
+                  className="h-10 rounded-xl text-xs sm:text-sm bg-muted/40"
+                />
+              </div>
+
+              {/* Switches / Checkboxes */}
+              <div className="space-y-2.5 pt-1">
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={createEnabled}
+                    onChange={(e) => setCreateEnabled(e.target.checked)}
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                  <span className="text-xs font-medium text-foreground">Kích hoạt tài khoản ngay (Enabled)</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={createSendInvitation}
+                    onChange={(e) => setCreateSendInvitation(e.target.checked)}
+                    className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  />
+                  <span className="text-xs font-medium text-foreground">Gửi email thông báo mời tham gia (Send Invitation)</span>
+                </label>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  disabled={isCreating}
+                  className="rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isCreating}
+                  className="rounded-xl text-xs font-bold gap-1.5 cursor-pointer bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/20"
+                >
+                  {isCreating ? (
+                    <LoaderCircle className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  <span>{isCreating ? "Đang tạo..." : "Xác nhận tạo"}</span>
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. User Details Modal Popup */}
       {selectedUserId && selectedUser && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm select-none"
@@ -590,9 +815,8 @@ export default function UsersPage() {
                   <div className="p-3 rounded-xl bg-muted/40 border border-border">
                     <span className="text-muted-foreground block text-[10px] font-bold uppercase">Trạng thái</span>
                     <span
-                      className={`font-bold mt-0.5 block ${
-                        selectedUser.active ? "text-emerald-500" : "text-destructive"
-                      }`}
+                      className={`font-bold mt-0.5 block ${selectedUser.active ? "text-emerald-500" : "text-destructive"
+                        }`}
                     >
                       {selectedUser.active ? "Đang hoạt động" : "Đã khóa"}
                     </span>

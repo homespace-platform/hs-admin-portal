@@ -22,6 +22,16 @@ export type AdminUser = UserProfile & {
   updatedBy?: string | null;
 };
 
+export type CreateAdminUserRequest = {
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  enabled?: boolean;
+  sendInvitation?: boolean;
+};
+
 export type UpdateUserProfileRequest = {
   username: string;
   email: string;

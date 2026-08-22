@@ -108,8 +108,8 @@ function ProfileContent({
       const message = axios.isAxiosError(requestError)
         ? requestError.response?.data?.message
         : requestError instanceof Error
-        ? requestError.message
-        : "Không thể cập nhật thông tin cá nhân.";
+          ? requestError.message
+          : "Không thể cập nhật thông tin cá nhân.";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -149,8 +149,8 @@ function ProfileContent({
       const message = axios.isAxiosError(requestError)
         ? requestError.response?.data?.message
         : requestError instanceof Error
-        ? requestError.message
-        : "Không thể cập nhật ảnh đại diện.";
+          ? requestError.message
+          : "Không thể cập nhật ảnh đại diện.";
       toast.error(message);
       throw new Error(message);
     } finally {
@@ -244,7 +244,7 @@ function ProfileContent({
             inputMode="tel"
           />
           <TextField
-            label="Email liên hệ"
+            label="Email"
             value={email}
             onChange={setEmail}
             type="email"
@@ -323,9 +323,9 @@ function formatInstant(value?: string | null) {
   return Number.isNaN(date.getTime())
     ? value
     : new Intl.DateTimeFormat("vi-VN", {
-        dateStyle: "medium",
-        timeStyle: "medium",
-      }).format(date);
+      dateStyle: "medium",
+      timeStyle: "medium",
+    }).format(date);
 }
 
 function getLatestAdultBirthDate() {
@@ -378,9 +378,8 @@ function TextField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={Boolean(error)}
-        className={`w-full h-10 px-3.5 bg-muted/50 focus:bg-background rounded-xl border text-xs sm:text-sm text-foreground outline-none transition-all ${
-          error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
-        }`}
+        className={`w-full h-10 px-3.5 bg-muted/50 focus:bg-background rounded-xl border text-xs sm:text-sm text-foreground outline-none transition-all ${error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
+          }`}
       />
       {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
     </div>

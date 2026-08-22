@@ -1,6 +1,6 @@
 import axiosClient from "@/lib/axios-client";
 import type { ApiResponse, PageResponse } from "@/types/api.type";
-import type { AdminUser } from "@/types/user.type";
+import type { AdminUser, CreateAdminUserRequest } from "@/types/user.type";
 
 const pendingListRequests = new Map<string, Promise<PageResponse<AdminUser>>>();
 
@@ -30,6 +30,14 @@ export function getAdminUsers(page = 1, size = 10): Promise<PageResponse<AdminUs
 export async function getAdminUserById(userId: string): Promise<AdminUser> {
   const { data } = await axiosClient.get<ApiResponse<AdminUser>>(
     `/api/v1/admin/users/${userId}`,
+  );
+  return data.result;
+}
+
+export async function createAdminUser(request: CreateAdminUserRequest): Promise<AdminUser> {
+  const { data } = await axiosClient.post<ApiResponse<AdminUser>>(
+    "/api/v1/admin/users",
+    request,
   );
   return data.result;
 }

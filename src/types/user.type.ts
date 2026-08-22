@@ -17,6 +17,11 @@ export type UserProfile = {
   updatedAt?: string | null;
 };
 
+export type AdminUser = UserProfile & {
+  createdBy?: string | null;
+  updatedBy?: string | null;
+};
+
 export type UpdateUserProfileRequest = {
   username: string;
   email: string;

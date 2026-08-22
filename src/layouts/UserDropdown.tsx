@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/useAuth";
+import UserAvatar from "@/components/common/UserAvatar";
 import {
   LayoutGrid,
   ShieldCheck,
@@ -41,7 +42,6 @@ export default function UserDropdown() {
   }, [isOpen]);
 
   const displayName = username || fullName || "Admin";
-  const initialLetter = (displayName.charAt(0) || "A").toUpperCase();
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -56,17 +56,11 @@ export default function UserDropdown() {
       >
         {/* Avatar with status indicator */}
         <div className="relative">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-xs shadow-xs">
-              {initialLetter}
-            </div>
-          )}
+          <UserAvatar
+            src={avatarUrl}
+            name={displayName}
+            sizeClassName="w-8 h-8 text-xs"
+          />
           {/* Active online green dot */}
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-verified border-2 border-card rounded-full" />
         </div>

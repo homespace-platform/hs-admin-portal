@@ -5,19 +5,22 @@ import {
   Lock,
   Paintbrush,
   Bell,
+  MessageSquare,
 } from "lucide-react";
 import ProfileSection from "./sections/ProfileSection";
 import AppearanceSection from "./sections/AppearanceSection";
 import AccountSecuritySection from "./sections/AccountSecuritySection";
 import PrivacySection from "./sections/PrivacySection";
 import NotificationsSection from "./sections/NotificationsSection";
+import MessagesSection from "./sections/MessagesSection";
 
 export type SettingsTabId =
   | "profile"
   | "appearance"
   | "account-security"
   | "privacy"
-  | "notifications";
+  | "notifications"
+  | "messages";
 
 interface SettingsContentProps {
   initialTab?: SettingsTabId;
@@ -34,17 +37,17 @@ export default function SettingsContent({
     { id: "account-security", label: "Tài khoản và bảo mật", icon: Shield },
     { id: "privacy", label: "Quyền riêng tư", icon: Lock },
     { id: "notifications", label: "Thông báo", icon: Bell },
+    { id: "messages", label: "Tin nhắn", icon: MessageSquare },
   ];
 
   return (
     <div className="flex flex-col md:flex-row w-full bg-card rounded-3xl overflow-hidden border border-border shadow-2xs">
-      {/* Left Column: Settings Sidebar */}
+      {/* Left Column: Settings Sidebar (Zalo / Client Style) */}
       <aside className="w-full md:w-64 lg:w-72 bg-muted/20 border-r border-border p-4 flex flex-col shrink-0 select-none">
         <div className="px-3 py-2 mb-2">
           <h2 className="font-heading font-extrabold text-lg text-foreground tracking-tight">
             Cài đặt
           </h2>
-          <p className="text-xs text-muted-foreground">Tùy chỉnh hệ thống & cá nhân</p>
         </div>
 
         <nav className="space-y-1 overflow-y-auto no-scrollbar flex-1">
@@ -91,6 +94,9 @@ export default function SettingsContent({
 
         {/* 5. Thông báo */}
         {activeTab === "notifications" && <NotificationsSection />}
+
+        {/* 6. Tin nhắn */}
+        {activeTab === "messages" && <MessagesSection />}
       </main>
     </div>
   );

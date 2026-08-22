@@ -1,44 +1,91 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Check, LoaderCircle } from "lucide-react";
+import { Camera, Check, LoaderCircle } from "lucide-react";
 import userService from "@/services/user.service";
+import storageService from "@/services/storage.service";
+import AvatarCropModal from "@/components/avatar/AvatarCropModal";
 import { fetchCurrentUser } from "@/features/user/userSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import type { UpdateUserProfileRequest } from "@/types/user.type";
+import type { UpdateUserProfileRequest, UserProfile } from "@/types/user.type";
 import { toast } from "sonner";
+
+const AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024; // 20 MB
 
 export default function ProfileSection() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.user.profile);
   const userId = useAppSelector((state) => state.auth.userId);
   const status = useAppSelector((state) => state.user.status);
+  const loadError = useAppSelector((state) => state.user.error);
 
-  const [firstName, setFirstName] = useState(profile?.firstName || "");
-  const [lastName, setLastName] = useState(profile?.lastName || "");
-  const [email, setEmail] = useState(profile?.email || "");
-  const [phone, setPhone] = useState(profile?.phone || "");
-  const [dob, setDob] = useState(profile?.dob || "");
+  if (status === "loading" && !profile) {
+    return (
+      <div className="flex min-h-72 items-center justify-center text-sm text-muted-foreground">
+        <LoaderCircle className="mr-2 h-5 w-5 animate-spin text-primary" />
+        Đang tải thông tin cá nhân...
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-semibold text-destructive">
+        {loadError || "Không có dữ liệu người dùng."}
+      </div>
+    );
+  }
+
+  return <ProfileContent key={profile.updatedAt ?? profile.id} profile={profile} userId={userId} dispatch={dispatch} />;
+}
+
+function ProfileContent({
+  profile,
+  userId,
+  dispatch,
+}: {
+  profile: UserProfile;
+  userId: string | null;
+  dispatch: ReturnType<typeof useAppDispatch>;
+}) {
+  const [firstName, setFirstName] = useState(profile.firstName || "");
+  const [lastName, setLastName] = useState(profile.lastName || "");
+  const [username, setUsername] = useState(profile.username || "");
+  const [phone, setPhone] = useState(profile.phone || "");
+  const [email, setEmail] = useState(profile.email || "");
+  const [dob, setDob] = useState(profile.dob || "");
   const [gender, setGender] = useState<"FEMALE" | "MALE" | "OTHER" | "">(
-    (profile?.gender as "FEMALE" | "MALE" | "OTHER") || "MALE",
+    (profile.gender as "FEMALE" | "MALE" | "OTHER") || "",
   );
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarSource, setAvatarSource] = useState<{
+    url: string;
+    fileName: string;
+  } | null>(null);
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim() || profile.username || "Người dùng";
 
   useEffect(() => {
-    if (profile) {
-      setFirstName(profile.firstName || "");
-      setLastName(profile.lastName || "");
-      setEmail(profile.email || "");
-      setPhone(profile.phone || "");
-      setDob(profile.dob || "");
-      setGender((profile.gender as "FEMALE" | "MALE" | "OTHER") || "MALE");
-    }
-  }, [profile]);
+    return () => {
+      if (avatarSource) URL.revokeObjectURL(avatarSource.url);
+    };
+  }, [avatarSource]);
 
-  const fullName = [firstName, lastName].filter(Boolean).join(" ") || profile?.username || "Admin";
+  const isDirty =
+    firstName !== (profile.firstName || "") ||
+    lastName !== (profile.lastName || "") ||
+    phone !== (profile.phone || "") ||
+    email !== (profile.email || "") ||
+    dob !== (profile.dob || "") ||
+    gender !== ((profile.gender as "FEMALE" | "MALE" | "OTHER") || "");
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile) return;
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -56,199 +103,286 @@ export default function ProfileSection() {
       if (userId) {
         await dispatch(fetchCurrentUser({ userId, force: true })).unwrap();
       }
-      toast.success("Cập nhật thông tin quản trị thành công!");
-    } catch (err) {
-      const message = axios.isAxiosError(err)
-        ? err.response?.data?.message
-        : err instanceof Error
-        ? err.message
-        : "Không thể cập nhật hồ sơ.";
+      toast.success("Cập nhật thông tin cá nhân thành công!");
+    } catch (requestError) {
+      const message = axios.isAxiosError(requestError)
+        ? requestError.response?.data?.message
+        : requestError instanceof Error
+        ? requestError.message
+        : "Không thể cập nhật thông tin cá nhân.";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (status === "loading" && !profile) {
-    return (
-      <div className="flex min-h-72 items-center justify-center text-xs sm:text-sm text-muted-foreground">
-        <LoaderCircle className="mr-2 h-5 w-5 animate-spin text-primary" />
-        Đang tải thông tin cá nhân...
-      </div>
-    );
-  }
+  const handleAvatarSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || uploadingAvatar) return;
+
+    if (!AVATAR_TYPES.has(file.type)) {
+      toast.error("Ảnh đại diện chỉ hỗ trợ JPG, PNG hoặc WebP.");
+      return;
+    }
+    if (file.size > MAX_SOURCE_IMAGE_SIZE) {
+      toast.error("Ảnh gốc không được vượt quá 20 MB.");
+      return;
+    }
+
+    setAvatarSource({
+      url: URL.createObjectURL(file),
+      fileName: file.name,
+    });
+  };
+
+  const handleCroppedAvatar = async (file: File) => {
+    setUploadingAvatar(true);
+    try {
+      const targetUserId = userId || profile.id;
+      const storageId = await storageService.uploadUserAvatar(file, targetUserId);
+      await userService.updateAvatar({ storageId });
+      await dispatch(fetchCurrentUser({ userId: targetUserId, force: true })).unwrap();
+      toast.success("Cập nhật ảnh đại diện thành công!");
+      setAvatarSource(null);
+    } catch (requestError) {
+      const message = axios.isAxiosError(requestError)
+        ? requestError.response?.data?.message
+        : requestError instanceof Error
+        ? requestError.message
+        : "Không thể cập nhật ảnh đại diện.";
+      toast.error(message);
+      throw new Error(message);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const closeAvatarCrop = () => {
+    if (uploadingAvatar) return;
+    setAvatarSource(null);
+  };
 
   return (
-    <div className="space-y-6 max-w-2xl animate-in fade-in-50 duration-200">
-      {/* 1. Header Profile Banner Card */}
-      <div className="bg-card rounded-3xl border border-border p-5 flex items-center gap-4 shadow-2xs">
+    <div className="space-y-6 max-w-xl animate-in fade-in-50 duration-200">
+      {avatarSource && (
+        <AvatarCropModal
+          imageUrl={avatarSource.url}
+          originalFileName={avatarSource.fileName}
+          onCancel={closeAvatarCrop}
+          onConfirm={handleCroppedAvatar}
+        />
+      )}
+
+      {/* 1. Header Profile Box */}
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4 shadow-2xs">
         <div className="relative">
-          <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground font-extrabold text-2xl flex items-center justify-center shadow-md border-2 border-card overflow-hidden">
-            {profile?.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={fullName}
-                className="w-full h-full object-cover"
-              />
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleAvatarSelected}
+          />
+          {profile?.avatarUrl ? (
+            <img
+              src={profile.avatarUrl}
+              alt={fullName}
+              className="h-16 w-16 rounded-full object-cover shadow-md sm:h-18 sm:w-18"
+            />
+          ) : (
+            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-primary text-primary-foreground font-extrabold text-2xl flex items-center justify-center shadow-md">
+              {fullName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => avatarInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="absolute bottom-0 right-0 p-1.5 rounded-full bg-card border border-border text-foreground hover:text-primary shadow-xs transition-colors cursor-pointer"
+            title="Thay đổi ảnh đại diện"
+          >
+            {uploadingAvatar ? (
+              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <span>{fullName.charAt(0).toUpperCase()}</span>
+              <Camera className="w-3.5 h-3.5" />
             )}
-          </div>
-          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-verified border-2 border-card rounded-full" />
+          </button>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-bold text-foreground truncate">{fullName}</h3>
-          <p className="text-xs text-muted-foreground truncate">{profile?.email || "admin@homespace.vn"}</p>
-          <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-extrabold uppercase border border-primary/20">
-            {profile?.role || "Quản trị viên"}
-          </span>
+        <div className="flex-1 text-center sm:text-left space-y-1">
+          <h3 className="font-bold text-base text-foreground">{fullName}</h3>
+          <p className="text-xs text-muted-foreground">{email}</p>
         </div>
       </div>
 
-      {/* 2. Profile Details Form */}
-      <form onSubmit={handleSave} className="bg-card rounded-3xl border border-border p-6 space-y-4 shadow-2xs">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Tên */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-foreground">
-              Tên
-            </label>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Nhập tên"
-              className="w-full h-10 px-3.5 bg-muted/40 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all"
-            />
-          </div>
+      {/* 2. Profile Edit Form */}
+      <form
+        onSubmit={handleSaveProfile}
+        className="bg-card rounded-2xl border border-border p-4 sm:p-5 space-y-4 shadow-2xs"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <TextField
+            label="Tên"
+            value={firstName}
+            onChange={setFirstName}
+          />
+          <TextField
+            label="Họ"
+            value={lastName}
+            onChange={setLastName}
+          />
+          <TextField
+            label="Tên đăng nhập"
+            value={username}
+            onChange={setUsername}
+          />
+          <TextField
+            label="Số điện thoại"
+            value={phone}
+            onChange={setPhone}
+            inputMode="tel"
+          />
+          <TextField
+            label="Email liên hệ"
+            value={email}
+            onChange={setEmail}
+            type="email"
+          />
+          <TextField
+            label="Ngày sinh"
+            value={dob}
+            onChange={setDob}
+            type="date"
+            max={getLatestAdultBirthDate()}
+          />
 
-          {/* Họ */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-foreground">
-              Họ
-            </label>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Nhập họ"
-              className="w-full h-10 px-3.5 bg-muted/40 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Tên đăng nhập (Read-only) */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-foreground">
-              Tên đăng nhập
-            </label>
-            <input
-              type="text"
-              value={profile?.username || ""}
-              disabled
-              className="w-full h-10 px-3.5 bg-muted/70 rounded-xl border border-border text-xs sm:text-sm text-muted-foreground outline-none cursor-not-allowed"
-            />
-          </div>
-
-          {/* Số điện thoại */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-foreground">
-              Số điện thoại
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="0353999798"
-              className="w-full h-10 px-3.5 bg-muted/40 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all"
-            />
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="block text-[11px] font-semibold text-foreground">Giới tính</label>
+            <select
+              value={gender}
+              onChange={(e) => setGender((e.target.value || "") as "FEMALE" | "MALE" | "OTHER" | "")}
+              className="w-full h-10 px-3.5 bg-muted/50 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all cursor-pointer"
+            >
+              <option value="">Chưa cập nhật</option>
+              <option value="MALE">Nam</option>
+              <option value="FEMALE">Nữ</option>
+              <option value="OTHER">Khác</option>
+            </select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Email liên hệ */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-foreground">
-              Email liên hệ
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@homespace.vn"
-              className="w-full h-10 px-3.5 bg-muted/40 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all"
-            />
-          </div>
-
-          {/* Ngày sinh */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-foreground">
-              Ngày sinh
-            </label>
-            <input
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              className="w-full h-10 px-3.5 bg-muted/40 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all"
-            />
-          </div>
-        </div>
-
-        {/* Giới tính */}
-        <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-foreground">
-            Giới tính
-          </label>
-          <select
-            value={gender}
-            onChange={(e) => setGender(e.target.value as "FEMALE" | "MALE" | "OTHER")}
-            className="w-full h-10 px-3.5 bg-muted/40 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all cursor-pointer"
-          >
-            <option value="MALE">Nam</option>
-            <option value="FEMALE">Nữ</option>
-            <option value="OTHER">Khác</option>
-          </select>
-        </div>
-
-        {/* Submit Button */}
         <div className="pt-2 flex justify-end">
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-md shadow-primary/25 cursor-pointer disabled:opacity-50"
+            disabled={!isDirty || isSubmitting}
+            className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-md shadow-primary/20 transition-all cursor-pointer flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? (
               <LoaderCircle className="w-4 h-4 animate-spin" />
             ) : (
               <Check className="w-4 h-4" />
             )}
-            <span>Cập nhật thông tin</span>
+            <span>{isSubmitting ? "Đang cập nhật..." : "Cập nhật thông tin"}</span>
           </button>
         </div>
       </form>
 
-      {/* 3. System Info Section */}
-      <div className="bg-card rounded-3xl border border-border p-6 space-y-3 shadow-2xs">
-        <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
-          Thông tin hệ thống
-        </h4>
-        <div className="space-y-2 text-xs text-muted-foreground">
-          <div className="flex justify-between py-1 border-b border-border/60">
-            <span>Mã định danh User ID:</span>
-            <span className="font-mono text-foreground font-semibold">{profile?.id || userId || "N/A"}</span>
-          </div>
-          <div className="flex justify-between py-1 border-b border-border/60">
-            <span>Vai trò quản trị:</span>
-            <span className="text-primary font-bold">{profile?.role || "Quản trị viên"}</span>
-          </div>
-          <div className="flex justify-between py-1">
-            <span>Trạng thái tài khoản:</span>
-            <span className="text-emerald-500 font-bold">Đã kích hoạt</span>
-          </div>
+      {/* 3. System Info Cards Grid */}
+      <section className="bg-card rounded-2xl border border-border p-4 sm:p-5 space-y-4 shadow-2xs">
+        <div>
+          <h4 className="text-sm font-bold text-foreground">Thông tin hệ thống</h4>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Dữ liệu chỉ đọc được đồng bộ từ tài khoản backend.
+          </p>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ReadOnlyField label="USER ID" value={profile.id} mono />
+          <ReadOnlyField label="ROLE ID" value={profile.roleId || "Chưa được gán"} mono />
+          <ReadOnlyField label="VAI TRÒ" value={formatRole(profile.role)} />
+          <ReadOnlyField
+            label="ONBOARDING"
+            value={profile.onBoarded ? "Đã hoàn thành" : "Chưa hoàn thành"}
+          />
+          <ReadOnlyField
+            label="TRẠNG THÁI TÀI KHOẢN"
+            value={profile.active ? "Đang hoạt động" : "Đã vô hiệu hóa"}
+          />
+          <ReadOnlyField label="NGÀY TẠO" value={formatInstant(profile.createdAt)} />
+          <ReadOnlyField label="CẬP NHẬT GẦN NHẤT" value={formatInstant(profile.updatedAt)} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function formatInstant(value?: string | null) {
+  if (!value) return "Chưa có dữ liệu";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat("vi-VN", {
+        dateStyle: "medium",
+        timeStyle: "medium",
+      }).format(date);
+}
+
+function getLatestAdultBirthDate() {
+  const today = new Date();
+  const year = today.getFullYear() - 18;
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatRole(role?: string | null) {
+  if (role === "USER") return "Người dùng";
+  if (role === "ADMIN") return "Quản trị viên";
+  return role || "Chưa được gán";
+}
+
+function ReadOnlyField({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="rounded-xl border border-border bg-muted/40 px-3.5 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`mt-1 break-all text-xs text-foreground ${mono ? "font-mono" : "font-medium"}`}>{value}</p>
+    </div>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  inputMode,
+  max,
+  error,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: React.HTMLInputTypeAttribute;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  max?: string;
+  error?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-[11px] font-semibold text-foreground">{label}</label>
+      <input
+        type={type}
+        inputMode={inputMode}
+        max={max}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        aria-invalid={Boolean(error)}
+        className={`w-full h-10 px-3.5 bg-muted/50 focus:bg-background rounded-xl border text-xs sm:text-sm text-foreground outline-none transition-all ${
+          error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
+        }`}
+      />
+      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
     </div>
   );
 }

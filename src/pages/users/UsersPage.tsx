@@ -18,6 +18,7 @@ import {
   Calendar,
   X,
   LoaderCircle,
+  Send,
   Check,
 } from "lucide-react";
 import {
@@ -38,6 +39,7 @@ import {
   setAdminUserActive,
   getAdminUserById,
   createAdminUser,
+  resendAdminUserInvitation,
 } from "@/services/admin-user.service";
 import type { AdminUser, CreateAdminUserRequest } from "@/types/user.type";
 import { toast } from "sonner";
@@ -60,6 +62,7 @@ export default function UsersPage() {
 
   // User action lock/unlock loading state
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   // Create user modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -128,6 +131,28 @@ export default function UsersPage() {
       toast.error(`Không thể ${actionText} tài khoản. Vui lòng thử lại!`);
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleResendInvitation = async (user: AdminUser) => {
+    if (!user.active) {
+      toast.error("Hãy mở khóa tài khoản trước khi gửi lại lời mời.");
+      return;
+    }
+
+    setResendingId(user.id);
+    try {
+      await resendAdminUserInvitation(user.id);
+      toast.success(`Đã gửi lại email kích hoạt tới ${user.email}. Link mới có hiệu lực 12 giờ.`);
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : error instanceof Error
+          ? error.message
+          : "Không thể gửi lại lời mời.";
+      toast.error(message);
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -859,6 +884,19 @@ export default function UsersPage() {
 
                 {/* Modal Footer Actions */}
                 <div className="flex items-center justify-end gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleResendInvitation(selectedUser)}
+                    disabled={resendingId === selectedUser.id || !selectedUser.active}
+                    className="rounded-xl text-xs font-bold cursor-pointer"
+                  >
+                    {resendingId === selectedUser.id ? (
+                      <LoaderCircle className="w-4 h-4 animate-spin mr-1.5" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-1.5" />
+                    )}
+                    <span>Gửi lại lời mời</span>
+                  </Button>
                   <Button
                     variant={selectedUser.active ? "destructive" : "default"}
                     onClick={() => handleToggleActive(selectedUser)}

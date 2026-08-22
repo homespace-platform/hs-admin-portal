@@ -47,3 +47,7 @@ export async function setAdminUserActive(userId: string, active: boolean): Promi
     `/api/v1/admin/users/${userId}/${active ? "enable" : "disable"}`,
   );
 }
+
+export async function resendAdminUserInvitation(userId: string): Promise<void> {
+  await axiosClient.post(`/api/v1/admin/users/${userId}/resend-invitation`);
+}

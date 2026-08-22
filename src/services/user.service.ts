@@ -1,6 +1,8 @@
 import axiosClient from "@/lib/axios-client";
 import type { ApiResponse } from "@/types/api.type";
 import type {
+  OnboardingRequest,
+  SetInitialPasswordRequest,
   UpdatePasswordRequest,
   UpdateUserAvatarRequest,
   UpdateUserProfileRequest,
@@ -32,6 +34,27 @@ const userService = {
   async updateAvatar(request: UpdateUserAvatarRequest): Promise<void> {
     await axiosClient.put<ApiResponse<null>>(
       "/api/v1/users/me/avatar",
+      request,
+    );
+  },
+
+  async completeOnboarding(request: OnboardingRequest): Promise<void> {
+    await axiosClient.put<ApiResponse<null>>(
+      "/api/v1/users/me/onboarding",
+      request,
+    );
+  },
+
+  async hasPassword(): Promise<boolean> {
+    const response = await axiosClient.get<ApiResponse<boolean>>(
+      "/api/v1/users/me/password/status",
+    );
+    return response.data.result;
+  },
+
+  async setInitialPassword(request: SetInitialPasswordRequest): Promise<void> {
+    await axiosClient.post<ApiResponse<null>>(
+      "/api/v1/users/me/password/initial",
       request,
     );
   },

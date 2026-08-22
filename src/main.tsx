@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import App from "./App.tsx";
 import StoreProvider from "./store/StoreProvider.tsx";
 import AuthInitializer from "./features/auth/AuthInitializer.tsx";
+import OnboardingInitializer from "./features/onboarding/OnboardingInitializer.tsx";
 import { ThemeProvider } from "./components/theme/ThemeProvider.tsx";
 import "./index.css";
 
@@ -17,6 +18,7 @@ root.render(
         <AuthInitializer>
           <BrowserRouter>
             <App />
+            <OnboardingInitializer />
             <Toaster position="top-right" richColors closeButton />
           </BrowserRouter>
         </AuthInitializer>

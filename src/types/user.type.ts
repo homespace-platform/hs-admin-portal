@@ -35,3 +35,15 @@ export type UpdatePasswordRequest = {
 export type UpdateUserAvatarRequest = {
   storageId: string;
 };
+
+export type OnboardingRequest = {
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  dob: string | null;
+  gender: "FEMALE" | "MALE" | "OTHER" | null;
+};
+
+export type SetInitialPasswordRequest = {
+  newPassword: string;
+};

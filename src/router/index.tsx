@@ -8,7 +8,7 @@ import DashboardPage from "@/pages/dashboard/DashboardPage";
 import PendingPropertiesPage from "@/pages/properties/PendingPropertiesPage";
 import ApprovedPropertiesPage from "@/pages/properties/ApprovedPropertiesPage";
 import RejectedPropertiesPage from "@/pages/properties/RejectedPropertiesPage";
-import MembersPage from "@/pages/users/MembersPage";
+import UsersPage from "@/pages/users/UsersPage";
 import RolesPage from "@/pages/users/RolesPage";
 import PermissionsPage from "@/pages/users/PermissionsPage";
 import ComplaintsPage from "@/pages/operations/ComplaintsPage";
@@ -39,8 +39,8 @@ export default function AppRouter() {
 
         {/* User Management */}
         <Route path="users">
-          <Route index element={<Navigate to="/users/members" replace />} />
-          <Route path="members" element={<MembersPage />} />
+          <Route index element={<UsersPage />} />
+          <Route path="members" element={<Navigate to="/users" replace />} />
           <Route path="roles" element={<RolesPage />} />
           <Route path="permissions" element={<PermissionsPage />} />
         </Route>

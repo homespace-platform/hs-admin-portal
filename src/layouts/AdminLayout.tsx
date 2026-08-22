@@ -24,16 +24,20 @@ const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
     parent: { title: "Quản lý tin đăng", path: "/properties/pending" },
     title: "Từ chối",
   },
+  "/users": {
+    parent: { title: "Quản lý tài khoản", path: "/users" },
+    title: "Người dùng hệ thống",
+  },
   "/users/members": {
-    parent: { title: "Quản lý tài khoản", path: "/users/members" },
+    parent: { title: "Quản lý tài khoản", path: "/users" },
     title: "Người dùng hệ thống",
   },
   "/users/roles": {
-    parent: { title: "Quản lý tài khoản", path: "/users/members" },
+    parent: { title: "Quản lý tài khoản", path: "/users" },
     title: "Vai trò",
   },
   "/users/permissions": {
-    parent: { title: "Quản lý tài khoản", path: "/users/members" },
+    parent: { title: "Quản lý tài khoản", path: "/users" },
     title: "Quyền hạn",
   },
   "/operations/complaints": {

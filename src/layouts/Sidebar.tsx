@@ -43,7 +43,7 @@ const MENU_ITEMS: MenuItem[] = [
     title: "Quản lý tài khoản",
     icon: Users,
     children: [
-      { title: "Người dùng hệ thống", path: "/users/members", icon: UserCheck },
+      { title: "Người dùng hệ thống", path: "/users", icon: UserCheck },
       { title: "Vai trò", path: "/users/roles", icon: ShieldCheck },
       { title: "Quyền hạn", path: "/users/permissions", icon: KeyRound },
     ],

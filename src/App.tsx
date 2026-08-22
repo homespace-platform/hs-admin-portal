@@ -1,21 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import AuthGuard from "@/components/custom/AuthGuard";
-import ProfilePage from "@/pages/profile";
+import AppRouter from "./router";
 
-function App() {
-  return (
-    <Routes>
-      <Route
-        path="/profile"
-        element={
-          <AuthGuard>
-            <ProfilePage />
-          </AuthGuard>
-        }
-      />
-      <Route path="*" element={<Navigate to="/profile" replace />} />
-    </Routes>
-  );
+export default function App() {
+  return <AppRouter />;
 }
-
-export default App;

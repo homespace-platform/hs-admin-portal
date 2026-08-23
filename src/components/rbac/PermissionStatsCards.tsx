@@ -1,5 +1,3 @@
-import { KeyRound, ShieldCheck, Users, FileText } from "lucide-react";
-
 interface PermissionStatsCardsProps {
   totalElements: number;
   userScopeCount: number;
@@ -14,49 +12,58 @@ export default function PermissionStatsCards({
   otherCount,
 }: PermissionStatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-card rounded-2xl border border-border p-4 sm:p-5 flex items-center gap-4 shadow-2xs">
-        <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-          <KeyRound className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Tổng quyền hạn
-          </p>
-          <p className="text-2xl font-extrabold text-foreground mt-0.5">{totalElements}</p>
-        </div>
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      {/* Left: Heading & Description */}
+      <div className="space-y-1">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          Quyền hạn hệ thống
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
+          Quản lý danh mục quyền hạn (Permissions), định nghĩa phạm vi truy cập API và chức năng bảo mật RBAC trên toàn hệ thống HomeSpace.
+        </p>
       </div>
-      <div className="bg-card rounded-2xl border border-border p-4 sm:p-5 flex items-center gap-4 shadow-2xs">
-        <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-          <Users className="w-6 h-6" />
+
+      {/* Right: Compact Minimalist Stats (No bulky icons, clean typography) */}
+      <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap lg:justify-end shrink-0">
+        {/* Total Permissions */}
+        <div className="bg-card px-3 py-1.5 rounded-xl border border-border flex items-baseline gap-2 shadow-2xs">
+          <span className="text-xs font-medium text-muted-foreground">Tổng quyền:</span>
+          <span className="text-sm sm:text-base font-extrabold text-foreground font-mono">
+            {totalElements}
+          </span>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Nhóm User
-          </p>
-          <p className="text-2xl font-extrabold text-foreground mt-0.5">{userScopeCount}</p>
+
+        {/* User Scope */}
+        <div className="bg-card px-3 py-1.5 rounded-xl border border-border flex items-baseline gap-2 shadow-2xs">
+          <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+            Nhóm User:
+          </span>
+          <span className="text-sm sm:text-base font-extrabold text-blue-600 dark:text-blue-400 font-mono">
+            {userScopeCount}
+          </span>
         </div>
-      </div>
-      <div className="bg-card rounded-2xl border border-border p-4 sm:p-5 flex items-center gap-4 shadow-2xs">
-        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-          <ShieldCheck className="w-6 h-6" />
+
+        {/* Role Scope */}
+        <div className="bg-card px-3 py-1.5 rounded-xl border border-border flex items-baseline gap-2 shadow-2xs">
+          <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+            Nhóm Role:
+          </span>
+          <span className="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+            {roleScopeCount}
+          </span>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Nhóm Role
-          </p>
-          <p className="text-2xl font-extrabold text-foreground mt-0.5">{roleScopeCount}</p>
-        </div>
-      </div>
-      <div className="bg-card rounded-2xl border border-border p-4 sm:p-5 flex items-center gap-4 shadow-2xs">
-        <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-          <FileText className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Nhóm khác
-          </p>
-          <p className="text-2xl font-extrabold text-foreground mt-0.5">{otherCount}</p>
+
+        {/* Other Scope */}
+        <div className="bg-card px-3 py-1.5 rounded-xl border border-border flex items-baseline gap-2 shadow-2xs">
+          <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+            Khác:
+          </span>
+          <span className="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-400 font-mono">
+            {otherCount}
+          </span>
         </div>
       </div>
     </div>

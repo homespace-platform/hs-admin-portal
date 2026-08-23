@@ -12,15 +12,15 @@ export function useAuth() {
   const user = useAppSelector((state) => state.user);
 
   const login = useCallback(
-    () => void keycloak.login({ redirectUri: window.location.origin + "/" }),
+    () => void keycloak.login({ redirectUri: window.location.origin + "/dashboard" }),
     [],
   );
 
   const logout = useCallback(() => {
     dispatch(sessionCleared());
     dispatch(userCleared());
-    navigate("/login");
-    void keycloak.logout({ redirectUri: window.location.origin + "/login" });
+    navigate("/");
+    void keycloak.logout({ redirectUri: window.location.origin });
   }, [dispatch, navigate]);
 
   const fullName =

@@ -36,7 +36,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   {
     title: "Tổng quan",
-    path: "/",
+    path: "/dashboard",
     icon: LayoutDashboard,
   },
   {
@@ -112,7 +112,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     >
       {/* 1. Brand Logo Header - Horizontal logo image only */}
       <div className="h-20 px-4 border-b border-border/80 flex items-center justify-center shrink-0">
-        <Link to="/" className="flex items-center justify-center group focus:outline-none">
+        <Link to="/dashboard" className="flex items-center justify-center group focus:outline-none">
           {collapsed ? (
             <img
               src="/logo/homespace-logo-favicon-removebg.png"

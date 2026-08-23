@@ -8,13 +8,14 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || "/";
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname;
+  const target = from && from !== "/" ? from : "/dashboard";
 
   useEffect(() => {
     if (authenticated) {
-      navigate(from, { replace: true });
+      navigate(target, { replace: true });
     }
-  }, [authenticated, navigate, from]);
+  }, [authenticated, navigate, target]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 select-none">

@@ -22,20 +22,20 @@ import NotFoundPage from "@/pages/not-found/NotFoundPage";
 export default function AppRouter() {
   return (
     <Routes>
-      {/* Public Login Route */}
-      <Route path="/login" element={<LoginPage />} />
+      {/* Public Login Route -> http://localhost:5000 */}
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/login" element={<Navigate to="/" replace />} />
 
       {/* Protected Admin Routes */}
       <Route
-        path="/"
         element={
           <AuthGuard>
             <AdminLayout />
           </AuthGuard>
         }
       >
-        <Route index element={<DashboardPage />} />
-        <Route path="dashboard" element={<Navigate to="/" replace />} />
+        {/* Dashboard Route -> http://localhost:5000/dashboard */}
+        <Route path="/dashboard" element={<DashboardPage />} />
 
         {/* User Management */}
         <Route path="users">

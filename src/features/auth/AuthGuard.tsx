@@ -20,7 +20,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const handleForceLogout = useCallback(() => {
     dispatch(sessionCleared());
     dispatch(userCleared());
-    keycloak.logout({ redirectUri: window.location.origin + "/login" });
+    keycloak.logout({ redirectUri: window.location.origin });
   }, [dispatch]);
 
   // 1. Session initialization
@@ -33,9 +33,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // 2. Not authenticated -> Redirect to /login
+  // 2. Not authenticated -> Redirect to / (Login page at http://localhost:5000)
   if (!authenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // 3. Waiting for user profile & role verification

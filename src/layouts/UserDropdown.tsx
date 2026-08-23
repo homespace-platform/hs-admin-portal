@@ -105,7 +105,7 @@ export default function UserDropdown() {
           <nav className="space-y-0.5">
             {/* Tổng quan */}
             <Link
-              to="/"
+              to="/dashboard"
               onClick={() => setIsOpen(false)}
               className="flex items-center justify-between px-3 py-2.5 rounded-xl text-foreground hover:bg-muted transition-colors group"
             >

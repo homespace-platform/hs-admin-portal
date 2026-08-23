@@ -17,9 +17,17 @@ export type UserProfile = {
   updatedAt?: string | null;
 };
 
+export type UserAuditActor = {
+  id: string;
+  fullName?: string | null;
+  username?: string | null;
+  phone?: string | null;
+  email?: string | null;
+};
+
 export type AdminUser = UserProfile & {
-  createdBy?: string | null;
-  updatedBy?: string | null;
+  createdBy?: UserAuditActor | string | null;
+  updatedBy?: UserAuditActor | string | null;
 };
 
 export type CreateAdminUserRequest = {
@@ -30,6 +38,16 @@ export type CreateAdminUserRequest = {
   phone?: string | null;
   enabled?: boolean;
   sendInvitation?: boolean;
+};
+
+export type UpdateAdminUserRequest = {
+  username?: string | null;
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  dob?: string | null;
+  gender?: "FEMALE" | "MALE" | "OTHER" | null;
 };
 
 export type UpdateUserProfileRequest = {

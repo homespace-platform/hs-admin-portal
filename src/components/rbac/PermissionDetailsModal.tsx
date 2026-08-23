@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { updateAdminPermission } from "@/services/admin-rbac.service";
 import type { AdminPermission } from "@/types/rbac.type";
 import { toast } from "sonner";
-import { formatDate, formatAuditActor, getApiErrorMessage } from "@/components/users/userUtils";
+import { formatDate, formatAuditActor, getApiErrorMessage } from "@/utils/userUtils";
 
 interface PermissionDetailsModalProps {
   isOpen: boolean;

@@ -11,7 +11,7 @@ import RbacToolbar from "@/components/rbac/RbacToolbar";
 import RoleTable from "@/components/rbac/RoleTable";
 import UserPagination from "@/components/users/UserPagination";
 import RoleDetailsModal from "@/components/rbac/RoleDetailsModal";
-import { getApiErrorMessage } from "@/components/users/userUtils";
+import { getApiErrorMessage } from "@/utils/userUtils";
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<AdminRole[]>([]);

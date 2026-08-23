@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserAvatar from "@/components/common/UserAvatar";
 import type { AdminUser } from "@/types/user.type";
-import { formatRole, formatDate } from "./userUtils";
+import { formatRole, formatDate } from "../../utils/userUtils";
 
 interface UserTableProps {
   users: AdminUser[];

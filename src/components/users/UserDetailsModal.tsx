@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import {
   X,
   Pencil,
@@ -13,9 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UserAvatar from "@/components/common/UserAvatar";
 import { updateAdminUser } from "@/services/admin-user.service";
+import { getAllAdminRoles } from "@/services/admin-rbac.service";
 import type { AdminUser, UpdateAdminUserRequest, UserAuditActor } from "@/types/user.type";
+import type { AdminRole } from "@/types/rbac.type";
 import { toast } from "sonner";
-import { formatRole, formatGender, formatDate, parseAuditActor } from "./userUtils";
+import { formatRole, formatGender, formatDate, parseAuditActor, getApiErrorMessage } from "../../utils/userUtils";
+import { formatRoleLabel } from "@/components/rbac/rbacUtils";
 
 type EditFormState = {
   firstName: string;
@@ -25,6 +27,7 @@ type EditFormState = {
   phone: string;
   dob: string;
   gender: "" | "FEMALE" | "MALE" | "OTHER";
+  roleId: string;
 };
 
 const EMPTY_EDIT_FORM: EditFormState = {
@@ -35,6 +38,7 @@ const EMPTY_EDIT_FORM: EditFormState = {
   phone: "",
   dob: "",
   gender: "",
+  roleId: "",
 };
 
 interface UserDetailsModalProps {
@@ -67,6 +71,14 @@ export default function UserDetailsModal({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>(EMPTY_EDIT_FORM);
+  const [roles, setRoles] = useState<AdminRole[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    getAllAdminRoles()
+      .then(setRoles)
+      .catch(() => setRoles([]));
+  }, [isOpen]);
 
   useEffect(() => {
     if (isInitialEditing && selectedUser) {
@@ -83,6 +95,8 @@ export default function UserDetailsModal({
     [selectedUser.firstName, selectedUser.lastName].filter(Boolean).join(" ").trim() ||
     selectedUser.username;
 
+  const isSelf = Boolean(currentUserId && selectedUser.id === currentUserId);
+
   const startEditing = (user: AdminUser) => {
     setEditForm({
       firstName: user.firstName ?? "",
@@ -92,6 +106,7 @@ export default function UserDetailsModal({
       phone: user.phone ?? "",
       dob: user.dob ?? "",
       gender: (user.gender as EditFormState["gender"]) ?? "",
+      roleId: user.roleId ?? "",
     });
     setIsEditing(true);
   };
@@ -108,6 +123,7 @@ export default function UserDetailsModal({
         phone: editForm.phone.trim() || undefined,
         dob: editForm.dob || undefined,
         gender: editForm.gender || undefined,
+        ...(isSelf ? {} : { roleId: editForm.roleId || undefined }),
       };
 
       const updated = await updateAdminUser(selectedUser.id, payload);
@@ -115,12 +131,7 @@ export default function UserDetailsModal({
       setIsEditing(false);
       toast.success(`Đã cập nhật thông tin @${updated.username} thành công!`);
     } catch (error) {
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : error instanceof Error
-          ? error.message
-          : "Không thể cập nhật người dùng.";
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, "Không thể cập nhật người dùng."));
     } finally {
       setIsSaving(false);
     }
@@ -261,6 +272,28 @@ export default function UserDetailsModal({
                   <option value="OTHER">Khác</option>
                 </select>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-foreground">Vai trò</label>
+              <select
+                value={editForm.roleId}
+                disabled={isSelf}
+                onChange={(e) => setEditForm({ ...editForm, roleId: e.target.value })}
+                className="h-10 w-full px-3 rounded-xl border border-border bg-muted/40 text-xs sm:text-sm font-medium text-foreground outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="">Chọn vai trò</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {formatRoleLabel(role.name)}
+                  </option>
+                ))}
+              </select>
+              {isSelf ? (
+                <p className="text-[11px] text-amber-500 font-medium">
+                  Bạn không thể tự đổi vai trò của tài khoản đang đăng nhập.
+                </p>
+              ) : null}
             </div>
 
             <p className="text-[11px] text-muted-foreground">

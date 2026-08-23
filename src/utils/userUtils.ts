@@ -111,6 +111,9 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
     if (data?.code === 2017) {
       return "Bạn không thể khóa tài khoản đang đăng nhập.";
     }
+    if (data?.code === 2018) {
+      return "Bạn không thể tự đổi vai trò của tài khoản đang đăng nhập.";
+    }
     if (typeof data?.message === "string" && data.message.trim()) {
       return data.message;
     }

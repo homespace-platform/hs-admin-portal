@@ -16,7 +16,7 @@ import UserTable from "@/components/users/UserTable";
 import UserPagination from "@/components/users/UserPagination";
 import CreateUserModal from "@/components/users/CreateUserModal";
 import UserDetailsModal from "@/components/users/UserDetailsModal";
-import { getApiErrorMessage } from "@/components/users/userUtils";
+import { getApiErrorMessage } from "@/utils/userUtils";
 
 export default function UsersPage() {
   const { profile } = useAuth();

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { updateAdminRole } from "@/services/admin-rbac.service";
 import type { AdminPermission, AdminRole } from "@/types/rbac.type";
 import { toast } from "sonner";
-import { formatDate, formatAuditActor, getApiErrorMessage } from "@/components/users/userUtils";
+import { formatDate, formatAuditActor, getApiErrorMessage } from "@/utils/userUtils";
 import { formatRoleLabel } from "./rbacUtils";
 
 interface RoleDetailsModalProps {

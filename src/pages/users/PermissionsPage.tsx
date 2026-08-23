@@ -10,7 +10,7 @@ import RbacToolbar from "@/components/rbac/RbacToolbar";
 import PermissionTable from "@/components/rbac/PermissionTable";
 import UserPagination from "@/components/users/UserPagination";
 import PermissionDetailsModal from "@/components/rbac/PermissionDetailsModal";
-import { getApiErrorMessage } from "@/components/users/userUtils";
+import { getApiErrorMessage } from "@/utils/userUtils";
 
 export default function PermissionsPage() {
   const [permissions, setPermissions] = useState<AdminPermission[]>([]);

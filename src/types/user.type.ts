@@ -48,6 +48,7 @@ export type UpdateAdminUserRequest = {
   phone?: string | null;
   dob?: string | null;
   gender?: "FEMALE" | "MALE" | "OTHER" | null;
+  roleId?: string | null;
 };
 
 export type UpdateUserProfileRequest = {

@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AdminRole } from "@/types/rbac.type";
-import { formatDate } from "@/components/users/userUtils";
+import { formatDate } from "@/utils/userUtils";
 import { formatRoleLabel } from "./rbacUtils";
 
 interface RoleTableProps {

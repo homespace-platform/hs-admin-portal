@@ -7,6 +7,7 @@ interface UserPaginationProps {
   totalPages: number;
   totalElements: number;
   loading: boolean;
+  itemLabel?: string;
   onPageChange: (newPage: number) => void;
   onSizeChange: (newSize: number) => void;
 }
@@ -17,6 +18,7 @@ export default function UserPagination({
   totalPages,
   totalElements,
   loading,
+  itemLabel = "người dùng",
   onPageChange,
   onSizeChange,
 }: UserPaginationProps) {
@@ -33,7 +35,7 @@ export default function UserPagination({
           {Math.min(page * size, totalElements)}
         </span>{" "}
         trên tổng số{" "}
-        <span className="font-bold text-foreground">{totalElements}</span> người dùng
+        <span className="font-bold text-foreground">{totalElements}</span> {itemLabel}
       </div>
 
       {/* Page Switcher */}

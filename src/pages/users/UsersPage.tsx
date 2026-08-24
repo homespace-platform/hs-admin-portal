@@ -150,7 +150,7 @@ export default function UsersPage() {
       const message = axios.isAxiosError(error)
         ? error.response?.data?.message
         : error instanceof Error
-        ? error.message
+          ? error.message
         : "Không thể gửi lại lời mời.";
       toast.error(message);
     } finally {
@@ -233,8 +233,8 @@ export default function UsersPage() {
           onPageChange={setPage}
           onSizeChange={(newSize) => {
             setSize(newSize);
-            setPage(1);
-          }}
+                  setPage(1);
+                }}
         />
       </div>
 
@@ -256,8 +256,8 @@ export default function UsersPage() {
         resendingId={resendingId}
         onClose={() => {
           setIsDetailsModalOpen(false);
-          setSelectedUser(null);
-        }}
+                  setSelectedUser(null);
+                }}
         onUserUpdated={handleUserUpdated}
         onToggleActive={handleToggleActive}
         onResendInvitation={handleResendInvitation}

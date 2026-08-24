@@ -3,6 +3,7 @@ import axios from "axios";
 import { Camera, Check, LoaderCircle } from "lucide-react";
 import userService from "@/services/user.service";
 import storageService from "@/services/storage.service";
+import AddressEditor from "@/components/settings/AddressEditor";
 import AvatarCropModal from "@/components/avatar/AvatarCropModal";
 import { fetchCurrentUser } from "@/features/user/userSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -164,7 +165,7 @@ function ProfileContent({
   };
 
   return (
-    <div className="space-y-6 max-w-xl animate-in fade-in-50 duration-200">
+    <div className="space-y-6 max-w-2xl animate-in fade-in-50 duration-200">
       {avatarSource && (
         <AvatarCropModal
           imageUrl={avatarSource.url}
@@ -287,6 +288,13 @@ function ProfileContent({
           </button>
         </div>
       </form>
+
+      <AddressEditor
+        initialAddress={profile.address}
+        onSaved={async () => {
+          await dispatch(fetchCurrentUser({ userId: userId ?? profile.id, force: true })).unwrap();
+        }}
+      />
 
       {/* 3. System Info Cards Grid */}
       <section className="bg-card rounded-2xl border border-border p-4 sm:p-5 space-y-4 shadow-2xs">

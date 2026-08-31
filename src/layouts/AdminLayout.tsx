@@ -11,9 +11,14 @@ interface BreadcrumbItem {
 
 const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
   "/": { title: "Tổng quan" },
-  "/dashboard": { title: "Tổng quan" },
+  "/dashboard": {
+    title: "Tổng quan",
+  },
+  "/properties": {
+    title: "Quản lý tin đăng",
+  },
   "/properties/all": {
-    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    parent: { title: "Quản lý tin đăng", path: "/properties" },
     title: "Tất cả tin đăng",
   },
   "/properties/pending": {

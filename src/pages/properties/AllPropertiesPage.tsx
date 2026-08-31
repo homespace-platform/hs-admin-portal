@@ -5,7 +5,7 @@ export default function AllPropertiesPage() {
     <ListingManagementPage
       key="ALL"
       initialStatus={undefined}
-      pageTitle="Tất cả tin đăng"
+      pageTitle="Quản lý tin đăng"
       pageSubtitle="Toàn bộ danh sách bài đăng cho thuê trên toàn hệ thống"
     />
   );

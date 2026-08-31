@@ -21,9 +21,21 @@ import { getApiErrorMessage } from "@/utils/apiError";
 
 interface ListingManagementPageProps {
   initialStatus?: ListingStatus;
-  pageTitle: string;
-  pageSubtitle: string;
+  pageTitle?: string;
+  pageSubtitle?: string;
 }
+
+const STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
+  { value: "ALL", label: "Tất cả trạng thái" },
+  { value: "PENDING_REVIEW", label: "Chờ duyệt" },
+  { value: "PUBLISHED", label: "Đang hiển thị" },
+  { value: "RENTED", label: "Đã cho thuê" },
+  { value: "EXPIRED", label: "Hết hạn" },
+  { value: "REJECTED", label: "Bị từ chối" },
+  { value: "HIDDEN", label: "Đã ẩn" },
+  { value: "VIOLATION", label: "Vi phạm" },
+  { value: "DRAFT", label: "Tin nháp" },
+];
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "submittedAt,desc", label: "Mới gửi duyệt nhất" },
@@ -35,8 +47,8 @@ const SORT_OPTIONS: { value: string; label: string }[] = [
 
 export default function ListingManagementPage({
   initialStatus,
-  pageTitle,
-  pageSubtitle,
+  pageTitle = "Quản lý tin đăng",
+  pageSubtitle = "Toàn bộ danh sách bài đăng cho thuê trên toàn hệ thống",
 }: ListingManagementPageProps) {
   const navigate = useNavigate();
 
@@ -46,6 +58,7 @@ export default function ListingManagementPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Filters
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus || "ALL");
   const [keywordInput, setKeywordInput] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [sortOption, setSortOption] = useState("submittedAt,desc");
@@ -87,11 +100,14 @@ export default function ListingManagementPage({
   useEffect(() => {
     let active = true;
 
+    const statusParam =
+      statusFilter !== "ALL" ? (statusFilter as ListingStatus) : undefined;
+
     adminListingService
       .findAll({
         page,
         size,
-        status: initialStatus,
+        status: statusParam,
         keyword: debouncedKeyword || undefined,
         fromDate: fromDate || undefined,
         toDate: toDate || undefined,
@@ -122,7 +138,7 @@ export default function ListingManagementPage({
   }, [
     page,
     size,
-    initialStatus,
+    statusFilter,
     debouncedKeyword,
     fromDate,
     toDate,
@@ -192,9 +208,9 @@ export default function ListingManagementPage({
 
       {/* Filter Toolbar */}
       <div className="rounded-2xl border border-border bg-card p-4 shadow-2xs space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* Keyword Search */}
-          <div className="relative flex-1">
+          <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
@@ -214,8 +230,27 @@ export default function ListingManagementPage({
             )}
           </div>
 
+          {/* Status Filter Dropdown */}
+          <div>
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+                setLoading(true);
+              }}
+              className="w-full h-10 rounded-xl bg-muted/40 px-3 text-xs font-medium text-foreground border border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            >
+              {STATUS_FILTER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Sort Selector */}
-          <div className="sm:w-60">
+          <div>
             <select
               value={sortOption}
               onChange={(e) => {
@@ -223,7 +258,7 @@ export default function ListingManagementPage({
                 setPage(1);
                 setLoading(true);
               }}
-              className="w-full h-10 rounded-xl bg-muted/40 px-3 text-xs font-medium text-foreground border border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full h-10 rounded-xl bg-muted/40 px-3 text-xs font-medium text-foreground border border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -266,12 +301,13 @@ export default function ListingManagementPage({
               className="h-8 rounded-lg bg-muted/40 px-2.5 text-xs text-foreground border border-border focus:border-primary focus:outline-none"
             />
           </div>
-          {(fromDate || toDate || debouncedKeyword || sortOption !== "submittedAt,desc") && (
+          {(fromDate || toDate || debouncedKeyword || statusFilter !== "ALL" || sortOption !== "submittedAt,desc") && (
             <button
               type="button"
               onClick={() => {
                 setKeywordInput("");
                 setDebouncedKeyword("");
+                setStatusFilter("ALL");
                 setFromDate("");
                 setToDate("");
                 setSortOption("submittedAt,desc");

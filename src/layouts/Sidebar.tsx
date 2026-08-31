@@ -9,15 +9,6 @@ import {
   TrendingUp,
   Settings,
   ChevronDown,
-  FileCheck2,
-  Clock,
-  Ban,
-  Layers,
-  FileText,
-  CheckCircle2,
-  Hourglass,
-  EyeOff,
-  ExternalLink,
   ShieldCheck,
   UserCheck,
   KeyRound,
@@ -56,19 +47,8 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
     title: "Quản lý tin đăng",
+    path: "/properties",
     icon: Building2,
-    children: [
-      { title: "Tất cả tin đăng", path: "/properties/all", icon: Layers },
-      { title: "Chờ duyệt", path: "/properties/pending", icon: Clock },
-      { title: "Đã duyệt", path: "/properties/approved", icon: FileCheck2 },
-      { title: "Tin nháp", path: "/properties/draft", icon: FileText },
-      { title: "Đã cho thuê", path: "/properties/rented", icon: CheckCircle2 },
-      { title: "Cho thuê ngoài hệ thống", path: "/properties/rented-externally", icon: ExternalLink },
-      { title: "Hết hạn", path: "/properties/expired", icon: Hourglass },
-      { title: "Từ chối", path: "/properties/rejected", icon: Ban },
-      { title: "Đã ẩn", path: "/properties/hidden", icon: EyeOff },
-      { title: "Vi phạm", path: "/properties/violation", icon: AlertTriangle },
-    ],
   },
   {
     title: "Vận hành & Hỗ trợ",
@@ -103,7 +83,6 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
   // Keep track of open submenu groups
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    "Quản lý tin đăng": true,
     "Quản lý tài khoản": true,
     "Vận hành & Hỗ trợ": false,
     "Báo cáo & Phân tích": false,

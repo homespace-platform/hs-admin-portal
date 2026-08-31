@@ -55,7 +55,7 @@ export default function AppRouter() {
 
         {/* Property Management */}
         <Route path="properties">
-          <Route index element={<Navigate to="/properties/all" replace />} />
+          <Route index element={<AllPropertiesPage />} />
           <Route path="all" element={<AllPropertiesPage />} />
           <Route path="pending" element={<PendingPropertiesPage />} />
           <Route path="approved" element={<ApprovedPropertiesPage />} />

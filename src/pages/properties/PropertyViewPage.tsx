@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
+import ListingStatusHistoryTimeline from "@/components/properties/ListingStatusHistoryTimeline";
+import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
 import type {
@@ -165,6 +167,7 @@ function SectionCard({
 export default function PropertyViewPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { userId } = useAuth();
   const listingId = searchParams.get("id");
 
   const [data, setData] = useState<AdminListingDetailResponse | null>(null);
@@ -953,29 +956,11 @@ export default function PropertyViewPage() {
               <span>Cập nhật: <span className="font-semibold text-foreground">{formatDate(listing.updatedAt)}</span></span>
             </div>
 
-            {statusHistory.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Chưa có bản ghi lịch sử trạng thái.</p>
-            ) : (
-              <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-                {statusHistory.map((hist) => (
-                  <div key={hist.id} className="relative space-y-1.5 text-xs">
-                    <div className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-primary bg-background" />
-                    <div className="flex flex-wrap items-center gap-2">
-                      <ListingStatusBadge status={hist.toStatus} />
-                      <span className="text-[11px] text-muted-foreground">
-                        bởi <span className="font-semibold text-foreground">{hist.changedBy || hist.changedByType}</span> ({hist.changedByType})
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">• {formatDate(hist.createdAt)}</span>
-                    </div>
-                    {hist.reason && (
-                      <p className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl border border-border/60">
-                        &quot;{hist.reason}&quot;
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            <ListingStatusHistoryTimeline
+              history={statusHistory}
+              currentUserId={userId}
+              formatDate={formatDate}
+            />
           </div>
         </SectionCard>
       </div>

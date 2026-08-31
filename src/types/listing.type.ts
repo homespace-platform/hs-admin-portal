@@ -407,6 +407,7 @@ export type ListingStatusHistoryResponse = {
   toStatus: ListingStatus;
   reason: string | null;
   changedBy: string | null;
+  changedByDisplayName?: string | null;
   changedByType: ListingStatusActorType;
   createdAt: string;
 };

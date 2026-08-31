@@ -5,9 +5,16 @@ import AuthGuard from "@/features/auth/AuthGuard";
 // Pages
 import LoginPage from "@/pages/login/LoginPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
+import AllPropertiesPage from "@/pages/properties/AllPropertiesPage";
 import PendingPropertiesPage from "@/pages/properties/PendingPropertiesPage";
 import ApprovedPropertiesPage from "@/pages/properties/ApprovedPropertiesPage";
+import DraftPropertiesPage from "@/pages/properties/DraftPropertiesPage";
+import RentedPropertiesPage from "@/pages/properties/RentedPropertiesPage";
+import ExpiredPropertiesPage from "@/pages/properties/ExpiredPropertiesPage";
 import RejectedPropertiesPage from "@/pages/properties/RejectedPropertiesPage";
+import HiddenPropertiesPage from "@/pages/properties/HiddenPropertiesPage";
+import ViolationPropertiesPage from "@/pages/properties/ViolationPropertiesPage";
+import PropertyViewPage from "@/pages/properties/PropertyViewPage";
 import UsersPage from "@/pages/users/UsersPage";
 import RolesPage from "@/pages/users/RolesPage";
 import PermissionsPage from "@/pages/users/PermissionsPage";
@@ -47,10 +54,17 @@ export default function AppRouter() {
 
         {/* Property Management */}
         <Route path="properties">
-          <Route index element={<Navigate to="/properties/pending" replace />} />
+          <Route index element={<Navigate to="/properties/all" replace />} />
+          <Route path="all" element={<AllPropertiesPage />} />
           <Route path="pending" element={<PendingPropertiesPage />} />
           <Route path="approved" element={<ApprovedPropertiesPage />} />
+          <Route path="draft" element={<DraftPropertiesPage />} />
+          <Route path="rented" element={<RentedPropertiesPage />} />
+          <Route path="expired" element={<ExpiredPropertiesPage />} />
           <Route path="rejected" element={<RejectedPropertiesPage />} />
+          <Route path="hidden" element={<HiddenPropertiesPage />} />
+          <Route path="violation" element={<ViolationPropertiesPage />} />
+          <Route path="view" element={<PropertyViewPage />} />
         </Route>
 
         {/* Operations & Support */}

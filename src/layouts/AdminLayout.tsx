@@ -12,17 +12,45 @@ interface BreadcrumbItem {
 const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
   "/": { title: "Tổng quan" },
   "/dashboard": { title: "Tổng quan" },
+  "/properties/all": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Tất cả tin đăng",
+  },
   "/properties/pending": {
-    parent: { title: "Quản lý tin đăng", path: "/properties/pending" },
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
     title: "Chờ duyệt",
   },
   "/properties/approved": {
-    parent: { title: "Quản lý tin đăng", path: "/properties/pending" },
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
     title: "Đã duyệt",
   },
+  "/properties/draft": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Tin nháp",
+  },
+  "/properties/rented": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Đã cho thuê",
+  },
+  "/properties/expired": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Hết hạn",
+  },
   "/properties/rejected": {
-    parent: { title: "Quản lý tin đăng", path: "/properties/pending" },
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
     title: "Từ chối",
+  },
+  "/properties/hidden": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Đã ẩn",
+  },
+  "/properties/violation": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Vi phạm",
+  },
+  "/properties/view": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Chi tiết tin đăng",
   },
   "/users": {
     parent: { title: "Quản lý tài khoản", path: "/users" },

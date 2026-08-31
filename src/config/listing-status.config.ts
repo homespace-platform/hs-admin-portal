@@ -35,11 +35,19 @@ export const LISTING_STATUS_CONFIG: Record<ListingStatus, ListingStatusConfigIte
   },
   RENTED: {
     status: "RENTED",
-    label: "Đã cho thuê",
+    label: "Đã cho thuê qua HomeSpace",
     badgeClassName:
       "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border-blue-200 dark:border-blue-800",
     dotClassName: "bg-blue-500",
-    description: "Bất động sản đã có khách thuê",
+    description: "Tin đã có hợp đồng thuê hoàn tất trên HomeSpace",
+  },
+  RENTED_EXTERNALLY: {
+    status: "RENTED_EXTERNALLY",
+    label: "Cho thuê ngoài hệ thống",
+    badgeClassName:
+      "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300 border-violet-200 dark:border-violet-800",
+    dotClassName: "bg-violet-500",
+    description: "Chủ tin tự tìm được khách thuê bên ngoài HomeSpace",
   },
   EXPIRED: {
     status: "EXPIRED",

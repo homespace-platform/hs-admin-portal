@@ -10,6 +10,7 @@ import PendingPropertiesPage from "@/pages/properties/PendingPropertiesPage";
 import ApprovedPropertiesPage from "@/pages/properties/ApprovedPropertiesPage";
 import DraftPropertiesPage from "@/pages/properties/DraftPropertiesPage";
 import RentedPropertiesPage from "@/pages/properties/RentedPropertiesPage";
+import RentedExternallyPropertiesPage from "@/pages/properties/RentedExternallyPropertiesPage";
 import ExpiredPropertiesPage from "@/pages/properties/ExpiredPropertiesPage";
 import RejectedPropertiesPage from "@/pages/properties/RejectedPropertiesPage";
 import HiddenPropertiesPage from "@/pages/properties/HiddenPropertiesPage";
@@ -60,6 +61,7 @@ export default function AppRouter() {
           <Route path="approved" element={<ApprovedPropertiesPage />} />
           <Route path="draft" element={<DraftPropertiesPage />} />
           <Route path="rented" element={<RentedPropertiesPage />} />
+          <Route path="rented-externally" element={<RentedExternallyPropertiesPage />} />
           <Route path="expired" element={<ExpiredPropertiesPage />} />
           <Route path="rejected" element={<RejectedPropertiesPage />} />
           <Route path="hidden" element={<HiddenPropertiesPage />} />

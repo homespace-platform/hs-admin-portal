@@ -164,7 +164,7 @@ export default function ListingManagementPage({
   }, [page, totalPages]);
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
+    <div className="space-y-6 pb-28 animate-in fade-in-50 duration-200">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

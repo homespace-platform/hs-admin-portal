@@ -12,6 +12,8 @@ import {
   MapPin,
   Calendar,
   Phone,
+  ExternalLink,
+  Unlock,
 } from "lucide-react";
 import {
   Table,
@@ -312,9 +314,19 @@ export default function ListingTable({
                       </>
                     )}
 
-                    {/* Published Actions: Hide / Violation */}
+                    {/* Published Actions: Rented externally / Hide / Violation */}
                     {isPublished && (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => onOpenModeration(item, "RENTED_EXTERNALLY")}
+                          className="inline-flex h-8 items-center gap-1 rounded-lg border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-2 text-xs font-semibold text-violet-700 dark:text-violet-300 hover:bg-violet-100 transition-colors"
+                          title="Đánh dấu cho thuê ngoài hệ thống"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span>Thuê ngoài</span>
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => onOpenModeration(item, "HIDDEN")}
@@ -333,6 +345,54 @@ export default function ListingTable({
                         >
                           <AlertTriangle className="h-3.5 w-3.5" />
                           <span>Khóa</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Correct a mis-set rented state without a full re-review */}
+                    {item.status === "RENTED" && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenModeration(item, "RENTED_EXTERNALLY")}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-2 text-xs font-semibold text-violet-700 dark:text-violet-300 hover:bg-violet-100 transition-colors"
+                        title="Chuyển sang cho thuê ngoài hệ thống"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        <span>Thuê ngoài</span>
+                      </button>
+                    )}
+
+                    {item.status === "RENTED_EXTERNALLY" && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenModeration(item, "RENTED")}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-2 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors"
+                        title="Chuyển sang đã cho thuê qua HomeSpace"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        <span>Thuê nội bộ</span>
+                      </button>
+                    )}
+
+                    {item.status === "VIOLATION" && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onOpenModeration(item, "PENDING_REVIEW")}
+                          className="inline-flex h-8 items-center gap-1 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-2 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-colors"
+                          title="Mở khóa và chuyển chờ duyệt"
+                        >
+                          <Unlock className="h-3.5 w-3.5" />
+                          <span>Mở khóa</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onOpenModeration(item, "PUBLISHED")}
+                          className="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-2xs transition-all"
+                          title="Mở khóa và hiển thị lại ngay"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          <span>Hiển thị lại</span>
                         </button>
                       </>
                     )}

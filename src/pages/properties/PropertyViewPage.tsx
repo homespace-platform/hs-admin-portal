@@ -21,6 +21,8 @@ import {
   XCircle,
   EyeOff,
   RotateCcw,
+  ExternalLink,
+  Unlock,
 } from "lucide-react";
 import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
@@ -334,6 +336,14 @@ export default function PropertyViewPage() {
             <>
               <button
                 type="button"
+                onClick={() => setModerationTarget("RENTED_EXTERNALLY")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-3.5 py-2 text-xs font-bold text-violet-700 dark:text-violet-300 hover:bg-violet-100 transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Cho thuê ngoài hệ thống
+              </button>
+              <button
+                type="button"
                 onClick={() => setModerationTarget("HIDDEN")}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3.5 py-2 text-xs font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-colors"
               >
@@ -351,8 +361,56 @@ export default function PropertyViewPage() {
             </>
           )}
 
-          {/* Re-open if rejected or hidden */}
-          {(listing.status === "REJECTED" || listing.status === "HIDDEN") && (
+          {/* Switch between the two rented states without a full re-review */}
+          {listing.status === "RENTED" && (
+            <button
+              type="button"
+              onClick={() => setModerationTarget("RENTED_EXTERNALLY")}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-3.5 py-2 text-xs font-bold text-violet-700 dark:text-violet-300 hover:bg-violet-100 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Cho thuê ngoài hệ thống
+            </button>
+          )}
+
+          {listing.status === "RENTED_EXTERNALLY" && (
+            <button
+              type="button"
+              onClick={() => setModerationTarget("RENTED")}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-3.5 py-2 text-xs font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Đã cho thuê qua HomeSpace
+            </button>
+          )}
+
+          {listing.status === "VIOLATION" && (
+            <>
+              <button
+                type="button"
+                onClick={() => setModerationTarget("PENDING_REVIEW")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3.5 py-2 text-xs font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-colors"
+              >
+                <Unlock className="h-4 w-4" />
+                Mở khóa
+              </button>
+              <button
+                type="button"
+                onClick={() => setModerationTarget("PUBLISHED")}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition-all"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Hiển thị lại
+              </button>
+            </>
+          )}
+
+          {/* Re-open if rejected, hidden or already rented */}
+          {(listing.status === "REJECTED" ||
+            listing.status === "HIDDEN" ||
+            listing.status === "EXPIRED" ||
+            listing.status === "RENTED" ||
+            listing.status === "RENTED_EXTERNALLY") && (
             <button
               type="button"
               onClick={() => setModerationTarget("PENDING_REVIEW")}

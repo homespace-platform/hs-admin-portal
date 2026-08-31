@@ -32,6 +32,10 @@ const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
     parent: { title: "Quản lý tin đăng", path: "/properties/all" },
     title: "Đã cho thuê",
   },
+  "/properties/rented-externally": {
+    parent: { title: "Quản lý tin đăng", path: "/properties/all" },
+    title: "Cho thuê ngoài hệ thống",
+  },
   "/properties/expired": {
     parent: { title: "Quản lý tin đăng", path: "/properties/all" },
     title: "Hết hạn",

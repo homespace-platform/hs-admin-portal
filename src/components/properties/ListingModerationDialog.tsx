@@ -6,6 +6,8 @@ import {
   AlertTriangle,
   RotateCcw,
   LoaderCircle,
+  ExternalLink,
+  Unlock,
   X,
 } from "lucide-react";
 import type {
@@ -64,7 +66,61 @@ const DIALOG_TITLES: Record<
     btnClass: "bg-amber-600 hover:bg-amber-700 text-white",
     btnLabel: "Chuyển chờ duyệt",
   },
+  RENTED: {
+    title: "Đánh dấu đã cho thuê qua HomeSpace",
+    subtitle: "Bất động sản đã có khách thuê tìm được qua hệ thống. Tin sẽ được ẩn khỏi tìm kiếm.",
+    icon: <CheckCircle className="h-6 w-6 text-blue-500" />,
+    btnClass: "bg-blue-600 hover:bg-blue-700 text-white",
+    btnLabel: "Đánh dấu đã cho thuê",
+  },
+  RENTED_EXTERNALLY: {
+    title: "Đánh dấu cho thuê ngoài hệ thống",
+    subtitle:
+      "Dùng khi chủ tin tự tìm được khách thuê bên ngoài HomeSpace. Tin sẽ được ẩn khỏi tìm kiếm.",
+    icon: <ExternalLink className="h-6 w-6 text-violet-500" />,
+    btnClass: "bg-violet-600 hover:bg-violet-700 text-white",
+    btnLabel: "Đánh dấu thuê ngoài",
+  },
 };
+
+function getDialogMeta(
+  listing: AdminListingSummaryResponse | ListingDetailResponse,
+  targetStatus: ListingStatus,
+) {
+  const isUnlockingViolation = listing.status === "VIOLATION";
+
+  if (isUnlockingViolation && targetStatus === "PENDING_REVIEW") {
+    return {
+      title: "Mở khóa và chuyển chờ duyệt",
+      subtitle:
+        "Tin sẽ được mở khóa và đưa vào hàng chờ duyệt để kiểm tra lại trước khi hiển thị công khai.",
+      icon: <Unlock className="h-6 w-6 text-amber-500" />,
+      btnClass: "bg-amber-600 hover:bg-amber-700 text-white",
+      btnLabel: "Mở khóa",
+    };
+  }
+
+  if (isUnlockingViolation && targetStatus === "PUBLISHED") {
+    return {
+      title: "Mở khóa và hiển thị lại tin",
+      subtitle:
+        "Tin sẽ được mở khóa và công khai hiển thị ngay. Thời hạn hiển thị sẽ được làm mới.",
+      icon: <Unlock className="h-6 w-6 text-emerald-500" />,
+      btnClass: "bg-emerald-600 hover:bg-emerald-700 text-white",
+      btnLabel: "Mở khóa và hiển thị",
+    };
+  }
+
+  return (
+    DIALOG_TITLES[targetStatus] || {
+      title: `Thay đổi trạng thái sang ${getListingStatusConfig(targetStatus).label}`,
+      subtitle: "Xác nhận thay đổi trạng thái cho bài đăng này.",
+      icon: <AlertTriangle className="h-6 w-6 text-primary" />,
+      btnClass: "bg-primary hover:bg-primary/90 text-primary-foreground",
+      btnLabel: "Xác nhận",
+    }
+  );
+}
 
 export default function ListingModerationDialog({
   isOpen,
@@ -84,13 +140,7 @@ export default function ListingModerationDialog({
     targetStatus === "HIDDEN" ||
     targetStatus === "VIOLATION";
 
-  const dialogMeta = DIALOG_TITLES[targetStatus] || {
-    title: `Thay đổi trạng thái sang ${getListingStatusConfig(targetStatus).label}`,
-    subtitle: "Xác nhận thay đổi trạng thái cho bài đăng này.",
-    icon: <AlertTriangle className="h-6 w-6 text-primary" />,
-    btnClass: "bg-primary hover:bg-primary/90 text-primary-foreground",
-    btnLabel: "Xác nhận",
-  };
+  const dialogMeta = getDialogMeta(listing, targetStatus);
 
   function handleClose() {
     setReason("");
@@ -189,7 +239,9 @@ export default function ListingModerationDialog({
               placeholder={
                 isReasonRequired
                   ? "Ví dụ: Hình ảnh mờ, thông tin giá không đúng thực tế, hoặc nội dung vi phạm chính sách..."
-                  : "Ghi chú thêm nếu có..."
+                  : listing.status === "VIOLATION"
+                    ? "Ghi chú lý do mở khóa (không bắt buộc)..."
+                    : "Ghi chú thêm nếu có..."
               }
               maxLength={2000}
               className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"

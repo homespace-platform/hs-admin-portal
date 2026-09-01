@@ -11,11 +11,8 @@ import {
   CheckCircle2,
   User,
   Phone,
-  ChevronLeft,
-  ChevronRight,
   AlertTriangle,
   LoaderCircle,
-  Video,
   Info,
   CheckCircle,
   XCircle,
@@ -27,6 +24,7 @@ import {
 import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
 import ListingStatusHistoryTimeline from "@/components/properties/ListingStatusHistoryTimeline";
+import AdminMediaViewer from "@/components/properties/AdminMediaViewer";
 import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -175,7 +173,6 @@ export default function PropertyViewPage() {
   const [error, setError] = useState(
     !listingId ? "Không tìm thấy mã tin đăng trong đường dẫn." : ""
   );
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Moderation Dialog State
   const [moderationTarget, setModerationTarget] = useState<ListingStatus | null>(null);
@@ -191,7 +188,6 @@ export default function PropertyViewPage() {
         if (active) {
           setData(res);
           setError("");
-          setSelectedImageIndex(0);
           setLoading(false);
         }
       })
@@ -242,9 +238,6 @@ export default function PropertyViewPage() {
 
   const listing = data.listing;
   const statusHistory = data.statusHistory || [];
-  const images = listing.media?.filter((m) => m.mediaType === "IMAGE" && m.url) || [];
-  const videos = listing.media?.filter((m) => m.mediaType === "VIDEO" && m.url) || [];
-  const currentImage = images[selectedImageIndex] || images[0];
 
   const fullAddress =
     listing.address?.fullAddress ||
@@ -427,91 +420,10 @@ export default function PropertyViewPage() {
       </div>
 
       {/* Hero Overview & Media Gallery */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
         {/* Gallery column */}
-        <div className="lg:col-span-7 space-y-3">
-          <div className="relative aspect-16/10 w-full overflow-hidden rounded-2xl border border-border bg-muted/40 shadow-sm">
-            {currentImage?.url ? (
-              <img
-                src={currentImage.url}
-                alt={listing.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                <Building className="h-12 w-12 opacity-30" />
-              </div>
-            )}
-            {images.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
-                  }
-                  className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-md shadow-md text-foreground hover:bg-background transition-all"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-md shadow-md text-foreground hover:bg-background transition-all"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </>
-            )}
-            <div className="absolute bottom-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-white">
-              {selectedImageIndex + 1} / {images.length || 1} ảnh
-            </div>
-          </div>
-
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {images.map((img, idx) => (
-                <button
-                  key={img.id || idx}
-                  type="button"
-                  onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 transition-all cursor-pointer ${
-                    selectedImageIndex === idx
-                      ? "border-primary ring-2 ring-primary/20 scale-95"
-                      : "border-transparent opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={img.url || "/area/hcm-1.jpg"}
-                    alt={`Ảnh ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Videos if available */}
-          {videos.length > 0 && (
-            <div className="pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Video className="h-3.5 w-3.5 text-primary" />
-                <span>Video thực tế ({videos.length})</span>
-              </h4>
-              <div className="grid grid-cols-1 gap-2">
-                {videos.map((vid, idx) => (
-                  <video
-                    key={vid.id || idx}
-                    src={vid.url || undefined}
-                    controls
-                    className="w-full rounded-xl border border-border bg-black max-h-64 object-contain"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="lg:col-span-7">
+          <AdminMediaViewer media={listing.media || []} title={listing.title} />
         </div>
 
         {/* Quick summary & 4 KPI Cards */}

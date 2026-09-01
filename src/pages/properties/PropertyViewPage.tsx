@@ -25,6 +25,7 @@ import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
 import ListingStatusHistoryTimeline from "@/components/properties/ListingStatusHistoryTimeline";
 import AdminMediaViewer from "@/components/properties/AdminMediaViewer";
+import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -499,19 +500,24 @@ export default function PropertyViewPage() {
                 <span>Chủ bài đăng</span>
               </span>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                  {listing.owner?.displayName?.[0] || "U"}
-                </div>
+                <UserAvatar
+                  src={listing.owner?.avatarUrl}
+                  name={listing.owner?.displayName || "Chủ nhà"}
+                  sizeClassName="w-11 h-11 text-sm font-bold shadow-2xs"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-foreground truncate">
                     {listing.owner?.displayName || "Chủ nhà HomeSpace"}
                   </p>
                   <p className="text-[11px] text-muted-foreground truncate">ID: {listing.ownerId}</p>
                   {listing.owner?.phone && (
-                    <p className="text-xs text-primary font-semibold flex items-center gap-1 mt-0.5">
+                    <a
+                      href={`tel:${listing.owner.phone}`}
+                      className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 mt-0.5"
+                    >
                       <Phone className="h-3 w-3" />
                       <span>{listing.owner.phone}</span>
-                    </p>
+                    </a>
                   )}
                 </div>
               </div>

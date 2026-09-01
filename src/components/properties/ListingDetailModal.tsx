@@ -27,6 +27,7 @@ import type {
 import ListingStatusBadge from "./ListingStatusBadge";
 import ListingStatusHistoryTimeline from "./ListingStatusHistoryTimeline";
 import AdminMediaViewer from "./AdminMediaViewer";
+import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -247,9 +248,11 @@ export default function ListingDetailModal({
                     <span>Thông tin chủ tin</span>
                   </h3>
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
-                      {listing.owner?.displayName?.[0] || "U"}
-                    </div>
+                    <UserAvatar
+                      src={listing.owner?.avatarUrl}
+                      name={listing.owner?.displayName || "Chủ nhà"}
+                      sizeClassName="w-11 h-11 text-sm font-bold shadow-2xs"
+                    />
                     <div>
                       <p className="text-xs font-bold text-foreground">
                         {listing.owner?.displayName || "Chủ nhà HomeSpace"}

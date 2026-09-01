@@ -42,13 +42,13 @@ interface ListingDetailModalProps {
   ) => void;
 }
 
-const CATEGORY_NAMES: Record<ListingCategory, string> = {
-  APARTMENT: "Căn hộ / Chung cư",
-  HOUSE: "Nhà nguyên căn",
-  OFFICE: "Văn phòng",
-  COMMERCIAL_SPACE: "Mặt bằng kinh doanh",
-  ROOM: "Nhà trọ / Phòng cho thuê",
-};
+import {
+  CATEGORY_NAMES,
+  DAY_LABELS,
+  SLOT_LABELS,
+  PRICING_UNIT_NAMES,
+  DEPOSIT_TYPE_NAMES,
+} from "@/utils/listing-labels";
 
 const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   APARTMENT: <Building className="h-4 w-4" />,
@@ -56,22 +56,6 @@ const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   OFFICE: <Briefcase className="h-4 w-4" />,
   COMMERCIAL_SPACE: <Store className="h-4 w-4" />,
   ROOM: <DoorOpen className="h-4 w-4" />,
-};
-
-const DAY_LABELS: Record<DayOfWeek, string> = {
-  MONDAY: "Thứ 2",
-  TUESDAY: "Thứ 3",
-  WEDNESDAY: "Thứ 4",
-  THURSDAY: "Thứ 5",
-  FRIDAY: "Thứ 6",
-  SATURDAY: "Thứ 7",
-  SUNDAY: "Chủ nhật",
-};
-
-const SLOT_LABELS: Record<ViewingSlot, string> = {
-  MORNING: "Buổi sáng (08:00–12:00)",
-  AFTERNOON: "Buổi chiều (13:00–17:00)",
-  EVENING: "Buổi tối (18:00–21:00)",
 };
 
 function formatCurrency(amount?: number | null): string {
@@ -208,7 +192,9 @@ export default function ListingDetailModal({
                   <p className="text-[11px] text-muted-foreground font-medium">Giá cho thuê</p>
                   <p className="text-sm sm:text-base font-bold text-primary mt-1">
                     {formatCurrency(listing.pricing?.amount)}
-                    <span className="text-[10px] font-normal text-muted-foreground">/tháng</span>
+                    <span className="text-[10px] font-normal text-muted-foreground">
+                      /{PRICING_UNIT_NAMES[listing.pricing?.unit || "MONTH"] || "tháng"}
+                    </span>
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl border border-border bg-card">
@@ -222,13 +208,13 @@ export default function ListingDetailModal({
                   <p className="text-sm sm:text-base font-bold text-foreground mt-1">
                     {listing.pricing?.depositType === "NONE"
                       ? "Không đặt cọc"
-                      : listing.pricing?.depositType === "NEGOTIABLE"
+                      : listing.pricing?.depositType === "NEGOTIABLE" || listing.pricing?.depositType === "NEGOTIATE"
                       ? "Thương lượng"
                       : listing.pricing?.depositAmount
                       ? formatCurrency(listing.pricing.depositAmount)
                       : listing.pricing?.depositMonths
                       ? `${listing.pricing.depositMonths} tháng tiền nhà`
-                      : "—"}
+                      : DEPOSIT_TYPE_NAMES[listing.pricing?.depositType || ""] || "—"}
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl border border-border bg-card">

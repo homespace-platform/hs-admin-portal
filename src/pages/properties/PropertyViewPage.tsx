@@ -370,17 +370,6 @@ export default function PropertyViewPage() {
             </button>
           )}
 
-          {listing.status === "RENTED_EXTERNALLY" && (
-            <button
-              type="button"
-              onClick={() => setModerationTarget("RENTED")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-3.5 py-2 text-xs font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Đã cho thuê qua HomeSpace
-            </button>
-          )}
-
           {listing.status === "VIOLATION" && (
             <>
               <button

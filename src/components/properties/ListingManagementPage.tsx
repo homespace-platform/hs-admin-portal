@@ -7,6 +7,16 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Layers,
+  Clock,
+  CheckCircle2,
+  Home,
+  FileText,
+  EyeOff,
+  CalendarX,
+  XCircle,
+  AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ListingTable from "./ListingTable";
@@ -25,16 +35,24 @@ interface ListingManagementPageProps {
   pageSubtitle?: string;
 }
 
-const STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
-  { value: "ALL", label: "Tất cả trạng thái" },
-  { value: "PENDING_REVIEW", label: "Chờ duyệt" },
-  { value: "PUBLISHED", label: "Đang hiển thị" },
-  { value: "RENTED", label: "Đã cho thuê" },
-  { value: "EXPIRED", label: "Hết hạn" },
-  { value: "REJECTED", label: "Bị từ chối" },
-  { value: "HIDDEN", label: "Đã ẩn" },
-  { value: "VIOLATION", label: "Vi phạm" },
-  { value: "DRAFT", label: "Tin nháp" },
+interface StatusTabItem {
+  value: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  colorClass: string;
+}
+
+const STATUS_TABS: StatusTabItem[] = [
+  { value: "ALL", label: "Tất cả", icon: Layers, colorClass: "text-muted-foreground" },
+  { value: "PENDING_REVIEW", label: "Chờ duyệt", icon: Clock, colorClass: "text-amber-500" },
+  { value: "PUBLISHED", label: "Đang hiển thị", icon: CheckCircle2, colorClass: "text-emerald-500" },
+  { value: "RENTED", label: "Đã cho thuê", icon: Home, colorClass: "text-blue-500" },
+  { value: "DRAFT", label: "Tin nháp", icon: FileText, colorClass: "text-slate-400" },
+  { value: "HIDDEN", label: "Đã ẩn", icon: EyeOff, colorClass: "text-zinc-400" },
+  { value: "EXPIRED", label: "Hết hạn", icon: CalendarX, colorClass: "text-orange-500" },
+  { value: "REJECTED", label: "Bị từ chối", icon: XCircle, colorClass: "text-rose-500" },
+  { value: "RENTED_EXTERNALLY", label: "Cho thuê ngoài", icon: ExternalLink, colorClass: "text-indigo-500" },
+  { value: "VIOLATION", label: "Vi phạm", icon: AlertTriangle, colorClass: "text-red-500" },
 ];
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
@@ -71,6 +89,25 @@ export default function ListingManagementPage({
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
+
+  // Fetch status counts on load & reload
+  useEffect(() => {
+    let cancelled = false;
+    adminListingService
+      .getStatusCounts()
+      .then((counts) => {
+        if (!cancelled && counts) {
+          setStatusCounts(counts);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not load admin status counts:", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadKey]);
 
   // Moderation Dialog State
   const [moderationTarget, setModerationTarget] = useState<{
@@ -206,119 +243,149 @@ export default function ListingManagementPage({
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-2xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {/* Keyword Search */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={keywordInput}
-              onChange={(e) => setKeywordInput(e.target.value)}
-              placeholder="Tìm theo tiêu đề bài đăng..."
-              className="w-full h-10 rounded-xl bg-muted/40 pl-9 pr-8 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 border border-transparent focus:border-primary"
-            />
-            {keywordInput && (
+      {/* Segmented Status Tabs & Filter Toolbar */}
+      <div className="rounded-2xl border border-border bg-card shadow-2xs overflow-hidden">
+        {/* Scrollable Status Tabs */}
+        <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar scroll-smooth px-3 sm:px-4 pt-2.5 border-b border-border">
+          {STATUS_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = statusFilter === tab.value;
+            const count =
+              tab.value === "ALL"
+                ? statusCounts["ALL"] ?? totalElements
+                : statusCounts[tab.value] ?? 0;
+
+            return (
+              <button
+                key={tab.value}
+                onClick={() => {
+                  if (statusFilter !== tab.value) {
+                    setStatusFilter(tab.value);
+                    setPage(1);
+                    setLoading(true);
+                  }
+                }}
+                className={`group relative flex items-center gap-2 py-3 px-3.5 text-xs font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${
+                  isActive
+                    ? "border-primary text-primary font-bold"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/80"
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 shrink-0 transition-colors ${
+                    isActive ? "text-primary" : tab.colorClass
+                  }`}
+                />
+                <span>{tab.label}</span>
+                <span
+                  className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold transition-colors ${
+                    isActive
+                      ? "bg-primary/15 text-primary font-bold"
+                      : "bg-muted text-muted-foreground group-hover:bg-muted/80 group-hover:text-foreground"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Secondary Filter Controls Row: Search + Sort + Date Range */}
+        <div className="p-4 space-y-3 bg-card/60">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            {/* Keyword Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                placeholder="Tìm theo tiêu đề bài đăng, mã tin..."
+                className="w-full h-10 rounded-xl bg-muted/40 pl-9 pr-8 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 border border-border/80 focus:border-primary transition-all"
+              />
+              {keywordInput && (
+                <button
+                  type="button"
+                  onClick={() => setKeywordInput("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Sort Selector */}
+            <div className="sm:w-60">
+              <select
+                value={sortOption}
+                onChange={(e) => {
+                  setSortOption(e.target.value);
+                  setPage(1);
+                  setLoading(true);
+                }}
+                className="w-full h-10 rounded-xl bg-muted/40 px-3 text-xs font-medium text-foreground border border-border/80 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer transition-all"
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Date Range Row */}
+          <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-border/60 text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5 text-primary" />
+              Lọc theo ngày:
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px]">Từ ngày:</span>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  setPage(1);
+                  setLoading(true);
+                }}
+                className="h-8 rounded-lg bg-muted/40 px-2.5 text-xs text-foreground border border-border focus:border-primary focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px]">Đến ngày:</span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                  setPage(1);
+                  setLoading(true);
+                }}
+                className="h-8 rounded-lg bg-muted/40 px-2.5 text-xs text-foreground border border-border focus:border-primary focus:outline-none"
+              />
+            </div>
+            {(fromDate || toDate || debouncedKeyword || statusFilter !== "ALL" || sortOption !== "submittedAt,desc") && (
               <button
                 type="button"
-                onClick={() => setKeywordInput("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                onClick={() => {
+                  setKeywordInput("");
+                  setDebouncedKeyword("");
+                  setStatusFilter("ALL");
+                  setFromDate("");
+                  setToDate("");
+                  setSortOption("submittedAt,desc");
+                  setPage(1);
+                  setLoading(true);
+                }}
+                className="ml-auto text-xs font-semibold text-primary hover:underline"
               >
-                ✕
+                Xóa tất cả bộ lọc
               </button>
             )}
           </div>
-
-          {/* Status Filter Dropdown */}
-          <div>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-                setLoading(true);
-              }}
-              className="w-full h-10 rounded-xl bg-muted/40 px-3 text-xs font-medium text-foreground border border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-            >
-              {STATUS_FILTER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sort Selector */}
-          <div>
-            <select
-              value={sortOption}
-              onChange={(e) => {
-                setSortOption(e.target.value);
-                setPage(1);
-                setLoading(true);
-              }}
-              className="w-full h-10 rounded-xl bg-muted/40 px-3 text-xs font-medium text-foreground border border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Date Range Row */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/60 text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5 text-primary" />
-            Lọc theo ngày:
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px]">Từ ngày:</span>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setPage(1);
-                setLoading(true);
-              }}
-              className="h-8 rounded-lg bg-muted/40 px-2.5 text-xs text-foreground border border-border focus:border-primary focus:outline-none"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px]">Đến ngày:</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setPage(1);
-                setLoading(true);
-              }}
-              className="h-8 rounded-lg bg-muted/40 px-2.5 text-xs text-foreground border border-border focus:border-primary focus:outline-none"
-            />
-          </div>
-          {(fromDate || toDate || debouncedKeyword || statusFilter !== "ALL" || sortOption !== "submittedAt,desc") && (
-            <button
-              type="button"
-              onClick={() => {
-                setKeywordInput("");
-                setDebouncedKeyword("");
-                setStatusFilter("ALL");
-                setFromDate("");
-                setToDate("");
-                setSortOption("submittedAt,desc");
-                setPage(1);
-                setLoading(true);
-              }}
-              className="ml-auto text-xs font-semibold text-primary hover:underline"
-            >
-              Xóa tất cả bộ lọc
-            </button>
-          )}
         </div>
       </div>
 

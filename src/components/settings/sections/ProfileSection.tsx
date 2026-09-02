@@ -73,6 +73,7 @@ function ProfileContent({
   const [avatarMediaItems, setAvatarMediaItems] = useState<MediaGalleryItem[]>([]);
   const [avatarInitialIndex, setAvatarInitialIndex] = useState(0);
   const [loadingAvatars, setLoadingAvatars] = useState(false);
+  const [restoringAvatar, setRestoringAvatar] = useState(false);
 
   const fullName = [firstName, lastName].filter(Boolean).join(" ").trim() || profile.username || "Người dùng";
 
@@ -130,6 +131,27 @@ function ProfileContent({
       setLoadingAvatars(false);
     }
   }, [buildFallbackAvatarItem, fullName, loadingAvatars, profile.avatarStorageId, profile.id]);
+
+  const handleReuseAvatar = useCallback(async (item: MediaGalleryItem) => {
+    if (!item.id || item.id === profile.avatarStorageId || restoringAvatar) return;
+
+    setRestoringAvatar(true);
+    try {
+      await userService.updateAvatar({ storageId: item.id });
+      await dispatch(fetchCurrentUser({ userId: userId ?? profile.id, force: true })).unwrap();
+      toast.success("Đã đặt lại ảnh đại diện thành công!");
+      setAvatarViewerOpen(false);
+    } catch (requestError) {
+      const message = axios.isAxiosError(requestError)
+        ? requestError.response?.data?.message
+        : requestError instanceof Error
+          ? requestError.message
+          : "Không thể đặt lại ảnh đại diện.";
+      toast.error(message);
+    } finally {
+      setRestoringAvatar(false);
+    }
+  }, [dispatch, profile.avatarStorageId, profile.id, restoringAvatar, userId]);
 
   useEffect(() => {
     return () => {
@@ -244,6 +266,13 @@ function ProfileContent({
         initialIndex={avatarInitialIndex}
         title={`Ảnh đại diện - ${fullName}`}
         alwaysShowThumbnails={true}
+        primaryAction={{
+          label: "Đặt làm ảnh đại diện",
+          loadingLabel: "Đang cập nhật...",
+          loading: restoringAvatar,
+          onAction: (item) => handleReuseAvatar(item),
+          isVisible: (item) => Boolean(item.id) && item.id !== profile.avatarStorageId,
+        }}
       />
 
       {/* 1. Header Profile Box */}

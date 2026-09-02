@@ -11,12 +11,9 @@ import {
   CheckCircle2,
   User,
   Phone,
-  ChevronLeft,
-  ChevronRight,
   History,
   AlertTriangle,
   LoaderCircle,
-  Video,
   Unlock,
 } from "lucide-react";
 import type {
@@ -29,6 +26,8 @@ import type {
 } from "@/types/listing.type";
 import ListingStatusBadge from "./ListingStatusBadge";
 import ListingStatusHistoryTimeline from "./ListingStatusHistoryTimeline";
+import AdminMediaViewer from "./AdminMediaViewer";
+import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -43,13 +42,13 @@ interface ListingDetailModalProps {
   ) => void;
 }
 
-const CATEGORY_NAMES: Record<ListingCategory, string> = {
-  APARTMENT: "Căn hộ / Chung cư",
-  HOUSE: "Nhà nguyên căn",
-  OFFICE: "Văn phòng",
-  COMMERCIAL_SPACE: "Mặt bằng kinh doanh",
-  ROOM: "Nhà trọ / Phòng cho thuê",
-};
+import {
+  CATEGORY_NAMES,
+  DAY_LABELS,
+  SLOT_LABELS,
+  PRICING_UNIT_NAMES,
+  DEPOSIT_TYPE_NAMES,
+} from "@/utils/listing-labels";
 
 const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   APARTMENT: <Building className="h-4 w-4" />,
@@ -57,22 +56,6 @@ const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   OFFICE: <Briefcase className="h-4 w-4" />,
   COMMERCIAL_SPACE: <Store className="h-4 w-4" />,
   ROOM: <DoorOpen className="h-4 w-4" />,
-};
-
-const DAY_LABELS: Record<DayOfWeek, string> = {
-  MONDAY: "Thứ 2",
-  TUESDAY: "Thứ 3",
-  WEDNESDAY: "Thứ 4",
-  THURSDAY: "Thứ 5",
-  FRIDAY: "Thứ 6",
-  SATURDAY: "Thứ 7",
-  SUNDAY: "Chủ nhật",
-};
-
-const SLOT_LABELS: Record<ViewingSlot, string> = {
-  MORNING: "Buổi sáng (08:00–12:00)",
-  AFTERNOON: "Buổi chiều (13:00–17:00)",
-  EVENING: "Buổi tối (18:00–21:00)",
 };
 
 function formatCurrency(amount?: number | null): string {
@@ -105,7 +88,6 @@ export default function ListingDetailModal({
   const [data, setData] = useState<AdminListingDetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (!isOpen || !listingId) return;
@@ -118,7 +100,6 @@ export default function ListingDetailModal({
         if (active) {
           setData(res);
           setErrorMessage(null);
-          setSelectedImageIndex(0);
           setLoading(false);
         }
       })
@@ -140,9 +121,6 @@ export default function ListingDetailModal({
 
   const listing = data?.listing;
   const statusHistory = data?.statusHistory || [];
-  const images = listing?.media?.filter((m) => m.mediaType === "IMAGE") || [];
-  const currentImage = images[selectedImageIndex]?.url || "/area/hcm-1.jpg";
-  const videos = listing?.media?.filter((m) => m.mediaType === "VIDEO") || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in-50">
@@ -186,90 +164,8 @@ export default function ListingDetailModal({
 
           {listing && !loading && (
             <>
-              {/* Media Gallery */}
-              {images.length > 0 && (
-                <div className="space-y-3">
-                  <div className="relative aspect-16/9 sm:aspect-21/9 w-full overflow-hidden rounded-2xl border border-border bg-muted/40 shadow-sm">
-                    <img
-                      src={currentImage}
-                      alt={listing.title}
-                      className="h-full w-full object-cover"
-                    />
-                    {images.length > 1 && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedImageIndex((p) =>
-                              p > 0 ? p - 1 : images.length - 1
-                            )
-                          }
-                          className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-all"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedImageIndex((p) =>
-                              p < images.length - 1 ? p + 1 : 0
-                            )
-                          }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-all"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
-                    <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white">
-                      {selectedImageIndex + 1} / {images.length} ảnh
-                    </div>
-                  </div>
-
-                  {images.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {images.map((img, idx) => (
-                        <button
-                          key={img.id || idx}
-                          type="button"
-                          onClick={() => setSelectedImageIndex(idx)}
-                          className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-all cursor-pointer ${
-                            idx === selectedImageIndex
-                              ? "border-primary ring-2 ring-primary/20 scale-95"
-                              : "border-transparent opacity-70 hover:opacity-100"
-                          }`}
-                        >
-                          <img
-                            src={img.url || "/area/hcm-1.jpg"}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Videos Section */}
-              {videos.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Video className="h-3.5 w-3.5 text-primary" />
-                    <span>Video thực tế ({videos.length})</span>
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {videos.map((v, idx) => (
-                      <video
-                        key={v.id || idx}
-                        src={v.url || undefined}
-                        controls
-                        className="w-full rounded-xl border border-border bg-black max-h-52 object-contain"
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Media Gallery with Lightbox & Video */}
+              <AdminMediaViewer media={listing.media || []} title={listing.title} />
 
               {/* Title & Status Reason if rejected/violation */}
               <div className="space-y-2">
@@ -296,7 +192,9 @@ export default function ListingDetailModal({
                   <p className="text-[11px] text-muted-foreground font-medium">Giá cho thuê</p>
                   <p className="text-sm sm:text-base font-bold text-primary mt-1">
                     {formatCurrency(listing.pricing?.amount)}
-                    <span className="text-[10px] font-normal text-muted-foreground">/tháng</span>
+                    <span className="text-[10px] font-normal text-muted-foreground">
+                      /{PRICING_UNIT_NAMES[listing.pricing?.unit || "MONTH"] || "tháng"}
+                    </span>
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl border border-border bg-card">
@@ -310,13 +208,13 @@ export default function ListingDetailModal({
                   <p className="text-sm sm:text-base font-bold text-foreground mt-1">
                     {listing.pricing?.depositType === "NONE"
                       ? "Không đặt cọc"
-                      : listing.pricing?.depositType === "NEGOTIABLE"
+                      : listing.pricing?.depositType === "NEGOTIABLE" || listing.pricing?.depositType === "NEGOTIATE"
                       ? "Thương lượng"
                       : listing.pricing?.depositAmount
                       ? formatCurrency(listing.pricing.depositAmount)
                       : listing.pricing?.depositMonths
                       ? `${listing.pricing.depositMonths} tháng tiền nhà`
-                      : "—"}
+                      : DEPOSIT_TYPE_NAMES[listing.pricing?.depositType || ""] || "—"}
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl border border-border bg-card">
@@ -336,9 +234,11 @@ export default function ListingDetailModal({
                     <span>Thông tin chủ tin</span>
                   </h3>
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
-                      {listing.owner?.displayName?.[0] || "U"}
-                    </div>
+                    <UserAvatar
+                      src={listing.owner?.avatarUrl}
+                      name={listing.owner?.displayName || "Chủ nhà"}
+                      sizeClassName="w-11 h-11 text-sm font-bold shadow-2xs"
+                    />
                     <div>
                       <p className="text-xs font-bold text-foreground">
                         {listing.owner?.displayName || "Chủ nhà HomeSpace"}

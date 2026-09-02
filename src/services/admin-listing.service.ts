@@ -51,6 +51,16 @@ export const adminListingService = {
   },
 
   /**
+   * Lấy số lượng bài đăng theo từng trạng thái trên toàn hệ thống
+   */
+  async getStatusCounts(): Promise<Record<string, number>> {
+    const response = await axiosClient.get<ApiResponse<Record<string, number>>>(
+      "/api/v1/admin/listings/counts"
+    );
+    return response.data.result;
+  },
+
+  /**
    * Lấy chi tiết bài đăng và lịch sử trạng thái
    */
   async getById(listingId: string): Promise<AdminListingDetailResponse> {

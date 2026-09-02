@@ -11,11 +11,8 @@ import {
   CheckCircle2,
   User,
   Phone,
-  ChevronLeft,
-  ChevronRight,
   AlertTriangle,
   LoaderCircle,
-  Video,
   Info,
   CheckCircle,
   XCircle,
@@ -27,6 +24,8 @@ import {
 import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
 import ListingStatusHistoryTimeline from "@/components/properties/ListingStatusHistoryTimeline";
+import AdminMediaViewer from "@/components/properties/AdminMediaViewer";
+import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -37,14 +36,31 @@ import type {
   ListingStatus,
   ViewingSlot,
 } from "@/types/listing.type";
-
-const CATEGORY_NAMES: Record<ListingCategory, string> = {
-  APARTMENT: "Căn hộ / Chung cư",
-  HOUSE: "Nhà ở nguyên căn",
-  OFFICE: "Văn phòng cho thuê",
-  COMMERCIAL_SPACE: "Mặt bằng kinh doanh",
-  ROOM: "Nhà trọ / Phòng cho thuê",
-};
+import {
+  CATEGORY_NAMES,
+  SUBTYPE_NAMES,
+  RENTAL_MODE_NAMES,
+  DIRECTION_NAMES,
+  LEGAL_STATUS_NAMES,
+  FURNISHING_NAMES,
+  OFFICE_GRADE_NAMES,
+  HANDOVER_STATUS_NAMES,
+  COMMERCIAL_POSITION_NAMES,
+  PARKING_NAMES,
+  ACCESS_TYPE_NAMES,
+  RESTROOM_TYPE_NAMES,
+  KITCHEN_TYPE_NAMES,
+  OPERATING_MODE_NAMES,
+  METER_TYPE_NAMES,
+  CHARGE_TYPE_NAMES,
+  BILLING_METHOD_NAMES,
+  PRICING_UNIT_NAMES,
+  DEPOSIT_TYPE_NAMES,
+  PAYMENT_CYCLE_NAMES,
+  DAY_LABELS,
+  SLOT_LABELS,
+  formatChargeFee,
+} from "@/utils/listing-labels";
 
 const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   APARTMENT: <Building className="h-4 w-4" />,
@@ -52,48 +68,6 @@ const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   OFFICE: <Briefcase className="h-4 w-4" />,
   COMMERCIAL_SPACE: <Store className="h-4 w-4" />,
   ROOM: <DoorOpen className="h-4 w-4" />,
-};
-
-const SUBTYPE_NAMES: Record<string, string> = {
-  APARTMENT_STANDARD: "Chung cư tiêu chuẩn",
-  APARTMENT_STUDIO: "Căn hộ Studio",
-  APARTMENT_DUPLEX: "Căn hộ Duplex",
-  APARTMENT_PENTHOUSE: "Penthouse cao cấp",
-  APARTMENT_OFFICETEL: "Officetel",
-  APARTMENT_SERVICE: "Căn hộ dịch vụ",
-  HOUSE_TOWNHOUSE: "Nhà phố liền kề",
-  HOUSE_VILLA: "Biệt thự / Villa",
-  HOUSE_ALLEY: "Nhà trong ngõ / hẻm",
-  HOUSE_LEVEL4: "Nhà cấp 4",
-  OFFICE_TRADITIONAL: "Văn phòng truyền thống",
-  OFFICE_SERVICED: "Văn phòng trọn gói (Serviced)",
-  OFFICE_COWORKING: "Không gian làm việc chung (Co-working)",
-  OFFICE_SHARED: "Văn phòng chia sẻ",
-  COMMERCIAL_STREET_HOUSE: "Mặt bằng nhà mặt phố",
-  COMMERCIAL_SHOPHOUSE: "Shophouse khối đế",
-  COMMERCIAL_SHOP: "Kiot / Cửa hàng",
-  COMMERCIAL_SHOWROOM: "Showroom trưng bày",
-  COMMERCIAL_MALL: "Mặt bằng trung tâm thương mại",
-  ROOM_BOARDING: "Phòng trọ sinh viên / công nhân",
-  ROOM_HOMESTAY: "Phòng trong nhà nguyên căn",
-  ROOM_SERVICED: "Phòng trọ cao cấp / Mini studio",
-  ROOM_DORMITORY: "Ký túc xá / Giường tầng (Sleepbox)",
-};
-
-const DAY_LABELS: Record<DayOfWeek, string> = {
-  MONDAY: "Thứ 2",
-  TUESDAY: "Thứ 3",
-  WEDNESDAY: "Thứ 4",
-  THURSDAY: "Thứ 5",
-  FRIDAY: "Thứ 6",
-  SATURDAY: "Thứ 7",
-  SUNDAY: "Chủ nhật",
-};
-
-const SLOT_LABELS: Record<ViewingSlot, string> = {
-  MORNING: "Buổi sáng (08:00 – 12:00)",
-  AFTERNOON: "Buổi chiều (13:00 – 17:00)",
-  EVENING: "Buổi tối (18:00 – 21:00)",
 };
 
 function mapsEmbedSrc(query: string) {
@@ -175,7 +149,6 @@ export default function PropertyViewPage() {
   const [error, setError] = useState(
     !listingId ? "Không tìm thấy mã tin đăng trong đường dẫn." : ""
   );
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Moderation Dialog State
   const [moderationTarget, setModerationTarget] = useState<ListingStatus | null>(null);
@@ -191,7 +164,6 @@ export default function PropertyViewPage() {
         if (active) {
           setData(res);
           setError("");
-          setSelectedImageIndex(0);
           setLoading(false);
         }
       })
@@ -242,9 +214,6 @@ export default function PropertyViewPage() {
 
   const listing = data.listing;
   const statusHistory = data.statusHistory || [];
-  const images = listing.media?.filter((m) => m.mediaType === "IMAGE" && m.url) || [];
-  const videos = listing.media?.filter((m) => m.mediaType === "VIDEO" && m.url) || [];
-  const currentImage = images[selectedImageIndex] || images[0];
 
   const fullAddress =
     listing.address?.fullAddress ||
@@ -376,17 +345,6 @@ export default function PropertyViewPage() {
             </button>
           )}
 
-          {listing.status === "RENTED_EXTERNALLY" && (
-            <button
-              type="button"
-              onClick={() => setModerationTarget("RENTED")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-3.5 py-2 text-xs font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Đã cho thuê qua HomeSpace
-            </button>
-          )}
-
           {listing.status === "VIOLATION" && (
             <>
               <button
@@ -427,91 +385,10 @@ export default function PropertyViewPage() {
       </div>
 
       {/* Hero Overview & Media Gallery */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
         {/* Gallery column */}
-        <div className="lg:col-span-7 space-y-3">
-          <div className="relative aspect-16/10 w-full overflow-hidden rounded-2xl border border-border bg-muted/40 shadow-sm">
-            {currentImage?.url ? (
-              <img
-                src={currentImage.url}
-                alt={listing.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                <Building className="h-12 w-12 opacity-30" />
-              </div>
-            )}
-            {images.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
-                  }
-                  className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-md shadow-md text-foreground hover:bg-background transition-all"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-md shadow-md text-foreground hover:bg-background transition-all"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </>
-            )}
-            <div className="absolute bottom-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-white">
-              {selectedImageIndex + 1} / {images.length || 1} ảnh
-            </div>
-          </div>
-
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {images.map((img, idx) => (
-                <button
-                  key={img.id || idx}
-                  type="button"
-                  onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 transition-all cursor-pointer ${
-                    selectedImageIndex === idx
-                      ? "border-primary ring-2 ring-primary/20 scale-95"
-                      : "border-transparent opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={img.url || "/area/hcm-1.jpg"}
-                    alt={`Ảnh ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Videos if available */}
-          {videos.length > 0 && (
-            <div className="pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                <Video className="h-3.5 w-3.5 text-primary" />
-                <span>Video thực tế ({videos.length})</span>
-              </h4>
-              <div className="grid grid-cols-1 gap-2">
-                {videos.map((vid, idx) => (
-                  <video
-                    key={vid.id || idx}
-                    src={vid.url || undefined}
-                    controls
-                    className="w-full rounded-xl border border-border bg-black max-h-64 object-contain"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="lg:col-span-7">
+          <AdminMediaViewer media={listing.media || []} title={listing.title} />
         </div>
 
         {/* Quick summary & 4 KPI Cards */}
@@ -545,7 +422,7 @@ export default function PropertyViewPage() {
                 <p className="mt-1 text-base sm:text-lg font-bold text-primary">
                   {formatCurrency(listing.pricing?.amount)} ₫
                   <span className="text-xs font-normal text-muted-foreground">
-                    /{listing.pricing?.unit === "M2_MONTH" ? "m²/th" : "tháng"}
+                    /{PRICING_UNIT_NAMES[listing.pricing?.unit || "MONTH"] || "tháng"}
                   </span>
                 </p>
               </div>
@@ -562,13 +439,13 @@ export default function PropertyViewPage() {
                 <p className="mt-1 text-sm sm:text-base font-bold text-foreground truncate">
                   {listing.pricing?.depositType === "NONE"
                     ? "Không đặt cọc"
-                    : listing.pricing?.depositType === "NEGOTIABLE"
+                    : listing.pricing?.depositType === "NEGOTIABLE" || listing.pricing?.depositType === "NEGOTIATE"
                     ? "Thương lượng"
                     : listing.pricing?.depositAmount
                     ? `${formatCurrency(listing.pricing.depositAmount)} ₫`
                     : listing.pricing?.depositMonths
                     ? `${listing.pricing.depositMonths} tháng tiền thuê`
-                    : "—"}
+                    : DEPOSIT_TYPE_NAMES[listing.pricing?.depositType || ""] || "—"}
                 </p>
               </div>
 
@@ -587,19 +464,24 @@ export default function PropertyViewPage() {
                 <span>Chủ bài đăng</span>
               </span>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                  {listing.owner?.displayName?.[0] || "U"}
-                </div>
+                <UserAvatar
+                  src={listing.owner?.avatarUrl}
+                  name={listing.owner?.displayName || "Chủ nhà"}
+                  sizeClassName="w-11 h-11 text-sm font-bold shadow-2xs"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-foreground truncate">
                     {listing.owner?.displayName || "Chủ nhà HomeSpace"}
                   </p>
                   <p className="text-[11px] text-muted-foreground truncate">ID: {listing.ownerId}</p>
                   {listing.owner?.phone && (
-                    <p className="text-xs text-primary font-semibold flex items-center gap-1 mt-0.5">
+                    <a
+                      href={`tel:${listing.owner.phone}`}
+                      className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 mt-0.5"
+                    >
                       <Phone className="h-3 w-3" />
                       <span>{listing.owner.phone}</span>
-                    </p>
+                    </a>
                   )}
                 </div>
               </div>
@@ -618,7 +500,7 @@ export default function PropertyViewPage() {
             <DetailItem label="Phân loại chi tiết" value={SUBTYPE_NAMES[listing.subtype] || listing.subtype} />
             <DetailItem
               label="Hình thức cho thuê"
-              value={listing.rentalMode === "WHOLE_UNIT" ? "Cho thuê nguyên căn / toàn bộ" : "Cho thuê một phần"}
+              value={RENTAL_MODE_NAMES[listing.rentalMode] || listing.rentalMode}
             />
             <DetailItem
               label="Thương lượng giá"
@@ -644,10 +526,23 @@ export default function PropertyViewPage() {
               <DetailItem label="Số phòng tắm / vệ sinh" value={`${listing.apartmentDetail.bathroomCount} phòng`} />
               <DetailItem label="Số phòng khách" value={listing.apartmentDetail.livingRoomCount} />
               <DetailItem label="Số phòng bếp" value={listing.apartmentDetail.kitchenCount} />
-              <DetailItem label="Hướng cửa chính" value={listing.apartmentDetail.mainDoorDirection} />
-              <DetailItem label="Hướng ban công" value={listing.apartmentDetail.balconyDirection} />
-              <DetailItem label="Số người ở tối đa" value={listing.apartmentDetail.maxOccupants} />
-              <DetailItem label="Tình trạng pháp lý" value={listing.apartmentDetail.legalStatus} />
+              <DetailItem
+                label="Hướng cửa chính"
+                value={DIRECTION_NAMES[listing.apartmentDetail.mainDoorDirection || ""] || listing.apartmentDetail.mainDoorDirection}
+              />
+              <DetailItem
+                label="Hướng ban công"
+                value={DIRECTION_NAMES[listing.apartmentDetail.balconyDirection || ""] || listing.apartmentDetail.balconyDirection}
+              />
+              <DetailItem
+                label="Tình trạng nội thất"
+                value={FURNISHING_NAMES[listing.apartmentDetail.furnishingStatus || ""] || listing.apartmentDetail.furnishingStatus}
+              />
+              <DetailItem label="Số người ở tối đa" value={listing.apartmentDetail.maxOccupants ? `${listing.apartmentDetail.maxOccupants} người` : undefined} />
+              <DetailItem
+                label="Tình trạng pháp lý"
+                value={LEGAL_STATUS_NAMES[listing.apartmentDetail.legalStatus || ""] || listing.apartmentDetail.legalStatus}
+              />
               <DetailItem label="Tầm nhìn (View)" value={listing.apartmentDetail.viewDescription} />
             </div>
           </SectionCard>
@@ -660,13 +555,39 @@ export default function PropertyViewPage() {
               <DetailItem label="Chiều ngang mặt tiền" value={listing.houseDetail.frontageWidthM ? `${listing.houseDetail.frontageWidthM} m` : undefined} />
               <DetailItem label="Chiều dài nhà" value={listing.houseDetail.lengthM ? `${listing.houseDetail.lengthM} m` : undefined} />
               <DetailItem label="Độ rộng đường vào" value={listing.houseDetail.accessRoadWidthM ? `${listing.houseDetail.accessRoadWidthM} m` : undefined} />
+              <DetailItem
+                label="Số lượng mặt tiền"
+                value={
+                  listing.houseDetail.frontageCount === 1
+                    ? "1 mặt tiền"
+                    : listing.houseDetail.frontageCount === 2
+                    ? "2 mặt tiền (Căn góc)"
+                    : listing.houseDetail.frontageCount
+                    ? `${listing.houseDetail.frontageCount} mặt tiền`
+                    : undefined
+                }
+              />
               <DetailItem label="Tổng số tầng" value={listing.houseDetail.totalFloors} />
               <DetailItem label="Số phòng ngủ" value={`${listing.houseDetail.bedroomCount} phòng`} />
               <DetailItem label="Số phòng vệ sinh" value={`${listing.houseDetail.bathroomCount} phòng`} />
+              <DetailItem label="Số phòng khách" value={listing.houseDetail.livingRoomCount} />
+              <DetailItem label="Số phòng bếp" value={listing.houseDetail.kitchenCount} />
               <DetailItem label="Có sân thượng" value={listing.houseDetail.hasRooftop ? "Có sân thượng" : "Không"} />
               <DetailItem label="Có garage / chỗ đỗ xe" value={listing.houseDetail.hasGarage ? "Có garage ô tô" : "Không"} />
-              <DetailItem label="Số người ở tối đa" value={listing.houseDetail.maxOccupants} />
-              <DetailItem label="Tình trạng pháp lý" value={listing.houseDetail.legalStatus} />
+              <DetailItem
+                label="Lối đi sử dụng"
+                value={ACCESS_TYPE_NAMES[listing.houseDetail.accessType || ""] || listing.houseDetail.accessType}
+              />
+              <DetailItem
+                label="Tình trạng nội thất"
+                value={FURNISHING_NAMES[listing.houseDetail.furnishingStatus || ""] || listing.houseDetail.furnishingStatus}
+              />
+              <DetailItem label="Số người ở tối đa" value={listing.houseDetail.maxOccupants ? `${listing.houseDetail.maxOccupants} người` : undefined} />
+              <DetailItem label="Số lượng xe tối đa" value={listing.houseDetail.maxVehicles ? `${listing.houseDetail.maxVehicles} xe` : undefined} />
+              <DetailItem
+                label="Tình trạng pháp lý"
+                value={LEGAL_STATUS_NAMES[listing.houseDetail.legalStatus || ""] || listing.houseDetail.legalStatus}
+              />
             </div>
           </SectionCard>
         )}
@@ -675,14 +596,38 @@ export default function PropertyViewPage() {
           <SectionCard title="Chi tiết văn phòng" stepNumber={2}>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <DetailItem label="Tên tòa nhà văn phòng" value={listing.officeDetail.buildingName} />
-              <DetailItem label="Hạng văn phòng" value={listing.officeDetail.officeGrade} />
+              <DetailItem
+                label="Hạng văn phòng"
+                value={OFFICE_GRADE_NAMES[listing.officeDetail.officeGrade || ""] || listing.officeDetail.officeGrade}
+              />
               <DetailItem label="Tầng số" value={listing.officeDetail.floorNumber} />
-              <DetailItem label="Tình trạng bàn giao" value={listing.officeDetail.handoverStatus} />
+              <DetailItem
+                label="Tình trạng bàn giao"
+                value={HANDOVER_STATUS_NAMES[listing.officeDetail.handoverStatus || ""] || listing.officeDetail.handoverStatus}
+              />
               <DetailItem label="Số lượng chỗ ngồi ước tính" value={listing.officeDetail.expectedSeats ? `${listing.officeDetail.expectedSeats} chỗ` : undefined} />
               <DetailItem label="Diện tích chia nhỏ tối thiểu" value={listing.officeDetail.minimumDivisibleAreaM2 ? `${listing.officeDetail.minimumDivisibleAreaM2} m²` : undefined} />
               <DetailItem label="Số lượng nhà vệ sinh" value={listing.officeDetail.restroomCount} />
-              <DetailItem label="Hệ thống vệ sinh" value={listing.officeDetail.restroomType === "PRIVATE" ? "Vệ sinh riêng" : "Vệ sinh chung tầng"} />
-              <DetailItem label="Khu vực Pantry" value={listing.officeDetail.pantryType === "PRIVATE" ? "Pantry riêng" : "Pantry chung"} />
+              <DetailItem
+                label="Hệ thống vệ sinh"
+                value={RESTROOM_TYPE_NAMES[listing.officeDetail.restroomType || ""] || (listing.officeDetail.restroomType === "PRIVATE" ? "Vệ sinh riêng" : "Vệ sinh chung tầng")}
+              />
+              <DetailItem
+                label="Khu vực Pantry"
+                value={
+                  listing.officeDetail.pantryType === "PRIVATE"
+                    ? "Pantry riêng"
+                    : listing.officeDetail.pantryType === "SHARED"
+                    ? "Pantry chung tòa nhà"
+                    : listing.officeDetail.pantryType === "NONE"
+                    ? "Không có"
+                    : listing.officeDetail.pantryType
+                }
+              />
+              <DetailItem
+                label="Chế độ giờ hoạt động"
+                value={OPERATING_MODE_NAMES[listing.officeDetail.operatingMode || ""] || listing.officeDetail.operatingMode}
+              />
               <DetailItem label="Sức chứa đỗ ô tô" value={listing.officeDetail.carParkingCapacity ? `${listing.officeDetail.carParkingCapacity} ô tô` : undefined} />
               <DetailItem label="Sức chứa đỗ xe máy" value={listing.officeDetail.motorbikeParkingCapacity ? `${listing.officeDetail.motorbikeParkingCapacity} xe` : undefined} />
             </div>
@@ -692,13 +637,40 @@ export default function PropertyViewPage() {
         {listing.category === "COMMERCIAL_SPACE" && listing.commercialDetail && (
           <SectionCard title="Chi tiết mặt bằng kinh doanh" stepNumber={2}>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <DetailItem label="Vị trí mặt bằng" value={listing.commercialDetail.positionType === "GROUND_FLOOR" ? "Tầng trệt" : "Tầng trên / TTTM"} />
+              <DetailItem
+                label="Vị trí mặt bằng"
+                value={COMMERCIAL_POSITION_NAMES[listing.commercialDetail.positionType || ""] || listing.commercialDetail.positionType}
+              />
               <DetailItem label="Chiều ngang mặt tiền" value={listing.commercialDetail.frontageWidthM ? `${listing.commercialDetail.frontageWidthM} m` : undefined} />
               <DetailItem label="Chiều dài mặt bằng" value={listing.commercialDetail.lengthM ? `${listing.commercialDetail.lengthM} m` : undefined} />
               <DetailItem label="Độ rộng lòng đường" value={listing.commercialDetail.roadWidthM ? `${listing.commercialDetail.roadWidthM} m` : undefined} />
+              <DetailItem
+                label="Số lượng mặt tiền"
+                value={
+                  listing.commercialDetail.frontageCount === 1
+                    ? "1 mặt tiền"
+                    : listing.commercialDetail.frontageCount === 2
+                    ? "2 mặt tiền (Lô góc)"
+                    : listing.commercialDetail.frontageCount
+                    ? `${listing.commercialDetail.frontageCount} mặt tiền`
+                    : undefined
+                }
+              />
+              <DetailItem label="Số tầng cho thuê" value={listing.commercialDetail.rentedFloorCount ? `${listing.commercialDetail.rentedFloorCount} tầng` : undefined} />
               <DetailItem label="Có gác lửng" value={listing.commercialDetail.hasMezzanine ? "Có gác lửng" : "Không"} />
               <DetailItem label="Số lượng nhà vệ sinh" value={listing.commercialDetail.restroomCount} />
-              <DetailItem label="Tình trạng bàn giao" value={listing.commercialDetail.handoverStatus} />
+              <DetailItem
+                label="Tình trạng bàn giao"
+                value={HANDOVER_STATUS_NAMES[listing.commercialDetail.handoverStatus || ""] || listing.commercialDetail.handoverStatus}
+              />
+              <DetailItem
+                label="Chỗ để xe"
+                value={PARKING_NAMES[listing.commercialDetail.parkingType || ""] || listing.commercialDetail.parkingType}
+              />
+              <DetailItem
+                label="Lối đi sử dụng"
+                value={ACCESS_TYPE_NAMES[listing.commercialDetail.accessType || ""] || listing.commercialDetail.accessType}
+              />
               <DetailItem label="Nguồn điện 3 pha" value={listing.commercialDetail.hasThreePhasePower ? "Có điện 3 pha" : "Điện dân dụng 1 pha"} />
               <DetailItem label="Hệ thống PCCC tiêu chuẩn" value={listing.commercialDetail.hasStandardFireSafety ? "Đã thẩm duyệt PCCC" : "Chưa có"} />
               <DetailItem label="Ngành nghề hạn chế" value={listing.commercialDetail.restrictedBusinesses} />
@@ -711,13 +683,43 @@ export default function PropertyViewPage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <DetailItem label="Mã / Số phòng" value={listing.roomDetail.roomCode} />
               <DetailItem label="Tầng số" value={listing.roomDetail.floorNumber} />
-              <DetailItem label="Nhà vệ sinh" value={listing.roomDetail.restroomType === "PRIVATE" ? "Vệ sinh khép kín riêng" : "Vệ sinh chung"} />
-              <DetailItem label="Khu vực nấu ăn" value={listing.roomDetail.kitchenType === "PRIVATE" ? "Kệ bếp riêng" : listing.roomDetail.kitchenType === "SHARED" ? "Khu bếp chung" : "Không cho nấu ăn"} />
+              <DetailItem
+                label="Nhà vệ sinh"
+                value={RESTROOM_TYPE_NAMES[listing.roomDetail.restroomType || ""] || (listing.roomDetail.restroomType === "PRIVATE" ? "Vệ sinh khép kín riêng" : "Vệ sinh chung ngoài phòng")}
+              />
+              <DetailItem
+                label="Khu vực nấu ăn"
+                value={KITCHEN_TYPE_NAMES[listing.roomDetail.kitchenType || ""] || (listing.roomDetail.kitchenType === "PRIVATE" ? "Kệ bếp riêng trong phòng" : listing.roomDetail.kitchenType === "SHARED" ? "Khu bếp chung" : "Không cho nấu ăn")}
+              />
               <DetailItem label="Cửa sổ thoáng mát" value={listing.roomDetail.hasWindow ? "Có cửa sổ" : "Không có cửa sổ"} />
               <DetailItem label="Ban công riêng" value={listing.roomDetail.hasBalcony ? "Có ban công riêng" : "Không"} />
               <DetailItem label="Gác lửng / Gác xép" value={listing.roomDetail.hasMezzanine ? "Có gác xép" : "Không"} />
+              <DetailItem
+                label="Tình trạng nội thất"
+                value={FURNISHING_NAMES[listing.roomDetail.furnishingStatus || ""] || listing.roomDetail.furnishingStatus}
+              />
               <DetailItem label="Số người ở tối đa" value={`${listing.roomDetail.maxOccupants} người`} />
               <DetailItem label="Số lượng xe tối đa" value={listing.roomDetail.maxVehicles ? `${listing.roomDetail.maxVehicles} xe` : undefined} />
+              <DetailItem
+                label="Lối đi sử dụng"
+                value={ACCESS_TYPE_NAMES[listing.roomDetail.accessType || ""] || listing.roomDetail.accessType}
+              />
+              <DetailItem
+                label="Giờ giấc sinh hoạt"
+                value={OPERATING_MODE_NAMES[listing.roomDetail.accessHoursType || ""] || listing.roomDetail.accessHoursType}
+              />
+              <DetailItem
+                label="Đồng hồ điện"
+                value={METER_TYPE_NAMES[listing.roomDetail.electricMeterType || ""] || listing.roomDetail.electricMeterType}
+              />
+              <DetailItem
+                label="Đồng hồ nước"
+                value={METER_TYPE_NAMES[listing.roomDetail.waterMeterType || ""] || listing.roomDetail.waterMeterType}
+              />
+              <DetailItem
+                label="Chính sách chỗ để xe"
+                value={PARKING_NAMES[listing.roomDetail.parkingPolicy || ""] || listing.roomDetail.parkingPolicy}
+              />
             </div>
           </SectionCard>
         )}
@@ -781,11 +783,11 @@ export default function PropertyViewPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-foreground">
-                      {charge.customName || charge.chargeType}
+                      {charge.customName || CHARGE_TYPE_NAMES[charge.chargeType] || charge.chargeType}
                     </span>
                     {charge.includedInRent ? (
                       <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                        Miễn phí
+                        Miễn phí / Đã bao gồm
                       </span>
                     ) : (
                       <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
@@ -794,11 +796,7 @@ export default function PropertyViewPage() {
                     )}
                   </div>
                   <p className="text-xs font-semibold text-primary">
-                    {charge.includedInRent
-                      ? "Đã bao gồm trong tiền thuê"
-                      : charge.amount
-                      ? `${formatCurrency(charge.amount)} ₫ (${charge.billingMethod})`
-                      : charge.billingMethod}
+                    {formatChargeFee(charge, formatCurrency)}
                   </p>
                   {charge.description && (
                     <p className="text-[11px] text-muted-foreground">{charge.description}</p>
@@ -817,7 +815,7 @@ export default function PropertyViewPage() {
             <DetailItem
               label="Giá thuê niêm yết"
               value={`${formatCurrency(listing.pricing?.amount)} ₫ / ${
-                listing.pricing?.unit === "M2_MONTH" ? "m²/tháng" : "tháng"
+                PRICING_UNIT_NAMES[listing.pricing?.unit || "MONTH"] || "tháng"
               }`}
               highlight
             />
@@ -826,25 +824,19 @@ export default function PropertyViewPage() {
               value={
                 listing.pricing?.depositType === "NONE"
                   ? "Không đặt cọc"
-                  : listing.pricing?.depositType === "NEGOTIABLE"
-                  ? "Thương lượng"
+                  : listing.pricing?.depositType === "NEGOTIABLE" || listing.pricing?.depositType === "NEGOTIATE"
+                  ? "Thương lượng / Thỏa thuận"
                   : listing.pricing?.depositAmount
-                  ? `${formatCurrency(listing.pricing.depositAmount)} ₫`
+                  ? `${formatCurrency(listing.pricing.depositAmount)} ₫ (${DEPOSIT_TYPE_NAMES[listing.pricing.depositType] || "Số tiền cố định"})`
                   : listing.pricing?.depositMonths
                   ? `${listing.pricing.depositMonths} tháng tiền thuê`
-                  : "—"
+                  : DEPOSIT_TYPE_NAMES[listing.pricing?.depositType || ""] || "—"
               }
             />
             <DetailItem
               label="Chu kỳ thanh toán"
               value={
-                listing.pricing?.paymentCycle === "MONTHLY"
-                  ? "Thanh toán từng tháng"
-                  : listing.pricing?.paymentCycle === "QUARTERLY"
-                  ? "Thanh toán 3 tháng/lần"
-                  : listing.pricing?.paymentCycle === "EVERY_6_MONTHS"
-                  ? "Thanh toán 6 tháng/lần"
-                  : listing.pricing?.paymentCycle
+                PAYMENT_CYCLE_NAMES[listing.pricing?.paymentCycle || ""] || listing.pricing?.paymentCycle || "Thanh toán từng tháng"
               }
             />
             <DetailItem

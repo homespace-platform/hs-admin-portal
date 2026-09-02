@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,7 +6,6 @@ import {
   Play,
   Video,
   Camera,
-  X,
   Building,
   Check,
 } from "lucide-react";
@@ -34,10 +33,10 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
 
   const currentItem = displayedMedia[selectedIndex] || displayedMedia[0] || null;
 
-  // Reset index when filter changes
-  useEffect(() => {
+  const selectFilter = (nextFilter: "ALL" | "IMAGE" | "VIDEO") => {
+    setFilterType(nextFilter);
     setSelectedIndex(0);
-  }, [filterType]);
+  };
 
   const handlePrev = useCallback(() => {
     setSelectedIndex((prev) => (prev > 0 ? prev - 1 : displayedMedia.length - 1));
@@ -63,7 +62,7 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
         <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border text-xs font-semibold">
           <button
             type="button"
-            onClick={() => setFilterType("ALL")}
+            onClick={() => selectFilter("ALL")}
             className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
               filterType === "ALL"
                 ? "bg-card text-foreground shadow-2xs font-bold"
@@ -75,7 +74,7 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
           {images.length > 0 && (
             <button
               type="button"
-              onClick={() => setFilterType("IMAGE")}
+              onClick={() => selectFilter("IMAGE")}
               className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
                 filterType === "IMAGE"
                   ? "bg-card text-foreground shadow-2xs font-bold"
@@ -89,7 +88,7 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
           {videos.length > 0 && (
             <button
               type="button"
-              onClick={() => setFilterType("VIDEO")}
+              onClick={() => selectFilter("VIDEO")}
               className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
                 filterType === "VIDEO"
                   ? "bg-card text-foreground shadow-2xs font-bold"
@@ -253,7 +252,7 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
         mediaItems={displayedMedia.map((item) => ({
           id: item.id,
           type: item.mediaType === "VIDEO" ? "video" : "image",
-          url: item.url,
+          url: item.url!,
           alt: title || "Chi tiết tin đăng",
         }))}
         initialIndex={selectedIndex}

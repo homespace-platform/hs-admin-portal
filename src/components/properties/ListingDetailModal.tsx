@@ -18,11 +18,9 @@ import {
 } from "lucide-react";
 import type {
   AdminListingDetailResponse,
-  DayOfWeek,
   ListingCategory,
   ListingDetailResponse,
   ListingStatus,
-  ViewingSlot,
 } from "@/types/listing.type";
 import ListingStatusBadge from "./ListingStatusBadge";
 import ListingStatusHistoryTimeline from "./ListingStatusHistoryTimeline";
@@ -208,7 +206,7 @@ export default function ListingDetailModal({
                   <p className="text-sm sm:text-base font-bold text-foreground mt-1">
                     {listing.pricing?.depositType === "NONE"
                       ? "Không đặt cọc"
-                      : listing.pricing?.depositType === "NEGOTIABLE" || listing.pricing?.depositType === "NEGOTIATE"
+                      : listing.pricing?.depositType === "NEGOTIABLE"
                       ? "Thương lượng"
                       : listing.pricing?.depositAmount
                       ? formatCurrency(listing.pricing.depositAmount)

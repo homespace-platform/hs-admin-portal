@@ -31,10 +31,8 @@ import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
 import type {
   AdminListingDetailResponse,
-  DayOfWeek,
   ListingCategory,
   ListingStatus,
-  ViewingSlot,
 } from "@/types/listing.type";
 import {
   CATEGORY_NAMES,
@@ -53,7 +51,6 @@ import {
   OPERATING_MODE_NAMES,
   METER_TYPE_NAMES,
   CHARGE_TYPE_NAMES,
-  BILLING_METHOD_NAMES,
   PRICING_UNIT_NAMES,
   DEPOSIT_TYPE_NAMES,
   PAYMENT_CYCLE_NAMES,
@@ -439,7 +436,7 @@ export default function PropertyViewPage() {
                 <p className="mt-1 text-sm sm:text-base font-bold text-foreground truncate">
                   {listing.pricing?.depositType === "NONE"
                     ? "Không đặt cọc"
-                    : listing.pricing?.depositType === "NEGOTIABLE" || listing.pricing?.depositType === "NEGOTIATE"
+                    : listing.pricing?.depositType === "NEGOTIABLE"
                     ? "Thương lượng"
                     : listing.pricing?.depositAmount
                     ? `${formatCurrency(listing.pricing.depositAmount)} ₫`
@@ -824,7 +821,7 @@ export default function PropertyViewPage() {
               value={
                 listing.pricing?.depositType === "NONE"
                   ? "Không đặt cọc"
-                  : listing.pricing?.depositType === "NEGOTIABLE" || listing.pricing?.depositType === "NEGOTIATE"
+                  : listing.pricing?.depositType === "NEGOTIABLE"
                   ? "Thương lượng / Thỏa thuận"
                   : listing.pricing?.depositAmount
                   ? `${formatCurrency(listing.pricing.depositAmount)} ₫ (${DEPOSIT_TYPE_NAMES[listing.pricing.depositType] || "Số tiền cố định"})`

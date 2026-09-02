@@ -6,6 +6,17 @@ export interface ApiValidationErrorItem {
   message: string;
 }
 
+const API_ERROR_MESSAGES: Record<string, string> = {
+  NEW_PASSWORD_REQUIRED: "Vui lòng nhập mật khẩu mới.",
+  PASSWORD_TOO_SHORT: "Mật khẩu phải có ít nhất 8 ký tự.",
+  PASSWORD_WEAK:
+    "Mật khẩu phải gồm ít nhất 1 chữ hoa, 1 chữ số và 1 ký tự đặc biệt.",
+};
+
+function translateApiErrorMessage(message: string) {
+  return API_ERROR_MESSAGES[message] ?? message;
+}
+
 /**
  * Trích xuất thông báo lỗi từ response API theo thứ tự ưu tiên:
  * 1. response.data.errors (dạng danh sách validation errors)
@@ -27,7 +38,7 @@ export function getApiErrorMessage(
     // 1. Check response.data.errors
     if (Array.isArray(data.errors) && data.errors.length > 0) {
       const messages = data.errors
-        .map((err) => (err.field ? `${err.field}: ${err.message}` : err.message))
+        .map((err) => translateApiErrorMessage(err.message))
         .filter(Boolean);
       if (messages.length > 0) {
         return messages.join("; ");
@@ -36,7 +47,7 @@ export function getApiErrorMessage(
 
     // 2. Check response.data.message
     if (data.message && typeof data.message === "string" && data.message.trim()) {
-      return data.message.trim();
+      return translateApiErrorMessage(data.message.trim());
     }
   }
 

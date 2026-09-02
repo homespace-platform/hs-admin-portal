@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import { Check, Eye, EyeOff, LoaderCircle, LockKeyhole, UserRound } from "lucide-react";
 import userService from "@/services/user.service";
 import { fetchCurrentUser } from "@/features/user/userSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import type { OnboardingRequest, UserProfile } from "@/types/user.type";
+import { getApiErrorMessage } from "@/utils/apiError";
 import { toast } from "sonner";
 
 type Step = "profile" | "password";
@@ -26,11 +26,7 @@ function getLatestAdultBirthDate() {
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
-  if (axios.isAxiosError(error)) {
-    const message = error.response?.data?.message;
-    if (typeof message === "string" && message.trim()) return message;
-  }
-  return error instanceof Error && error.message ? error.message : fallback;
+  return getApiErrorMessage(error, fallback);
 }
 
 function profileToForm(profile: UserProfile): OnboardingForm {

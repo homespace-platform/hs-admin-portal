@@ -20,6 +20,7 @@ import UsersPage from "@/pages/users/UsersPage";
 import RolesPage from "@/pages/users/RolesPage";
 import PermissionsPage from "@/pages/users/PermissionsPage";
 import ComplaintsPage from "@/pages/operations/ComplaintsPage";
+import NewsListPage from "@/pages/operations/NewsListPage";
 import NewsManagementPage from "@/pages/operations/NewsManagementPage";
 import BlockchainExplorerPage from "@/pages/blockchain/BlockchainExplorerPage";
 import StatisticsPage from "@/pages/analytics/StatisticsPage";
@@ -61,7 +62,10 @@ export default function AppRouter() {
           <Route path="approved" element={<ApprovedPropertiesPage />} />
           <Route path="draft" element={<DraftPropertiesPage />} />
           <Route path="rented" element={<RentedPropertiesPage />} />
-          <Route path="rented-externally" element={<RentedExternallyPropertiesPage />} />
+          <Route
+            path="rented-externally"
+            element={<RentedExternallyPropertiesPage />}
+          />
           <Route path="expired" element={<ExpiredPropertiesPage />} />
           <Route path="rejected" element={<RejectedPropertiesPage />} />
           <Route path="hidden" element={<HiddenPropertiesPage />} />
@@ -71,9 +75,16 @@ export default function AppRouter() {
 
         {/* Operations & Support */}
         <Route path="operations">
-          <Route index element={<Navigate to="/operations/complaints" replace />} />
+          <Route
+            index
+            element={<Navigate to="/operations/complaints" replace />}
+          />
           <Route path="complaints" element={<ComplaintsPage />} />
-          <Route path="news" element={<NewsManagementPage />} />
+          <Route path="news">
+            <Route index element={<NewsListPage />} />
+            <Route path="create" element={<NewsManagementPage />} />
+            <Route path=":newsId/edit" element={<NewsManagementPage />} />
+          </Route>
         </Route>
 
         {/* Blockchain Explorer */}
@@ -81,7 +92,10 @@ export default function AppRouter() {
 
         {/* Analytics & Reports */}
         <Route path="analytics">
-          <Route index element={<Navigate to="/analytics/statistics" replace />} />
+          <Route
+            index
+            element={<Navigate to="/analytics/statistics" replace />}
+          />
           <Route path="statistics" element={<StatisticsPage />} />
           <Route path="ai-forecast" element={<AiForecastPage />} />
         </Route>

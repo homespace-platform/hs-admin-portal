@@ -85,6 +85,10 @@ const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
     parent: { title: "Vận hành & Hỗ trợ", path: "/operations/complaints" },
     title: "Quản lý tin tức",
   },
+  "/operations/news/create": {
+    parent: { title: "Quản lý tin tức", path: "/operations/news" },
+    title: "Tạo bài viết mới",
+  },
   "/blockchain": {
     title: "Blockchain Explorer",
   },

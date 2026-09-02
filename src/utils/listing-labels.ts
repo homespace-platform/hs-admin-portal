@@ -4,7 +4,6 @@ import type {
   DayOfWeek,
   DepositType,
   ListingCategory,
-  ListingSubtype,
   PaymentCycle,
   PriceUnit,
   ViewingSlot,

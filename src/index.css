@@ -10,6 +10,12 @@
   --color-foreground: var(--foreground);
   --font-sans: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Geist Variable', sans-serif;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.3125rem;
+  --text-2xl: 1.5625rem;
   
   --color-primary: var(--primary);
   --color-primary-dark: var(--primary-dark);
@@ -139,6 +145,7 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    font-size: var(--text-base);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   h1, h2, h3, h4, h5, h6 {
@@ -156,4 +163,86 @@
 .dark .glass-panel {
   background: rgba(22, 32, 50, 0.9);
   border-color: var(--border);
+}
+
+@layer components {
+  .form-input {
+    @apply h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10;
+  }
+
+  .editor-content:empty::before {
+    content: attr(data-placeholder);
+    color: var(--muted-foreground);
+    pointer-events: none;
+  }
+
+  .editor-content h2 {
+    @apply mb-2 mt-4 text-xl font-bold;
+  }
+
+  .editor-content h3 {
+    @apply mb-2 mt-3 text-lg font-bold;
+  }
+
+  .editor-content ul {
+    @apply my-2 list-disc pl-6;
+  }
+
+  .editor-content ol {
+    @apply my-2 list-decimal pl-6;
+  }
+
+  .editor-content blockquote {
+    @apply my-3 border-l-4 border-primary/40 pl-4 italic text-muted-foreground;
+  }
+
+  .editor-content a {
+    @apply text-primary underline;
+  }
+
+  .editor-content img {
+    @apply my-4 h-auto max-w-full rounded-xl;
+  }
+
+  .news-rich-editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--muted-foreground);
+    pointer-events: none;
+  }
+
+  .news-rich-editor p {
+    @apply my-2 min-h-7;
+  }
+
+  .news-rich-editor h2 {
+    @apply mb-2 mt-5 text-xl font-bold;
+  }
+
+  .news-rich-editor blockquote {
+    @apply my-4 border-l-4 border-primary/40 pl-4 italic text-muted-foreground;
+  }
+
+  .news-rich-editor figure {
+    @apply relative my-5 rounded-xl border border-border bg-muted/20 p-3;
+  }
+
+  .news-rich-editor figure img {
+    @apply max-h-96 w-full rounded-lg object-contain;
+  }
+
+  .news-rich-editor figure input {
+    @apply mt-3 h-10 w-full rounded-lg border border-border bg-background px-3 text-xs italic outline-none focus:border-primary;
+  }
+
+  .news-rich-editor figure button {
+    @apply mt-2 text-xs font-semibold text-destructive hover:underline;
+  }
+}
+
+[class~="text-[10px]"] {
+  font-size: 11px;
+}
+
+[class~="text-[11px]"] {
+  font-size: 12px;
 }

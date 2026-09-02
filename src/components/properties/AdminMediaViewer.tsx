@@ -11,6 +11,7 @@ import {
   Check,
 } from "lucide-react";
 import type { ListingMediaResponse } from "@/types/listing.type";
+import { MediaLightboxModal } from "@/components/common/MediaGallery";
 
 interface AdminMediaViewerProps {
   media: ListingMediaResponse[];
@@ -45,25 +46,6 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
   const handleNext = useCallback(() => {
     setSelectedIndex((prev) => (prev < displayedMedia.length - 1 ? prev + 1 : 0));
   }, [displayedMedia.length]);
-
-  // Keyboard navigation for Lightbox
-  useEffect(() => {
-    if (!isLightboxOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsLightboxOpen(false);
-      else if (e.key === "ArrowLeft") handlePrev();
-      else if (e.key === "ArrowRight") handleNext();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [isLightboxOpen, handlePrev, handleNext]);
 
   if (allMedia.length === 0) {
     return (
@@ -264,124 +246,19 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
         </div>
       )}
 
-      {/* ── Lightbox / Fullscreen Modal ── */}
-      {isLightboxOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col select-none animate-in fade-in duration-200"
-          role="dialog"
-          aria-modal="true"
-        >
-          {/* Top Bar */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/10 text-white z-20">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="px-2.5 py-1 rounded-full bg-white/10 text-xs font-semibold tracking-wide">
-                {currentItem?.mediaType === "VIDEO" ? "Video" : "Ảnh"}{" "}
-                {selectedIndex + 1} / {displayedMedia.length}
-              </span>
-              <h3 className="text-sm font-medium text-white/80 truncate hidden sm:block">
-                {title || "Chi tiết tin đăng"}
-              </h3>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsLightboxOpen(false)}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-              title="Đóng (Esc)"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Center Stage */}
-          <div className="relative flex-1 flex items-center justify-center p-4 sm:p-8 overflow-hidden">
-            {displayedMedia.length > 1 && (
-              <button
-                type="button"
-                onClick={handlePrev}
-                className="absolute left-3 sm:left-6 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-200 hover:scale-105 backdrop-blur-md border border-white/10 cursor-pointer shadow-xl"
-                title="Trước (Mũi tên trái)"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            )}
-
-            <div className="relative w-full h-full max-w-5xl max-h-[78vh] flex items-center justify-center">
-              {currentItem?.mediaType === "VIDEO" ? (
-                <video
-                  key={currentItem.id || currentItem.url}
-                  src={currentItem.url || undefined}
-                  controls
-                  autoPlay
-                  playsInline
-                  className="max-h-[78vh] max-w-full rounded-xl shadow-2xl bg-black"
-                />
-              ) : currentItem?.url ? (
-                <img
-                  src={currentItem.url}
-                  alt={title || `Ảnh ${selectedIndex + 1}`}
-                  className="max-h-[78vh] max-w-full object-contain rounded-xl shadow-2xl"
-                />
-              ) : null}
-            </div>
-
-            {displayedMedia.length > 1 && (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="absolute right-3 sm:right-6 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-200 hover:scale-105 backdrop-blur-md border border-white/10 cursor-pointer shadow-xl"
-                title="Sau (Mũi tên phải)"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            )}
-          </div>
-
-          {/* Bottom Thumbnails Strip in Lightbox */}
-          {displayedMedia.length > 1 && (
-            <div className="px-4 sm:px-6 py-3 border-t border-white/10 bg-black/40 backdrop-blur-md flex items-center justify-center overflow-x-auto gap-2.5 max-w-full">
-              {displayedMedia.map((item, idx) => {
-                const isActive = idx === selectedIndex;
-                const isVid = item.mediaType === "VIDEO";
-
-                return (
-                  <button
-                    key={item.id || `${item.url}-${idx}`}
-                    type="button"
-                    onClick={() => setSelectedIndex(idx)}
-                    className={`relative w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden shrink-0 transition-all duration-200 cursor-pointer border ${
-                      isActive
-                        ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-black scale-105 opacity-100"
-                        : "border-white/20 opacity-60 hover:opacity-90"
-                    }`}
-                  >
-                    {isVid ? (
-                      <div className="relative w-full h-full bg-slate-900 flex items-center justify-center overflow-hidden">
-                        <video
-                          src={`${item.url}#t=0.5`}
-                          preload="metadata"
-                          muted
-                          playsInline
-                          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                          <Play className="w-4 h-4 fill-white text-white" />
-                        </div>
-                      </div>
-                    ) : (
-                      <img
-                        src={item.url || "/area/hcm-1.jpg"}
-                        alt={`Thumbnail ${idx + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+      {/* ── Lightbox / Fullscreen Modal (Dùng chung MediaLightboxModal) ── */}
+      <MediaLightboxModal
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        mediaItems={displayedMedia.map((item) => ({
+          id: item.id,
+          type: item.mediaType === "VIDEO" ? "video" : "image",
+          url: item.url,
+          alt: title || "Chi tiết tin đăng",
+        }))}
+        initialIndex={selectedIndex}
+        title={title || "Chi tiết tin đăng"}
+      />
     </div>
   );
 }

@@ -1,9 +1,15 @@
 import axiosClient from "@/lib/axios-client";
-import type { ApiResponse } from "@/types/api.type";
+import type { ApiResponse, PageResponse } from "@/types/api.type";
 import type {
   CreateStorageUploadRequest,
   CreateStorageUploadResponse,
+  StorageObjectResponse,
+  StorageUrlResponse,
 } from "@/types/storage.type";
+
+const USER_AVATAR_REFERENCE_TYPE = "USER";
+const USER_AVATAR_PURPOSE = "USER_AVATAR";
+const READY_STATUS = "READY";
 
 const storageService = {
   async uploadUserAvatar(file: File, userId: string): Promise<string> {
@@ -11,9 +17,9 @@ const storageService = {
       fileName: file.name,
       contentType: file.type,
       size: file.size,
-      purpose: "USER_AVATAR",
+      purpose: USER_AVATAR_PURPOSE,
       visibility: "PUBLIC",
-      referenceType: "USER",
+      referenceType: USER_AVATAR_REFERENCE_TYPE,
       referenceId: userId,
     };
 
@@ -36,6 +42,34 @@ const storageService = {
       {},
     );
     return storageId;
+  },
+
+  async listUserAvatars(
+    userId: string,
+    page = 1,
+    size = 20,
+  ): Promise<StorageObjectResponse[]> {
+    const response = await axiosClient.get<PageResponse<StorageObjectResponse>>(
+      "/api/v1/storage",
+      {
+        params: {
+          referenceType: USER_AVATAR_REFERENCE_TYPE,
+          referenceId: userId,
+          purpose: USER_AVATAR_PURPOSE,
+          status: READY_STATUS,
+          page,
+          size,
+        },
+      },
+    );
+    return response.data.result;
+  },
+
+  async getViewUrl(storageId: string): Promise<string> {
+    const response = await axiosClient.get<ApiResponse<StorageUrlResponse>>(
+      `/api/v1/storage/${storageId}/view-url`,
+    );
+    return response.data.result.url;
   },
 };
 

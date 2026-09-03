@@ -5,9 +5,9 @@ import {
   type MouseEvent,
   type ReactElement,
 } from "react";
-import { Heading2, ImagePlus, Pilcrow, Quote, Undo2, Redo2 } from "lucide-react";
+import { Bold, Heading2, ImagePlus, Italic, Pilcrow, Quote, Underline, Undo2, Redo2 } from "lucide-react";
 import type { NewsBlockType } from "@/types/news.type";
-import { blocksToEditorHtml } from "@/utils/newsEditorDocument.js";
+import { blocksToEditorHtml, sanitizeInlineMarkup } from "@/utils/newsEditorDocument.js";
 
 export type EditorBlock = {
   id: string;
@@ -16,7 +16,7 @@ export type EditorBlock = {
   storageObjectId: string | null;
   imageUrl: string;
   file: File | null;
-  altText: string;
+  caption: string;
 };
 
 export default function NewsRichEditor({
@@ -51,7 +51,7 @@ export default function NewsRichEditor({
       if (tag === "FIGURE") {
         const id = element.dataset.blockId || crypto.randomUUID();
         const image = element.querySelector("img");
-        const altInput = element.querySelector<HTMLInputElement>("[data-alt-text]");
+        const captionInput = element.querySelector<HTMLInputElement>("[data-caption]");
         blocks.push({
           id,
           type: "IMAGE",
@@ -59,11 +59,11 @@ export default function NewsRichEditor({
           storageObjectId: element.dataset.storageId || null,
           imageUrl: image?.src || "",
           file: filesRef.current.get(id) || null,
-          altText: altInput?.value || "",
+          caption: captionInput?.value || "",
         });
         continue;
       }
-      const text = element.innerText.replace(/\u00a0/g, " ");
+      const text = sanitizeInlineMarkup(element.innerHTML.replace(/\u00a0/g, " "));
       blocks.push({
         id: element.dataset.blockId || crypto.randomUUID(),
         type: tag === "H2" ? "HEADING" : tag === "BLOCKQUOTE" ? "QUOTE" : "PARAGRAPH",
@@ -71,7 +71,7 @@ export default function NewsRichEditor({
         storageObjectId: null,
         imageUrl: "",
         file: null,
-        altText: "",
+        caption: "",
       });
     }
     const nextValue = blocks.length ? blocks : [emptyParagraph()];
@@ -81,6 +81,11 @@ export default function NewsRichEditor({
 
   function formatBlock(tag: "p" | "h2" | "blockquote") {
     document.execCommand("formatBlock", false, tag);
+    readBlocks();
+  }
+
+  function formatInline(command: "bold" | "italic" | "underline") {
+    document.execCommand(command);
     readBlocks();
   }
 
@@ -141,6 +146,10 @@ export default function NewsRichEditor({
         <ToolButton label="Tiêu đề phụ" onClick={() => formatBlock("h2")}><Heading2 /></ToolButton>
         <ToolButton label="Trích dẫn" onClick={() => formatBlock("blockquote")}><Quote /></ToolButton>
         <span className="mx-1 h-6 w-px bg-border" />
+        <ToolButton label="In đậm" onClick={() => formatInline("bold")}><Bold /></ToolButton>
+        <ToolButton label="In nghiêng" onClick={() => formatInline("italic")}><Italic /></ToolButton>
+        <ToolButton label="Gạch chân" onClick={() => formatInline("underline")}><Underline /></ToolButton>
+        <span className="mx-1 h-6 w-px bg-border" />
         <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={chooseImage} className="inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-muted-foreground hover:bg-background hover:text-foreground">
           <ImagePlus className="h-4 w-4" /> Chèn ảnh
         </button>
@@ -154,7 +163,7 @@ export default function NewsRichEditor({
         onInput={readBlocks}
         onClick={handleClick}
         data-placeholder="Bắt đầu viết nội dung bài..."
-        className="news-rich-editor min-h-[420px] px-5 py-4 text-sm leading-7 text-foreground outline-none"
+        className="news-rich-editor min-h-[420px] px-5 py-4 text-[13px] leading-7 text-foreground outline-none"
       />
       <p className="border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
         Ảnh mới chỉ được lưu tạm; S3 chỉ được gọi khi bạn lưu nháp hoặc xuất bản.
@@ -164,7 +173,7 @@ export default function NewsRichEditor({
 }
 
 function emptyParagraph(): EditorBlock {
-  return { id: crypto.randomUUID(), type: "PARAGRAPH", text: "", storageObjectId: null, imageUrl: "", file: null, altText: "" };
+  return { id: crypto.randomUUID(), type: "PARAGRAPH", text: "", storageObjectId: null, imageUrl: "", file: null, caption: "" };
 }
 
 function createImageFigure(id: string, src: string) {
@@ -175,9 +184,9 @@ function createImageFigure(id: string, src: string) {
   image.src = src;
   image.alt = "Ảnh trong bài viết";
   const input = document.createElement("input");
-  input.dataset.altText = "";
+  input.dataset.caption = "";
   input.maxLength = 500;
-  input.placeholder = "Mô tả ảnh cho trình đọc màn hình";
+  input.placeholder = "Nhập chú thích ảnh...";
   const button = document.createElement("button");
   button.type = "button";
   button.dataset.removeImage = "";

@@ -17,6 +17,7 @@ import {
   XCircle,
   AlertTriangle,
   ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ListingTable from "./ListingTable";
@@ -46,6 +47,7 @@ const STATUS_TABS: StatusTabItem[] = [
   { value: "ALL", label: "Tất cả", icon: Layers, colorClass: "text-muted-foreground" },
   { value: "PENDING_REVIEW", label: "Chờ duyệt", icon: Clock, colorClass: "text-amber-500" },
   { value: "PUBLISHED", label: "Đang hiển thị", icon: CheckCircle2, colorClass: "text-emerald-500" },
+  { value: "RESERVED", label: "Đang giữ chỗ", icon: ShieldCheck, colorClass: "text-amber-600" },
   { value: "RENTED", label: "Đã cho thuê", icon: Home, colorClass: "text-blue-500" },
   { value: "DRAFT", label: "Tin nháp", icon: FileText, colorClass: "text-slate-400" },
   { value: "HIDDEN", label: "Đã ẩn", icon: EyeOff, colorClass: "text-zinc-400" },

@@ -8,7 +8,7 @@ export type NewsContentBlock = {
   type: NewsBlockType;
   text: string | null;
   storageObjectId: string | null;
-  altText: string | null;
+  caption: string | null;
 };
 
 export type NewsMedia = {
@@ -16,7 +16,6 @@ export type NewsMedia = {
   storageObjectId: string;
   role: NewsMediaRole;
   sortOrder: number;
-  altText: string | null;
   url: string | null;
 };
 

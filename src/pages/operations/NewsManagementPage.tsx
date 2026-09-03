@@ -20,6 +20,7 @@ import type {
   NewsUpsertRequest,
 } from "@/types/news.type";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { sanitizeInlineMarkup } from "@/utils/newsEditorDocument.js";
 
 const CATEGORIES: readonly [NewsCategory, string][] = [
   ["MARKET", "Thị trường"],
@@ -46,7 +47,7 @@ function createBlock(): EditorBlock {
     storageObjectId: null,
     imageUrl: "",
     file: null,
-    altText: "",
+    caption: "",
   };
 }
 
@@ -161,7 +162,7 @@ export default function NewsEditorPage() {
                   storageObjectId: block.storageObjectId,
                   imageUrl: media?.url ?? "",
                   file: null,
-                  altText: block.altText ?? "",
+                  caption: block.caption ?? "",
                 };
               })
             : [createBlock()],
@@ -261,7 +262,7 @@ export default function NewsEditorPage() {
           type: block.type,
           text: block.type === "IMAGE" ? null : block.text.trim(),
           storageObjectId: block.type === "IMAGE" ? storageObjectId : null,
-          altText: block.type === "IMAGE" ? block.altText.trim() || null : null,
+          caption: block.type === "IMAGE" ? block.caption.trim() || null : null,
         });
       }
 
@@ -550,10 +551,13 @@ function PreviewModal({ title, summary, coverImage, category, tags, blocks, onCl
           {coverImage && <img src={coverImage} alt="Ảnh đại diện" className="mt-7 aspect-video w-full rounded-2xl object-cover" />}
           <div className="mt-8 space-y-5 text-base leading-8 text-muted-foreground">
             {blocks.filter(blockHasContent).map((block) => block.type === "IMAGE" ? (
-              <img key={block.id} src={block.imageUrl} alt={block.altText || "Ảnh trong bài viết"} className="w-full rounded-2xl object-contain" />
-            ) : block.type === "HEADING" ? <h2 key={block.id} className="text-xl font-bold text-foreground">{block.text}</h2>
-              : block.type === "QUOTE" ? <blockquote key={block.id} className="border-l-4 border-primary pl-4 italic">{block.text}</blockquote>
-              : <p key={block.id}>{block.text}</p>)}
+              <figure key={block.id} className="space-y-2">
+                <img src={block.imageUrl} alt="Ảnh trong bài viết" className="w-full rounded-2xl object-contain" />
+                {block.caption.trim() && <figcaption className="text-center text-xs italic text-muted-foreground">{block.caption}</figcaption>}
+              </figure>
+              ) : block.type === "HEADING" ? <h2 key={block.id} className="text-xl font-bold text-foreground" dangerouslySetInnerHTML={{ __html: sanitizeInlineMarkup(block.text) }} />
+                  : block.type === "QUOTE" ? <blockquote key={block.id} className="my-4 border-l-4 border-primary bg-primary/5 py-3 pl-4 italic text-foreground" dangerouslySetInnerHTML={{ __html: sanitizeInlineMarkup(block.text) }} />
+                  : <p key={block.id} dangerouslySetInnerHTML={{ __html: sanitizeInlineMarkup(block.text) }} />)}
           </div>
           {tags.length > 0 && <div className="mt-8 flex flex-wrap gap-2 border-t border-border pt-5">{tags.map((tag) => <span key={tag} className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">#{tag}</span>)}</div>}
         </article>

@@ -25,15 +25,11 @@ const storageService = {
   },
 
   async uploadNewsImage(file: File): Promise<string> {
-    return upload(file, {
-      fileName: file.name,
-      contentType: file.type,
-      size: file.size,
-      purpose: "NEWS_IMAGE",
-      visibility: "PUBLIC",
-      referenceType: "NEWS",
-      referenceId: "",
-    });
+    return upload(
+      file,
+      { fileName: file.name, contentType: file.type, size: file.size },
+      "/api/v1/admin/news/media",
+    );
   },
 
   async listUserAvatars(
@@ -67,11 +63,14 @@ const storageService = {
 
 async function upload(
   file: File,
-  request: CreateStorageUploadRequest,
+  request:
+    | CreateStorageUploadRequest
+    | Pick<CreateStorageUploadRequest, "fileName" | "contentType" | "size">,
+  basePath = "/api/v1/storage",
 ): Promise<string> {
   const { data } = await axiosClient.post<
     ApiResponse<CreateStorageUploadResponse>
-  >("/api/v1/storage/uploads", request);
+  >(`${basePath}/uploads`, request);
   const { storageId, uploadUrl } = data.result;
 
   const s3Response = await fetch(uploadUrl, {
@@ -83,7 +82,7 @@ async function upload(
     throw new Error(`Không thể tải ảnh lên S3 (${s3Response.status}).`);
 
   await axiosClient.post<ApiResponse<unknown>>(
-    `/api/v1/storage/${storageId}/complete`,
+    `${basePath}/${storageId}/complete`,
     {},
   );
   return storageId;

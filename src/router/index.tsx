@@ -28,6 +28,12 @@ import AiForecastPage from "@/pages/analytics/AiForecastPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
 import NotFoundPage from "@/pages/not-found/NotFoundPage";
 
+// Contract Pages
+import ContractTemplatesPage from "@/pages/contracts/ContractTemplatesPage";
+import ContractTemplateDetailPage from "@/pages/contracts/ContractTemplateDetailPage";
+import ContractFieldsPage from "@/pages/contracts/ContractFieldsPage";
+import ContractsListPage from "@/pages/contracts/ContractsListPage";
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -71,6 +77,20 @@ export default function AppRouter() {
           <Route path="hidden" element={<HiddenPropertiesPage />} />
           <Route path="violation" element={<ViolationPropertiesPage />} />
           <Route path="view" element={<PropertyViewPage />} />
+        </Route>
+
+        {/* Contract Management */}
+        <Route path="contracts">
+          <Route
+            index
+            element={<Navigate to="/contracts/templates" replace />}
+          />
+          <Route path="templates">
+            <Route index element={<ContractTemplatesPage />} />
+            <Route path=":templateId" element={<ContractTemplateDetailPage />} />
+          </Route>
+          <Route path="fields" element={<ContractFieldsPage />} />
+          <Route path="all" element={<ContractsListPage />} />
         </Route>
 
         {/* Operations & Support */}

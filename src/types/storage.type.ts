@@ -1,4 +1,12 @@
-export type StoragePurpose = "USER_AVATAR" | "NEWS_IMAGE";
+export type StoragePurpose =
+  | "USER_AVATAR"
+  | "CONTRACT_DOCUMENT"
+  | "IDENTITY_DOCUMENT"
+  | "CHAT_ATTACHMENT"
+  | "LISTING_IMAGE"
+  | "LISTING_VIDEO"
+  | "NEWS_IMAGE"
+  | "GENERAL";
 
 export type StorageVisibility = "PUBLIC" | "PRIVATE";
 

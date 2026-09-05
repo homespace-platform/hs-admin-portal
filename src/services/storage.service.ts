@@ -53,6 +53,20 @@ const storageService = {
     return response.data.result;
   },
 
+  async uploadContractDocx(file: File): Promise<string> {
+    const contentType =
+      file.type ||
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    return upload(file, {
+      fileName: file.name,
+      contentType,
+      size: file.size,
+      purpose: "CONTRACT_DOCUMENT",
+      visibility: "PRIVATE",
+      referenceType: "CONTRACT_TEMPLATE",
+    });
+  },
+
   async getViewUrl(storageId: string): Promise<string> {
     const response = await axiosClient.get<ApiResponse<StorageUrlResponse>>(
       `/api/v1/storage/${storageId}/view-url`,

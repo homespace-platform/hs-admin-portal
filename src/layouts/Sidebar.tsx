@@ -16,6 +16,10 @@ import {
   Newspaper,
   BarChart3,
   BrainCircuit,
+  FileText,
+  FileCode,
+  BookOpen,
+  Files,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -51,6 +55,15 @@ const MENU_ITEMS: MenuItem[] = [
     icon: Building2,
   },
   {
+    title: "Quản lý hợp đồng",
+    icon: FileText,
+    children: [
+      { title: "Mẫu hợp đồng", path: "/contracts/templates", icon: Files },
+      { title: "Từ điển mã trường", path: "/contracts/fields", icon: BookOpen },
+      { title: "Hợp đồng hệ thống", path: "/contracts/all", icon: FileCode },
+    ],
+  },
+  {
     title: "Vận hành & Hỗ trợ",
     icon: Wrench,
     children: [
@@ -84,6 +97,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   // Keep track of open submenu groups
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "Quản lý tài khoản": true,
+    "Quản lý hợp đồng": true,
     "Vận hành & Hỗ trợ": false,
     "Báo cáo & Phân tích": false,
   });

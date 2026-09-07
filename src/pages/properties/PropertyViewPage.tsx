@@ -746,18 +746,29 @@ export default function PropertyViewPage() {
             {listing.furnishings && listing.furnishings.length > 0 && (
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2.5">
-                  Trang bị nội thất ({listing.furnishings.length})
+                  Trang thiết bị bàn giao ({listing.furnishings.length})
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {listing.furnishings.map((item) => (
-                    <span
-                      key={item.code}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted/30 px-3 py-1.5 text-xs font-medium text-foreground"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                      <span>{item.name}</span>
-                    </span>
-                  ))}
+                <div className="overflow-x-auto rounded-xl border border-border">
+                  <table className="w-full min-w-120 border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-muted/40 text-left font-semibold text-muted-foreground">
+                        <th className="w-10 px-3 py-2">STT</th>
+                        <th className="px-3 py-2">Tên tài sản / Trang thiết bị</th>
+                        <th className="w-20 px-3 py-2">Số lượng</th>
+                        <th className="px-3 py-2">Hiện trạng bàn giao</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listing.furnishings.map((item) => (
+                        <tr key={item.index} className="border-t border-border/60">
+                          <td className="px-3 py-2 text-muted-foreground">{item.index}</td>
+                          <td className="px-3 py-2 font-medium text-foreground">{item.assetName}</td>
+                          <td className="px-3 py-2 text-foreground">{item.quantity}</td>
+                          <td className="px-3 py-2 text-muted-foreground">{item.conditionText}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}

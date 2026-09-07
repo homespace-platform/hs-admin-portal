@@ -305,9 +305,11 @@ export default function ListingDetailModal({
                       </span>
                     ))}
                     {listing.furnishings?.map((f) => (
-                      <span key={f.code} className="inline-flex items-center gap-1 rounded-xl bg-muted border border-border px-3 py-1 text-xs font-medium text-foreground">
+                      <span key={f.index} className="inline-flex items-center gap-1 rounded-xl bg-muted border border-border px-3 py-1 text-xs font-medium text-foreground">
                         <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                        <span>{f.name}</span>
+                        <span>
+                          {f.assetName} x{f.quantity}
+                        </span>
                       </span>
                     ))}
                   </div>

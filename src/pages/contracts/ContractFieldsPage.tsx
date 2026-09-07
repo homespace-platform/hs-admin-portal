@@ -11,9 +11,14 @@ import {
 import { toast } from "sonner";
 import { adminContractService } from "@/services/admin-contract.service";
 import type { TemplateFieldDefinition } from "@/types/contract.type";
+import { CATEGORY_NAMES, CATEGORY_OPTIONS } from "@/utils/listing-labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+function isRequiredForAllCategories(field: TemplateFieldDefinition): boolean {
+  return field.requiredForCategories?.length === CATEGORY_OPTIONS.length;
+}
 
 export default function ContractFieldsPage() {
   const [fields, setFields] = useState<TemplateFieldDefinition[]>([]);
@@ -238,12 +243,26 @@ export default function ContractFieldsPage() {
                         {field.example}
                       </td>
                       <td className="py-3 px-4">
-                        {field.required ? (
+                        {!field.required ? (
+                          <span className="text-muted-foreground">Tùy chọn</span>
+                        ) : isRequiredForAllCategories(field) ? (
                           <Badge variant="destructive" className="text-[10px]">
                             Bắt buộc
                           </Badge>
                         ) : (
-                          <span className="text-muted-foreground">Tùy chọn</span>
+                          <div className="space-y-1">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] text-amber-600 border-amber-500/40"
+                            >
+                              Bắt buộc theo loại hình
+                            </Badge>
+                            <div className="text-[10px] text-muted-foreground">
+                              {field.requiredForCategories
+                                .map((c) => CATEGORY_NAMES[c])
+                                .join(", ")}
+                            </div>
+                          </div>
                         )}
                       </td>
                       <td className="py-3 px-4 text-right">

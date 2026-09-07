@@ -23,6 +23,7 @@ import type {
   ContractTemplateResponse,
   ContractTemplateVersionResponse,
 } from "@/types/contract.type";
+import { CATEGORY_DESCRIPTIONS, CATEGORY_NAMES } from "@/utils/listing-labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -66,6 +67,11 @@ export default function ContractTemplateDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyPlaceholder = (key: string) => {
+    navigator.clipboard.writeText(`{{${key}}}`);
+    toast.success(`Đã sao chép {{${key}}}`);
   };
 
   const handleCreateVersion = async (e: React.FormEvent) => {
@@ -210,21 +216,18 @@ export default function ContractTemplateDetailPage() {
       </div>
 
       {/* Overview Card */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-2xl border border-border bg-card shadow-xs">
-          <div className="text-[11px] font-medium text-muted-foreground uppercase">Loại BĐS</div>
+          <div className="text-[11px] font-medium text-muted-foreground uppercase">Loại BĐS áp dụng</div>
           <div className="text-sm font-bold text-foreground mt-1">
-            {template.category || "Dùng chung cho tất cả"}
+            {template.category
+              ? CATEGORY_NAMES[template.category]
+              : "Dùng chung cho tất cả"}
           </div>
-        </div>
-        <div className="p-4 rounded-2xl border border-border bg-card shadow-xs">
-          <div className="text-[11px] font-medium text-muted-foreground uppercase">Hình thức thuê</div>
-          <div className="text-sm font-bold text-foreground mt-1">
-            {template.rentalMode === "WHOLE_UNIT"
-              ? "Nguyên căn"
-              : template.rentalMode === "PARTIAL"
-              ? "Một phần / Phòng"
-              : "Tất cả"}
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            {template.category
+              ? CATEGORY_DESCRIPTIONS[template.category]
+              : "Mẫu cũ chưa gắn loại hình, chỉ kiểm tra bộ trường bắt buộc chung"}
           </div>
         </div>
         <div className="p-4 rounded-2xl border border-border bg-card shadow-xs">
@@ -268,7 +271,16 @@ export default function ContractTemplateDetailPage() {
             {versions.map((v) => {
               const isPublished = v.status === "PUBLISHED";
               const isDraft = v.status === "DRAFT";
-              const hasWarnings = v.validationWarnings && v.validationWarnings.length > 0;
+              const invalidFields = v.invalidPlaceholders || [];
+              const missingFields = v.missingRequiredFields || [];
+              const legacyWarnings = v.validationWarnings || [];
+              // Phiên bản tải lên trước khi có phân tích chi tiết chỉ lưu chuỗi cảnh báo.
+              const hasStructuredIssues =
+                invalidFields.length > 0 || missingFields.length > 0;
+              const warningCount = hasStructuredIssues
+                ? invalidFields.length + missingFields.length
+                : legacyWarnings.length;
+              const hasWarnings = warningCount > 0;
 
               return (
                 <div
@@ -371,7 +383,11 @@ export default function ContractTemplateDetailPage() {
                       {hasWarnings ? (
                         <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium">
                           <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                          <span>{v.validationWarnings.length} cảnh báo mã trường</span>
+                          <span>
+                            {hasStructuredIssues
+                              ? `${warningCount} mã trường cần xử lý`
+                              : `${warningCount} cảnh báo mã trường`}
+                          </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1 text-emerald-600 text-[11px] font-medium">
@@ -401,16 +417,74 @@ export default function ContractTemplateDetailPage() {
                     )}
                   </div>
 
-                  {/* Warning Details if any */}
-                  {hasWarnings && (
+                  {/* Phiên bản cũ: chỉ có chuỗi cảnh báo, không có dữ liệu chi tiết */}
+                  {!hasStructuredIssues && legacyWarnings.length > 0 && (
                     <div className="mt-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 space-y-1">
                       <div className="font-semibold flex items-center gap-1">
                         <AlertTriangle className="w-3.5 h-3.5" />
                         Cảnh báo phân tích từ hệ thống:
                       </div>
                       <ul className="list-disc list-inside text-[11px] space-y-0.5 text-amber-800 dark:text-amber-200">
-                        {v.validationWarnings.map((w, idx) => (
+                        {legacyWarnings.map((w, idx) => (
                           <li key={idx}>{w}</li>
+                        ))}
+                      </ul>
+                      <p className="text-[11px] opacity-80">
+                        Tải lên phiên bản Word mới để hệ thống phân tích chi tiết từng mã trường.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Chi tiết mã trường sai chính tả / không được hỗ trợ */}
+                  {invalidFields.length > 0 && (
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-700 dark:text-rose-300 space-y-1.5">
+                      <div className="font-semibold flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        {invalidFields.length} mã trường không có trong từ điển (sai chính tả hoặc chưa được hỗ trợ):
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {invalidFields.map((key) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => copyPlaceholder(key)}
+                            title="Nhấn để sao chép"
+                            className="px-1.5 py-0.5 rounded bg-rose-500/15 text-[10px] font-mono cursor-pointer hover:bg-rose-500/25 transition-colors"
+                          >
+                            &#123;&#123;{key}&#125;&#125;
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[11px] opacity-80">
+                        Hãy đối chiếu lại với Từ điển mã trường và sửa trực tiếp trong file Word, sau đó tải lên phiên bản mới.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Chi tiết trường bắt buộc còn thiếu */}
+                  {missingFields.length > 0 && (
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 space-y-1.5">
+                      <div className="font-semibold flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        Thiếu {missingFields.length} trường bắt buộc
+                        {template.category
+                          ? ` của loại hình ${CATEGORY_NAMES[template.category]}`
+                          : ""}
+                        :
+                      </div>
+                      <ul className="space-y-1 text-[11px] text-amber-800 dark:text-amber-200">
+                        {missingFields.map((f) => (
+                          <li key={f.key} className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => copyPlaceholder(f.key)}
+                              title="Nhấn để sao chép"
+                              className="px-1.5 py-0.5 rounded bg-amber-500/15 font-mono cursor-pointer hover:bg-amber-500/25 transition-colors"
+                            >
+                              &#123;&#123;{f.key}&#125;&#125;
+                            </button>
+                            <span>{f.label}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>

@@ -30,6 +30,7 @@ import type {
   ListingCategory,
   ListingStatus,
 } from "@/types/listing.type";
+import { CATEGORY_NAMES } from "@/utils/listing-labels";
 
 interface ListingTableProps {
   listings: AdminListingSummaryResponse[];
@@ -42,14 +43,6 @@ interface ListingTableProps {
     targetStatus: ListingStatus
   ) => void;
 }
-
-const CATEGORY_NAMES: Record<ListingCategory, string> = {
-  APARTMENT: "Căn hộ",
-  HOUSE: "Nhà nguyên căn",
-  OFFICE: "Văn phòng",
-  COMMERCIAL_SPACE: "Mặt bằng",
-  ROOM: "Nhà trọ / Phòng",
-};
 
 const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   APARTMENT: <Building className="h-3.5 w-3.5" />,

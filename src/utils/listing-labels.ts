@@ -11,11 +11,28 @@ import type {
 
 export const CATEGORY_NAMES: Record<ListingCategory, string> = {
   APARTMENT: "Căn hộ / Chung cư",
-  HOUSE: "Nhà ở nguyên căn",
-  OFFICE: "Văn phòng cho thuê",
+  HOUSE: "Nhà nguyên căn",
+  OFFICE: "Văn phòng",
   COMMERCIAL_SPACE: "Mặt bằng kinh doanh",
-  ROOM: "Nhà trọ / Phòng cho thuê",
+  ROOM: "Nhà trọ / Căn hộ dịch vụ",
 };
+
+export const CATEGORY_DESCRIPTIONS: Record<ListingCategory, string> = {
+  APARTMENT: "Căn hộ chung cư, studio, duplex, penthouse, officetel",
+  HOUSE: "Nhà phố, nhà trong hẻm, biệt thự, nhà cấp 4",
+  OFFICE: "Văn phòng truyền thống, trọn gói, coworking, chia sẻ",
+  COMMERCIAL_SPACE: "Cửa hàng, ki-ốt, showroom, shophouse, mặt bằng TTTM",
+  ROOM: "Phòng trọ, phòng trong nhà, căn hộ dịch vụ, ký túc xá",
+};
+
+/** Thứ tự hiển thị chuẩn của 5 loại hình bất động sản trên toàn hệ thống. */
+export const CATEGORY_OPTIONS: ListingCategory[] = [
+  "APARTMENT",
+  "HOUSE",
+  "OFFICE",
+  "COMMERCIAL_SPACE",
+  "ROOM",
+];
 
 export const SUBTYPE_NAMES: Record<string, string> = {
   // Căn hộ

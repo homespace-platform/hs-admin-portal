@@ -18,17 +18,15 @@ import storageService from "@/services/storage.service";
 import type {
   ContractTemplateResponse,
 } from "@/types/contract.type";
+import type { ListingCategory } from "@/types/listing.type";
+import {
+  CATEGORY_DESCRIPTIONS,
+  CATEGORY_NAMES,
+  CATEGORY_OPTIONS,
+} from "@/utils/listing-labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  APARTMENT: "Căn hộ",
-  HOUSE: "Nhà riêng",
-  OFFICE: "Văn phòng",
-  COMMERCIAL_SPACE: "Mặt bằng kinh doanh",
-  ROOM: "Phòng trọ",
-};
 
 export default function ContractTemplatesPage() {
   const navigate = useNavigate();
@@ -42,8 +40,7 @@ export default function ContractTemplatesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createName, setCreateName] = useState("");
   const [createDesc, setCreateDesc] = useState("");
-  const [createCategory, setCreateCategory] = useState("");
-  const [createRentalMode, setCreateRentalMode] = useState("");
+  const [createCategory, setCreateCategory] = useState<ListingCategory | "">("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -71,6 +68,10 @@ export default function ContractTemplatesPage() {
       toast.error("Vui lòng nhập tên mẫu hợp đồng");
       return;
     }
+    if (!createCategory) {
+      toast.error("Vui lòng chọn loại hình bất động sản áp dụng");
+      return;
+    }
     if (!selectedFile) {
       toast.error("Vui lòng chọn file mẫu Word (.docx)");
       return;
@@ -91,8 +92,7 @@ export default function ContractTemplatesPage() {
       const created = await adminContractService.createTemplate({
         name: createName.trim(),
         description: createDesc.trim() || undefined,
-        category: createCategory || undefined,
-        rentalMode: createRentalMode || undefined,
+        category: createCategory,
         storageObjectId: storageId,
         originalFileName: selectedFile.name,
       });
@@ -102,7 +102,6 @@ export default function ContractTemplatesPage() {
       setCreateName("");
       setCreateDesc("");
       setCreateCategory("");
-      setCreateRentalMode("");
       setSelectedFile(null);
       loadTemplates();
 
@@ -210,11 +209,11 @@ export default function ContractTemplatesPage() {
             className="text-xs py-1.5 px-3 rounded-xl border border-input bg-background font-medium focus:outline-hidden focus:ring-1 focus:ring-primary"
           >
             <option value="ALL">Tất cả loại BĐS</option>
-            <option value="APARTMENT">Căn hộ</option>
-            <option value="HOUSE">Nhà riêng</option>
-            <option value="ROOM">Phòng trọ</option>
-            <option value="OFFICE">Văn phòng</option>
-            <option value="COMMERCIAL_SPACE">Mặt bằng kinh doanh</option>
+            {CATEGORY_OPTIONS.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_NAMES[c]}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -227,7 +226,6 @@ export default function ContractTemplatesPage() {
               <tr>
                 <th className="py-3 px-4">Tên mẫu hợp đồng</th>
                 <th className="py-3 px-4">Loại BĐS áp dụng</th>
-                <th className="py-3 px-4">Hình thức thuê</th>
                 <th className="py-3 px-4 text-center">Số phiên bản</th>
                 <th className="py-3 px-4">Trạng thái</th>
                 <th className="py-3 px-4">Cập nhật</th>
@@ -237,13 +235,13 @@ export default function ContractTemplatesPage() {
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
                     Đang tải danh sách mẫu hợp đồng...
                   </td>
                 </tr>
               ) : filteredTemplates.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
                     Không có mẫu hợp đồng nào phù hợp
                   </td>
                 </tr>
@@ -279,24 +277,10 @@ export default function ContractTemplatesPage() {
                       <td className="py-3.5 px-4">
                         {item.category ? (
                           <Badge variant="outline" className="text-[10px]">
-                            {CATEGORY_LABELS[item.category] || item.category}
+                            {CATEGORY_NAMES[item.category] || item.category}
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground">Dùng chung</span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        {item.rentalMode === "WHOLE_UNIT" ? (
-                          <Badge variant="secondary" className="text-[10px]">
-                            Nguyên căn
-                          </Badge>
-                        ) : item.rentalMode === "PARTIAL" ? (
-                          <Badge variant="secondary" className="text-[10px]">
-                            Một phần
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">Tất cả</span>
                         )}
                       </td>
 
@@ -411,36 +395,33 @@ export default function ContractTemplatesPage() {
                 />
               </div>
 
-              {/* Phân loại BĐS & Hình thức */}
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Loại BĐS áp dụng</label>
-                  <select
-                    value={createCategory}
-                    onChange={(e) => setCreateCategory(e.target.value)}
-                    className="w-full p-2 rounded-xl border border-input bg-background text-xs"
-                  >
-                    <option value="">Dùng chung cho tất cả</option>
-                    <option value="APARTMENT">Căn hộ</option>
-                    <option value="HOUSE">Nhà riêng</option>
-                    <option value="ROOM">Phòng trọ</option>
-                    <option value="OFFICE">Văn phòng</option>
-                    <option value="COMMERCIAL_SPACE">Mặt bằng kinh doanh</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Hình thức thuê</label>
-                  <select
-                    value={createRentalMode}
-                    onChange={(e) => setCreateRentalMode(e.target.value)}
-                    className="w-full p-2 rounded-xl border border-input bg-background text-xs"
-                  >
-                    <option value="">Tất cả hình thức</option>
-                    <option value="WHOLE_UNIT">Thuê nguyên căn</option>
-                    <option value="PARTIAL">Thuê một phần / Phòng riêng</option>
-                  </select>
-                </div>
+              {/* Loại BĐS áp dụng */}
+              <div className="space-y-1">
+                <label className="font-semibold text-foreground">
+                  Loại BĐS áp dụng <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  required
+                  value={createCategory}
+                  onChange={(e) =>
+                    setCreateCategory(e.target.value as ListingCategory | "")
+                  }
+                  className="w-full p-2 rounded-xl border border-input bg-background text-xs"
+                >
+                  <option value="" disabled>
+                    -- Chọn loại hình bất động sản --
+                  </option>
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <option key={c} value={c}>
+                      {CATEGORY_NAMES[c]}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-muted-foreground">
+                  {createCategory
+                    ? CATEGORY_DESCRIPTIONS[createCategory]
+                    : "Mỗi mẫu hợp đồng áp dụng cho đúng một loại hình. Hình thức thuê (nguyên căn / một phần) được điền động vào file Word qua mã trường {{lease.rentalMode}}."}
+                </p>
               </div>
 
               {/* Upload file Word */}

@@ -1,3 +1,5 @@
+import type { ListingCategory } from "@/types/listing.type";
+
 export type ContractTemplateStatus = "ACTIVE" | "ARCHIVED";
 
 export type TemplateVersionStatus = "DRAFT" | "PUBLISHED" | "DEPRECATED";
@@ -24,15 +26,23 @@ export interface TemplateFieldDefinition {
   dataType: string;
   description: string;
   example: string;
+  /** Bắt buộc với ít nhất một loại hình bất động sản. */
   required: boolean;
+  /** Các loại hình bất động sản mà trường này là bắt buộc. */
+  requiredForCategories: ListingCategory[];
+}
+
+/** Một mã trường có vấn đề trong file Word mẫu. */
+export interface TemplateFieldIssue {
+  key: string;
+  label: string;
 }
 
 export interface ContractTemplateResponse {
   id: string;
   name: string;
   description?: string | null;
-  category?: string | null;
-  rentalMode?: string | null;
+  category?: ListingCategory | null;
   status: ContractTemplateStatus;
   latestPublishedVersionId?: string | null;
   versionsCount: number;
@@ -49,6 +59,10 @@ export interface ContractTemplateVersionResponse {
   status: TemplateVersionStatus;
   placeholders: string[];
   validationWarnings: string[];
+  /** Mã trường không có trong từ điển, cần sửa lại trong file Word. */
+  invalidPlaceholders: string[];
+  /** Trường bắt buộc theo loại hình BĐS nhưng chưa được chèn vào file Word. */
+  missingRequiredFields: TemplateFieldIssue[];
   publishedAt?: string | null;
   publishedBy?: string | null;
   createdAt: string;
@@ -57,8 +71,7 @@ export interface ContractTemplateVersionResponse {
 export interface CreateContractTemplateRequest {
   name: string;
   description?: string;
-  category?: string;
-  rentalMode?: string;
+  category: ListingCategory;
   storageObjectId: string;
   originalFileName?: string;
 }
@@ -66,8 +79,7 @@ export interface CreateContractTemplateRequest {
 export interface UpdateContractTemplateRequest {
   name?: string;
   description?: string;
-  category?: string;
-  rentalMode?: string;
+  category?: ListingCategory;
 }
 
 export interface CreateTemplateVersionRequest {

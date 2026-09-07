@@ -12,6 +12,7 @@ import type {
   TemplateFieldDefinition,
   UpdateContractTemplateRequest,
 } from "@/types/contract.type";
+import type { ListingCategory } from "@/types/listing.type";
 
 export const adminContractService = {
   /**
@@ -29,8 +30,7 @@ export const adminContractService = {
    */
   async listTemplates(params?: {
     status?: ContractTemplateStatus;
-    category?: string;
-    rentalMode?: string;
+    category?: ListingCategory;
   }): Promise<ContractTemplateResponse[]> {
     const response = await axiosClient.get<ApiResponse<ContractTemplateResponse[]>>(
       "/api/v1/admin/contract-templates",

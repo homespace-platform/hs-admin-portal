@@ -4,6 +4,8 @@ export type ContractTemplateStatus = "ACTIVE" | "ARCHIVED";
 
 export type TemplateVersionStatus = "DRAFT" | "PUBLISHED" | "DEPRECATED";
 
+export type ContractTemplateSource = "SYSTEM" | "LANDLORD";
+
 export type ContractStatus =
   | "DRAFT"
   | "PENDING_REVIEW"
@@ -43,6 +45,8 @@ export interface ContractTemplateResponse {
   name: string;
   description?: string | null;
   category?: ListingCategory | null;
+  source?: ContractTemplateSource | null;
+  ownerUserId?: string | null;
   status: ContractTemplateStatus;
   latestPublishedVersionId?: string | null;
   versionsCount: number;

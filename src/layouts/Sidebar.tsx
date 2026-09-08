@@ -58,8 +58,8 @@ const MENU_ITEMS: MenuItem[] = [
     title: "Quản lý hợp đồng",
     icon: FileText,
     children: [
-      { title: "Mẫu hợp đồng", path: "/contracts/templates", icon: Files },
       { title: "Từ điển mã trường", path: "/contracts/fields", icon: BookOpen },
+      { title: "Mẫu hợp đồng", path: "/contracts/templates", icon: Files },
       { title: "Hợp đồng hệ thống", path: "/contracts/all", icon: FileCode },
     ],
   },

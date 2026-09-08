@@ -1,9 +1,10 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Camera, Check, LoaderCircle } from "lucide-react";
+import { Camera, Check, LoaderCircle, ShieldCheck } from "lucide-react";
 import userService from "@/services/user.service";
 import storageService from "@/services/storage.service";
 import AddressEditor from "@/components/settings/AddressEditor";
+import IdentityBadge from "@/components/settings/IdentityBadge";
 import AvatarCropModal from "@/components/avatar/AvatarCropModal";
 import UserAvatar from "@/components/common/UserAvatar";
 import { MediaLightboxModal, type MediaGalleryItem } from "@/components/common/MediaGallery";
@@ -319,9 +320,18 @@ function ProfileContent({
           </button>
         </div>
 
-        <div className="flex-1 text-center sm:text-left space-y-1">
-          <h3 className="font-bold text-base text-foreground">{fullName}</h3>
+        <div className="flex-1 text-center sm:text-left space-y-1 min-w-0">
+          <div className="flex items-center justify-center sm:justify-start gap-1.5">
+            <h3 className="font-bold text-base text-foreground">{fullName}</h3>
+            <IdentityBadge role={profile.role} kycVerified={profile.kycVerified} />
+          </div>
           <p className="text-xs text-muted-foreground">{email}</p>
+          {profile.kycVerified && (
+            <div className="inline-flex items-start gap-1.5 max-w-full rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-2 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 text-left">
+              <ShieldCheck className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>Tài khoản này đã xác minh danh tính</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -366,7 +376,7 @@ function ProfileContent({
             max={getLatestAdultBirthDate()}
           />
 
-          <div className="space-y-1.5 sm:col-span-2">
+          <div className="space-y-1.5">
             <label className="block text-[11px] font-semibold text-foreground">Giới tính</label>
             <select
               value={gender}
@@ -379,6 +389,18 @@ function ProfileContent({
               <option value="OTHER">Khác</option>
             </select>
           </div>
+
+          <ReadOnlyField
+            label="CCCD"
+            value={
+              profile.cccd?.trim()
+                ? profile.cccd
+                : profile.kycVerified
+                  ? "Chưa có số CCCD trên hồ sơ"
+                  : "Sẽ cập nhật sau khi xác minh KYC"
+            }
+            mono={Boolean(profile.cccd?.trim())}
+          />
         </div>
 
         <div className="pt-2 flex justify-end">

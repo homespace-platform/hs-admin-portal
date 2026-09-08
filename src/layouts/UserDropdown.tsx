@@ -91,7 +91,7 @@ export default function UserDropdown() {
                 </span>
               </div>
               <Link
-                to="/settings"
+                to="/settings/profile"
                 onClick={() => setIsOpen(false)}
                 className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5"
               >
@@ -180,7 +180,7 @@ export default function UserDropdown() {
 
             {/* Cài đặt */}
             <Link
-              to="/settings"
+              to="/settings/profile"
               onClick={() => setIsOpen(false)}
               className="flex items-center justify-between px-3 py-2.5 rounded-xl text-foreground hover:bg-muted transition-colors group"
             >

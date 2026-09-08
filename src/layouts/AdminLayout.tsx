@@ -103,6 +103,30 @@ const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
   "/settings": {
     title: "Cài đặt",
   },
+  "/settings/profile": {
+    parent: { title: "Cài đặt", path: "/settings/profile" },
+    title: "Thông tin cá nhân",
+  },
+  "/settings/account-security": {
+    parent: { title: "Cài đặt", path: "/settings/profile" },
+    title: "Tài khoản và bảo mật",
+  },
+  "/settings/appearance": {
+    parent: { title: "Cài đặt", path: "/settings/profile" },
+    title: "Giao diện",
+  },
+  "/settings/privacy": {
+    parent: { title: "Cài đặt", path: "/settings/profile" },
+    title: "Quyền riêng tư",
+  },
+  "/settings/notifications": {
+    parent: { title: "Cài đặt", path: "/settings/profile" },
+    title: "Thông báo",
+  },
+  "/settings/messages": {
+    parent: { title: "Cài đặt", path: "/settings/profile" },
+    title: "Tin nhắn",
+  },
 };
 
 export default function AdminLayout() {

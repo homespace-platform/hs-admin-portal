@@ -4,6 +4,7 @@ import { Lock, Check, LoaderCircle, Shield } from "lucide-react";
 import userService from "@/services/user.service";
 import { useAuth } from "@/features/auth/useAuth";
 import { toast } from "sonner";
+import KycSection from "@/components/settings/sections/KycSection";
 
 export default function AccountSecuritySection() {
   const { logout } = useAuth();
@@ -55,7 +56,8 @@ export default function AccountSecuritySection() {
 
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in-50 duration-200">
-      {/* 1. Thay đổi mật khẩu */}
+      <KycSection />
+
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <Lock className="w-4 h-4 text-primary" />
@@ -65,7 +67,10 @@ export default function AccountSecuritySection() {
           Để bảo vệ tài khoản quản trị, hãy sử dụng mật khẩu mạnh bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
         </p>
 
-        <form onSubmit={handleChangePassword} className="bg-card rounded-3xl border border-border p-5 sm:p-6 space-y-4 shadow-2xs">
+        <form
+          onSubmit={handleChangePassword}
+          className="bg-card rounded-3xl border border-border p-5 sm:p-6 space-y-4 shadow-2xs"
+        >
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-foreground">
               Mật khẩu hiện tại
@@ -122,7 +127,6 @@ export default function AccountSecuritySection() {
         </form>
       </div>
 
-      {/* 2. Bảo mật & Xác thực Keycloak */}
       <div className="bg-card rounded-3xl border border-border p-6 space-y-3 shadow-2xs">
         <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
           <Shield className="w-4 h-4 text-primary" />

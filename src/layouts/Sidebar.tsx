@@ -86,7 +86,7 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
     title: "Cài đặt",
-    path: "/settings",
+    path: "/settings/profile",
     icon: Settings,
   },
 ];

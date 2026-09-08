@@ -25,7 +25,8 @@ import NewsManagementPage from "@/pages/operations/NewsManagementPage";
 import BlockchainExplorerPage from "@/pages/blockchain/BlockchainExplorerPage";
 import StatisticsPage from "@/pages/analytics/StatisticsPage";
 import AiForecastPage from "@/pages/analytics/AiForecastPage";
-import SettingsPage from "@/pages/settings/SettingsPage";
+import SettingsPage, { SettingsLayout } from "@/pages/settings/SettingsPage";
+import { SettingsSectionPage } from "@/components/settings/SettingsContent";
 import NotFoundPage from "@/pages/not-found/NotFoundPage";
 
 // Contract Pages
@@ -121,7 +122,10 @@ export default function AppRouter() {
         </Route>
 
         {/* Settings */}
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings" element={<SettingsLayout />}>
+          <Route index element={<SettingsPage />} />
+          <Route path=":section" element={<SettingsSectionPage />} />
+        </Route>
 
         {/* 404 Inside Admin Layout */}
         <Route path="*" element={<NotFoundPage />} />

@@ -169,6 +169,17 @@ export const KITCHEN_TYPE_NAMES: Record<string, string> = {
   NONE: "Không cho nấu ăn / Không có bếp",
 };
 
+export const BALCONY_TYPE_NAMES: Record<string, string> = {
+  PRIVATE: "Ban công riêng phơi đồ / ngắm cảnh",
+  SHARED: "Ban công / sân phơi chung",
+  NONE: "Không có ban công",
+};
+
+export const WINDOW_TYPE_NAMES: Record<string, string> = {
+  YES: "Có cửa sổ thông thoáng đón gió/sáng",
+  NO: "Không có cửa sổ (Phòng kín máy lạnh)",
+};
+
 export const OPERATING_MODE_NAMES: Record<string, string> = {
   ALWAYS_OPEN: "Tự do 24/7 (Không giới hạn)",
   FLEXIBLE: "Tự do giờ giấc (24/7)",

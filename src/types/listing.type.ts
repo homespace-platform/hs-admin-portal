@@ -256,7 +256,7 @@ export type RoomDetailRequest = {
   restroomType: RestroomType;
   kitchenType?: KitchenType | null;
   hasWindow?: boolean | null;
-  hasBalcony?: boolean | null;
+  balconyType?: "PRIVATE" | "SHARED" | "NONE" | null;
   hasMezzanine?: boolean | null;
   furnishingStatus: FurnishingStatus;
   accessType?: AccessType | null;

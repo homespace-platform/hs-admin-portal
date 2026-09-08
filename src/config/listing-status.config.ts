@@ -39,7 +39,7 @@ export const LISTING_STATUS_CONFIG: Record<ListingStatus, ListingStatusConfigIte
     badgeClassName:
       "bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800",
     dotClassName: "bg-amber-500 animate-pulse",
-    description: "Tin đăng đang được giữ chỗ trong 24 giờ cho khách thuê",
+    description: "Tin đăng đang được giữ chỗ trong 15 phút cho khách thuê",
   },
   RENTED: {
     status: "RENTED",

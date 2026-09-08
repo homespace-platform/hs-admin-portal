@@ -48,6 +48,8 @@ import {
   ACCESS_TYPE_NAMES,
   RESTROOM_TYPE_NAMES,
   KITCHEN_TYPE_NAMES,
+  BALCONY_TYPE_NAMES,
+  WINDOW_TYPE_NAMES,
   OPERATING_MODE_NAMES,
   METER_TYPE_NAMES,
   CHARGE_TYPE_NAMES,
@@ -95,17 +97,29 @@ function DetailItem({
   label,
   value,
   highlight = false,
+  showWhenEmpty = true,
 }: {
   label: string;
   value?: React.ReactNode;
   highlight?: boolean;
+  /** Khi duyệt tin: vẫn hiện ô trống để admin biết field bị thiếu */
+  showWhenEmpty?: boolean;
 }) {
-  if (value === undefined || value === null || value === "") return null;
+  const empty = value === undefined || value === null || value === "";
+  if (empty && !showWhenEmpty) return null;
   return (
     <div className="flex flex-col gap-0.5 rounded-xl border border-border/80 bg-muted/20 p-3 text-xs">
       <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
-      <span className={`font-semibold ${highlight ? "text-primary text-sm font-bold" : "text-foreground"}`}>
-        {value}
+      <span
+        className={`font-semibold ${
+          empty
+            ? "text-amber-600 dark:text-amber-400 italic"
+            : highlight
+            ? "text-primary text-sm font-bold"
+            : "text-foreground"
+        }`}
+      >
+        {empty ? "Chưa cập nhật" : value}
       </span>
     </div>
   );
@@ -500,12 +514,28 @@ export default function PropertyViewPage() {
               value={RENTAL_MODE_NAMES[listing.rentalMode] || listing.rentalMode}
             />
             <DetailItem
+              label="Diện tích"
+              value={listing.areaM2 != null ? `${listing.areaM2} m²` : undefined}
+            />
+            <DetailItem
               label="Thương lượng giá"
-              value={listing.pricing?.negotiable ? "Có thể thương lượng" : "Giá cố định"}
+              value={
+                listing.pricing?.negotiable === true
+                  ? "Có thể thương lượng"
+                  : listing.pricing?.negotiable === false
+                  ? "Giá cố định"
+                  : undefined
+              }
             />
             <DetailItem
               label="Bao gồm phí quản lý"
-              value={listing.pricing?.managementFeeIncluded ? "Đã bao gồm trong giá thuê" : "Chưa bao gồm"}
+              value={
+                listing.pricing?.managementFeeIncluded === true
+                  ? "Đã bao gồm trong giá thuê"
+                  : listing.pricing?.managementFeeIncluded === false
+                  ? "Chưa bao gồm"
+                  : undefined
+              }
             />
           </div>
         </SectionCard>
@@ -584,6 +614,20 @@ export default function PropertyViewPage() {
               <DetailItem
                 label="Tình trạng pháp lý"
                 value={LEGAL_STATUS_NAMES[listing.houseDetail.legalStatus || ""] || listing.houseDetail.legalStatus}
+              />
+              <DetailItem
+                label="Phạm vi cho thuê"
+                value={listing.houseDetail.rentalScopeDescription}
+              />
+              <DetailItem
+                label="Tầng cho thuê"
+                value={
+                  listing.houseDetail.rentedFloorFrom != null && listing.houseDetail.rentedFloorTo != null
+                    ? `Từ tầng ${listing.houseDetail.rentedFloorFrom} đến tầng ${listing.houseDetail.rentedFloorTo}`
+                    : listing.houseDetail.rentedFloorFrom != null
+                    ? `Từ tầng ${listing.houseDetail.rentedFloorFrom}`
+                    : undefined
+                }
               />
             </div>
           </SectionCard>
@@ -671,6 +715,8 @@ export default function PropertyViewPage() {
               <DetailItem label="Nguồn điện 3 pha" value={listing.commercialDetail.hasThreePhasePower ? "Có điện 3 pha" : "Điện dân dụng 1 pha"} />
               <DetailItem label="Hệ thống PCCC tiêu chuẩn" value={listing.commercialDetail.hasStandardFireSafety ? "Đã thẩm duyệt PCCC" : "Chưa có"} />
               <DetailItem label="Ngành nghề hạn chế" value={listing.commercialDetail.restrictedBusinesses} />
+              <DetailItem label="Giờ hoạt động" value={listing.commercialDetail.operatingHoursDescription} />
+              <DetailItem label="Khu vực bốc xếp hàng" value={listing.commercialDetail.loadingAreaDescription} />
             </div>
           </SectionCard>
         )}
@@ -682,40 +728,102 @@ export default function PropertyViewPage() {
               <DetailItem label="Tầng số" value={listing.roomDetail.floorNumber} />
               <DetailItem
                 label="Nhà vệ sinh"
-                value={RESTROOM_TYPE_NAMES[listing.roomDetail.restroomType || ""] || (listing.roomDetail.restroomType === "PRIVATE" ? "Vệ sinh khép kín riêng" : "Vệ sinh chung ngoài phòng")}
+                value={
+                  RESTROOM_TYPE_NAMES[listing.roomDetail.restroomType || ""] ||
+                  listing.roomDetail.restroomType
+                }
               />
               <DetailItem
                 label="Khu vực nấu ăn"
-                value={KITCHEN_TYPE_NAMES[listing.roomDetail.kitchenType || ""] || (listing.roomDetail.kitchenType === "PRIVATE" ? "Kệ bếp riêng trong phòng" : listing.roomDetail.kitchenType === "SHARED" ? "Khu bếp chung" : "Không cho nấu ăn")}
+                value={
+                  KITCHEN_TYPE_NAMES[listing.roomDetail.kitchenType || ""] ||
+                  listing.roomDetail.kitchenType
+                }
               />
-              <DetailItem label="Cửa sổ thoáng mát" value={listing.roomDetail.hasWindow ? "Có cửa sổ" : "Không có cửa sổ"} />
-              <DetailItem label="Ban công riêng" value={listing.roomDetail.hasBalcony ? "Có ban công riêng" : "Không"} />
-              <DetailItem label="Gác lửng / Gác xép" value={listing.roomDetail.hasMezzanine ? "Có gác xép" : "Không"} />
+              <DetailItem
+                label="Cửa sổ phòng"
+                value={
+                  listing.roomDetail.hasWindow === true
+                    ? WINDOW_TYPE_NAMES.YES
+                    : listing.roomDetail.hasWindow === false
+                    ? WINDOW_TYPE_NAMES.NO
+                    : undefined
+                }
+              />
+              <DetailItem
+                label="Ban công"
+                value={
+                  BALCONY_TYPE_NAMES[listing.roomDetail.balconyType || ""] ||
+                  listing.roomDetail.balconyType
+                }
+              />
+              <DetailItem
+                label="Gác lửng / Gác xép"
+                value={
+                  listing.roomDetail.hasMezzanine === true
+                    ? "Có gác lửng cao ráo"
+                    : listing.roomDetail.hasMezzanine === false
+                    ? "Không có gác lửng"
+                    : undefined
+                }
+              />
               <DetailItem
                 label="Tình trạng nội thất"
-                value={FURNISHING_NAMES[listing.roomDetail.furnishingStatus || ""] || listing.roomDetail.furnishingStatus}
+                value={
+                  FURNISHING_NAMES[listing.roomDetail.furnishingStatus || ""] ||
+                  listing.roomDetail.furnishingStatus
+                }
               />
-              <DetailItem label="Số người ở tối đa" value={`${listing.roomDetail.maxOccupants} người`} />
-              <DetailItem label="Số lượng xe tối đa" value={listing.roomDetail.maxVehicles ? `${listing.roomDetail.maxVehicles} xe` : undefined} />
+              <DetailItem
+                label="Số người ở tối đa"
+                value={
+                  listing.roomDetail.maxOccupants != null
+                    ? `${listing.roomDetail.maxOccupants} người`
+                    : undefined
+                }
+              />
+              <DetailItem
+                label="Số lượng xe tối đa"
+                value={
+                  listing.roomDetail.maxVehicles != null
+                    ? `${listing.roomDetail.maxVehicles} xe`
+                    : undefined
+                }
+              />
               <DetailItem
                 label="Lối đi sử dụng"
-                value={ACCESS_TYPE_NAMES[listing.roomDetail.accessType || ""] || listing.roomDetail.accessType}
+                value={
+                  ACCESS_TYPE_NAMES[listing.roomDetail.accessType || ""] ||
+                  listing.roomDetail.accessType
+                }
               />
               <DetailItem
                 label="Giờ giấc sinh hoạt"
-                value={OPERATING_MODE_NAMES[listing.roomDetail.accessHoursType || ""] || listing.roomDetail.accessHoursType}
+                value={
+                  OPERATING_MODE_NAMES[listing.roomDetail.accessHoursType || ""] ||
+                  listing.roomDetail.accessHoursType
+                }
               />
               <DetailItem
                 label="Đồng hồ điện"
-                value={METER_TYPE_NAMES[listing.roomDetail.electricMeterType || ""] || listing.roomDetail.electricMeterType}
+                value={
+                  METER_TYPE_NAMES[listing.roomDetail.electricMeterType || ""] ||
+                  listing.roomDetail.electricMeterType
+                }
               />
               <DetailItem
                 label="Đồng hồ nước"
-                value={METER_TYPE_NAMES[listing.roomDetail.waterMeterType || ""] || listing.roomDetail.waterMeterType}
+                value={
+                  METER_TYPE_NAMES[listing.roomDetail.waterMeterType || ""] ||
+                  listing.roomDetail.waterMeterType
+                }
               />
               <DetailItem
                 label="Chính sách chỗ để xe"
-                value={PARKING_NAMES[listing.roomDetail.parkingPolicy || ""] || listing.roomDetail.parkingPolicy}
+                value={
+                  PARKING_NAMES[listing.roomDetail.parkingPolicy || ""] ||
+                  listing.roomDetail.parkingPolicy
+                }
               />
             </div>
           </SectionCard>

@@ -108,6 +108,20 @@ export default function ContractTemplateDetailPage() {
 
   const handlePublish = async (versionId: string, verNumber: number) => {
     if (!templateId) return;
+
+    const target = versions.find((v) => v.id === versionId);
+    const hasBlockingIssues =
+      (target?.invalidPlaceholders?.length ?? 0) > 0 ||
+      (target?.missingRequiredFields?.length ?? 0) > 0 ||
+      ((target?.validationWarnings?.length ?? 0) > 0 &&
+        !(target?.invalidPlaceholders?.length || target?.missingRequiredFields?.length));
+    if (hasBlockingIssues) {
+      toast.error(
+        "Không thể xuất bản: mẫu Word còn mã trường không hợp lệ hoặc thiếu trường bắt buộc. Vui lòng sửa và tải phiên bản mới."
+      );
+      return;
+    }
+
     if (!window.confirm(`Bạn có chắc muốn xuất bản Phiên bản ${verNumber}? Phiên bản này sẽ có hiệu lực ngay cho các hợp đồng mới.`)) {
       return;
     }
@@ -359,9 +373,14 @@ export default function ContractTemplateDetailPage() {
                         <Button
                           variant="default"
                           size="sm"
+                          disabled={hasWarnings}
                           onClick={() => handlePublish(v.id, v.versionNumber)}
-                          className="gap-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                          title="Áp dụng phiên bản này cho các hợp đồng tạo mới"
+                          className="gap-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto"
+                          title={
+                            hasWarnings
+                              ? "Không thể xuất bản: còn mã trường không hợp lệ hoặc thiếu trường bắt buộc. Hãy sửa file Word và tải phiên bản mới."
+                              : "Áp dụng phiên bản này cho các hợp đồng tạo mới"
+                          }
                         >
                           <ShieldCheck className="w-3.5 h-3.5" />
                           Xuất bản (Publish)

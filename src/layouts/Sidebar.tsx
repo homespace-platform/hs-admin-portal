@@ -55,7 +55,7 @@ const MENU_ITEMS: MenuItem[] = [
     icon: Building2,
   },
   {
-    title: "Quản lý hợp đồng",
+    title: "Quản lý mẫu hợp đồng",
     icon: FileText,
     children: [
       { title: "Mẫu hợp đồng", path: "/contracts/templates", icon: Files },

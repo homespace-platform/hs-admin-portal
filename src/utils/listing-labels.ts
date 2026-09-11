@@ -27,11 +27,11 @@ export const CATEGORY_DESCRIPTIONS: Record<ListingCategory, string> = {
 
 /** Thứ tự hiển thị chuẩn của 5 loại hình bất động sản trên toàn hệ thống. */
 export const CATEGORY_OPTIONS: ListingCategory[] = [
-  "APARTMENT",
   "HOUSE",
+  "APARTMENT",
+  "ROOM",
   "OFFICE",
   "COMMERCIAL_SPACE",
-  "ROOM",
 ];
 
 export const SUBTYPE_NAMES: Record<string, string> = {

@@ -36,8 +36,6 @@ import type {
 } from "@/types/listing.type";
 import {
   CATEGORY_NAMES,
-  SUBTYPE_NAMES,
-  RENTAL_MODE_NAMES,
   DIRECTION_NAMES,
   LEGAL_STATUS_NAMES,
   FURNISHING_NAMES,
@@ -269,6 +267,12 @@ export default function PropertyViewPage() {
               {CATEGORY_NAMES[listing.category] || listing.category}
             </span>
             <ListingStatusBadge status={listing.status} />
+            {listing.branchName && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <Building className="h-3.5 w-3.5 text-blue-600" />
+                {listing.branchName}
+              </span>
+            )}
             {listing.publishedAt ? (
               <span className="text-xs text-muted-foreground">
                 Duyệt ngày: {formatDate(listing.publishedAt)}
@@ -507,15 +511,26 @@ export default function PropertyViewPage() {
         <SectionCard title="Thông tin cơ bản" stepNumber={1}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <DetailItem label="Mã tin đăng" value={<span className="font-mono">{listing.id}</span>} />
-            <DetailItem label="Loại hình" value={CATEGORY_NAMES[listing.category] || listing.category} />
-            <DetailItem label="Phân loại chi tiết" value={SUBTYPE_NAMES[listing.subtype] || listing.subtype} />
             <DetailItem
-              label="Hình thức cho thuê"
-              value={RENTAL_MODE_NAMES[listing.rentalMode] || listing.rentalMode}
+              label="Chi nhánh"
+              value={
+                listing.branchName ? (
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    {listing.branchName}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground font-normal">Tin độc lập (Không thuộc chi nhánh)</span>
+                )
+              }
             />
+            <DetailItem label="Loại hình" value={CATEGORY_NAMES[listing.category] || listing.category} />
             <DetailItem
               label="Diện tích"
               value={listing.areaM2 != null ? `${listing.areaM2} m²` : undefined}
+            />
+            <DetailItem
+              label="Thời điểm vào ở"
+              value={listing.availableFrom ? formatDate(listing.availableFrom) : "Dọn vào ngay"}
             />
             <DetailItem
               label="Thương lượng giá"

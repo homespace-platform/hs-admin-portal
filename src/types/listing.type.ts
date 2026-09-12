@@ -322,8 +322,7 @@ export type CreateListingRequest = {
   title: string;
   description: string;
   category: ListingCategory;
-  subtype: ListingSubtype;
-  rentalMode: RentalMode;
+  branchId?: string | null;
   availableFrom: string; // "YYYY-MM-DD"
   areaM2: number;
   pricing: ListingPricingRequest;
@@ -398,11 +397,11 @@ export type ListingOwner = {
 export type ListingDetailResponse = {
   id: string;
   ownerId: string;
+  branchId?: string | null;
+  branchName?: string | null;
   title: string;
   description: string;
   category: ListingCategory;
-  subtype: ListingSubtype;
-  rentalMode: RentalMode;
   status: ListingStatus;
   availableFrom: string;
   areaM2: number;
@@ -433,6 +432,7 @@ export type ListingDetailResponse = {
   updatedAt: string | null;
   createdBy?: string | null;
   updatedBy?: string | null;
+  viewCount?: number;
 };
 
 export type ListingStatusHistoryResponse = {
@@ -455,9 +455,10 @@ export type AdminListingSummaryResponse = {
   id: string;
   title: string;
   category: ListingCategory;
-  subtype: ListingSubtype;
   status: ListingStatus;
   statusReason: string | null;
+  branchId?: string | null;
+  branchName?: string | null;
   priceAmount: number;
   currency: string;
   priceUnit: PriceUnit;

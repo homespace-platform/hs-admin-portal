@@ -420,7 +420,7 @@ export default function ContractTemplatesPage() {
                 <p className="text-[11px] text-muted-foreground">
                   {createCategory
                     ? CATEGORY_DESCRIPTIONS[createCategory]
-                    : "Mỗi mẫu hợp đồng áp dụng cho đúng một loại hình. Hình thức thuê (nguyên căn / một phần) được điền động vào file Word qua mã trường {{lease.rentalMode}}."}
+                    : "Mỗi mẫu hợp đồng áp dụng cho đúng một loại hình: Nhà nguyên căn, Căn hộ chung cư hoặc Phòng trọ."}
                 </p>
               </div>
 

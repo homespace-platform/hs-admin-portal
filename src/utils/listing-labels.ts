@@ -240,21 +240,10 @@ export const DEPOSIT_TYPE_NAMES: Record<DepositType | string, string> = {
   AMOUNT: "Cọc cố định theo số tiền",
   MONTH_COUNT: "Cọc theo số tháng tiền thuê",
   MONTHS: "Cọc theo số tháng tiền thuê",
-  NEGOTIABLE: "Thương lượng / Thỏa thuận",
-  NEGOTIATE: "Thương lượng / Thỏa thuận",
 };
 
 export const PAYMENT_CYCLE_NAMES: Record<PaymentCycle | string, string> = {
-  MONTHLY: "Thanh toán từng tháng",
-  EVERY_2_MONTHS: "Thanh toán mỗi 2 tháng",
-  TWO_MONTHS: "Thanh toán mỗi 2 tháng",
-  QUARTERLY: "Thanh toán mỗi quý (3 tháng)",
-  EVERY_6_MONTHS: "Thanh toán mỗi 6 tháng",
-  HALF_YEAR: "Thanh toán mỗi 6 tháng",
-  YEARLY: "Thanh toán 12 tháng / lần",
-  EVERY_YEAR: "Thanh toán 12 tháng / lần",
-  NEGOTIABLE: "Linh hoạt / Thỏa thuận",
-  NEGOTIATE: "Linh hoạt / Thỏa thuận",
+  MONTHLY: "Thanh toán từng tháng (Hàng tháng)",
 };
 
 export const DAY_LABELS: Record<DayOfWeek | string, string> = {

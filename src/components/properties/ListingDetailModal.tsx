@@ -206,8 +206,6 @@ export default function ListingDetailModal({
                   <p className="text-sm sm:text-base font-bold text-foreground mt-1">
                     {listing.pricing?.depositType === "NONE"
                       ? "Không đặt cọc"
-                      : listing.pricing?.depositType === "NEGOTIABLE"
-                      ? "Thương lượng"
                       : listing.pricing?.depositAmount
                       ? formatCurrency(listing.pricing.depositAmount)
                       : listing.pricing?.depositMonths

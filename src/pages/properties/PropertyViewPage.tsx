@@ -454,8 +454,6 @@ export default function PropertyViewPage() {
                 <p className="mt-1 text-sm sm:text-base font-bold text-foreground truncate">
                   {listing.pricing?.depositType === "NONE"
                     ? "Không đặt cọc"
-                    : listing.pricing?.depositType === "NEGOTIABLE"
-                    ? "Thương lượng"
                     : listing.pricing?.depositAmount
                     ? `${formatCurrency(listing.pricing.depositAmount)} ₫`
                     : listing.pricing?.depositMonths
@@ -955,8 +953,6 @@ export default function PropertyViewPage() {
               value={
                 listing.pricing?.depositType === "NONE"
                   ? "Không đặt cọc"
-                  : listing.pricing?.depositType === "NEGOTIABLE"
-                  ? "Thương lượng / Thỏa thuận"
                   : listing.pricing?.depositAmount
                   ? `${formatCurrency(listing.pricing.depositAmount)} ₫ (${DEPOSIT_TYPE_NAMES[listing.pricing.depositType] || "Số tiền cố định"})`
                   : listing.pricing?.depositMonths

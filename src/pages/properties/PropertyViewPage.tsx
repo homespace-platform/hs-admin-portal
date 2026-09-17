@@ -864,6 +864,25 @@ export default function PropertyViewPage() {
               </div>
             )}
 
+            {listing.customAmenities && listing.customAmenities.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2.5">
+                  Tiện ích bổ sung do chủ nhà tự nhập ({listing.customAmenities.length})
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {listing.customAmenities.map((name, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span>{name}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {listing.furnishings && listing.furnishings.length > 0 && (
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2.5">
@@ -895,6 +914,7 @@ export default function PropertyViewPage() {
             )}
 
             {(!listing.amenities || listing.amenities.length === 0) &&
+              (!listing.customAmenities || listing.customAmenities.length === 0) &&
               (!listing.furnishings || listing.furnishings.length === 0) && (
                 <p className="text-xs text-muted-foreground italic">Không có thông tin tiện ích bổ sung.</p>
               )}

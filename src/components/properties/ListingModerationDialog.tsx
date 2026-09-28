@@ -153,6 +153,11 @@ export default function ListingModerationDialog({
     e.preventDefault();
     if (!listing || !targetStatus) return;
 
+    if (listing.status === "RENTED" && targetStatus === "RENTED_EXTERNALLY") {
+      setErrorMessage("Tin đã cho thuê qua HomeSpace nên không thể đánh dấu cho thuê ngoài hệ thống.");
+      return;
+    }
+
     if (isReasonRequired && !reason.trim()) {
       setErrorMessage("Vui lòng nhập lý do cụ thể trước khi xác nhận.");
       return;

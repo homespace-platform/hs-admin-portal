@@ -5,7 +5,6 @@ import {
   Plus,
   Search,
   BookOpen,
-  Archive,
   Eye,
   Layers,
   Upload,
@@ -27,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function ContractTemplatesPage() {
   const navigate = useNavigate();
@@ -43,24 +43,32 @@ export default function ContractTemplatesPage() {
   const [createCategory, setCreateCategory] = useState<ListingCategory | "">("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    loadTemplates();
-  }, []);
+  const templatesByCategory = (category: ListingCategory) =>
+    templates.filter((item) => item.category === category);
+  const availableCategories = CATEGORY_OPTIONS.filter((category) => templatesByCategory(category).length === 0);
 
   const loadTemplates = async () => {
     setLoading(true);
     try {
-      const list = await adminContractService.listTemplates();
+      const list = await adminContractService.listTemplates({ size: 100 });
       setTemplates(list || []);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "Không thể tải danh sách mẫu hợp đồng"
-      );
+    } catch (error: unknown) {
+      toast.error(getApiErrorMessage(error, "Không thể tải danh sách mẫu hợp đồng"));
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    adminContractService.listTemplates({ size: 100 })
+      .then((list) => { if (!cancelled) setTemplates(list || []); })
+      .catch((error: unknown) => {
+        if (!cancelled) toast.error(getApiErrorMessage(error, "Không thể tải danh sách mẫu hợp đồng"));
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +78,10 @@ export default function ContractTemplatesPage() {
     }
     if (!createCategory) {
       toast.error("Vui lòng chọn loại hình bất động sản áp dụng");
+      return;
+    }
+    if (templatesByCategory(createCategory).length > 0) {
+      toast.error("Loại hình này đã có mẫu. Hãy tải phiên bản mới trong mẫu hiện có.");
       return;
     }
     if (!selectedFile) {
@@ -107,25 +119,10 @@ export default function ContractTemplatesPage() {
 
       // Chuyển hướng tới trang chi tiết phiên bản vừa tạo
       navigate(`/contracts/templates/${created.id}`);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "Lỗi khi tạo mẫu hợp đồng: " + err.message
-      );
+    } catch (error: unknown) {
+      toast.error(getApiErrorMessage(error, "Không thể tạo mẫu hợp đồng"));
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleArchive = async (id: string, name: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn lưu trữ mẫu "${name}"? Mẫu này sẽ không còn hiển thị cho chủ nhà chọn.`)) {
-      return;
-    }
-    try {
-      await adminContractService.archiveTemplate(id);
-      toast.success("Đã lưu trữ mẫu hợp đồng");
-      loadTemplates();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Không thể lưu trữ mẫu hợp đồng");
     }
   };
 
@@ -156,7 +153,7 @@ export default function ContractTemplatesPage() {
             Quản lý mẫu hợp đồng thuê nhà
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Quản lý các mẫu Word (.docx), phân tích cú pháp mã trường và phát hành phiên bản cho chủ nhà
+            Mỗi loại bất động sản chỉ có một mẫu hệ thống. Khi thay file Word, hãy thêm phiên bản vào mẫu hiện có.
           </p>
         </div>
 
@@ -169,13 +166,37 @@ export default function ContractTemplatesPage() {
           </Link>
           <Button
             onClick={() => setIsCreateModalOpen(true)}
+            disabled={loading || availableCategories.length === 0}
             size="sm"
             className="gap-1.5 text-xs font-semibold shadow-xs"
           >
             <Plus className="w-4 h-4" />
-            Tạo mẫu hợp đồng mới
+            Tạo mẫu cho loại còn thiếu
           </Button>
         </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {CATEGORY_OPTIONS.map((category) => {
+          const matches = templatesByCategory(category);
+          const item = matches.length === 1 ? matches[0] : null;
+          return (
+            <div key={category} className="rounded-2xl border border-border bg-card p-4">
+              <h2 className="text-sm font-bold">{CATEGORY_NAMES[category]}</h2>
+              {loading ? <p className="mt-3 text-xs text-muted-foreground">Đang kiểm tra...</p> : matches.length > 1 ? (
+                <p className="mt-3 text-xs text-rose-600">Có nhiều mẫu đang hoạt động. Vui lòng xử lý trùng lặp trước khi phát hành.</p>
+              ) : item ? (
+                <>
+                  <p className="mt-3 text-sm">{item.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.latestPublishedVersionId ? "Đã phát hành" : "Chưa phát hành"} · {item.versionsCount} phiên bản</p>
+                  <Link to={`/contracts/templates/${item.id}`} className="mt-3 inline-block text-xs font-semibold text-primary hover:underline">Xem / tải phiên bản mới</Link>
+                </>
+              ) : (
+                <p className="mt-3 text-xs text-amber-700">Chưa có mẫu. Hãy tạo và phát hành để chủ nhà có thể lập hợp đồng.</p>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Filter Toolbar */}
@@ -326,17 +347,6 @@ export default function ContractTemplatesPage() {
                             </Button>
                           </Link>
 
-                          {isActive && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleArchive(item.id, item.name)}
-                              className="h-7 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                              title="Lưu trữ mẫu này"
-                            >
-                              <Archive className="w-3.5 h-3.5" />
-                            </Button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -411,7 +421,7 @@ export default function ContractTemplatesPage() {
                   <option value="" disabled>
                     -- Chọn loại hình bất động sản --
                   </option>
-                  {CATEGORY_OPTIONS.map((c) => (
+                  {availableCategories.map((c) => (
                     <option key={c} value={c}>
                       {CATEGORY_NAMES[c]}
                     </option>

@@ -31,6 +31,8 @@ export const adminContractService = {
   async listTemplates(params?: {
     status?: ContractTemplateStatus;
     category?: ListingCategory;
+    page?: number;
+    size?: number;
   }): Promise<ContractTemplateResponse[]> {
     const response = await axiosClient.get<ApiResponse<ContractTemplateResponse[]>>(
       "/api/v1/admin/contract-templates",
@@ -150,15 +152,6 @@ export const adminContractService = {
       filename,
       contentType,
     };
-  },
-
-  /**
-   * Lưu trữ (ngừng áp dụng) mẫu hợp đồng
-   */
-  async archiveTemplate(templateId: string): Promise<void> {
-    await axiosClient.post(
-      `/api/v1/admin/contract-templates/${templateId}/archive`
-    );
   },
 
   /**

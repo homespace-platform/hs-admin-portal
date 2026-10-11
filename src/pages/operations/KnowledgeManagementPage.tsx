@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   AlertCircle,
   Archive,
@@ -10,11 +10,8 @@ import {
   Clock,
   Code,
   Copy,
-  ExternalLink,
   Eye,
   FileText,
-  FileUp,
-  HelpCircle,
   Loader2,
   RefreshCw,
   Search,
@@ -32,6 +29,8 @@ import type {
   WorkerHealthResult,
 } from "@/types/knowledge.type";
 import { getApiErrorMessage } from "@/utils/apiError";
+import KnowledgeBatchUpload from "@/components/knowledge/KnowledgeBatchUpload";
+const KnowledgeMarkdownEditor = lazy(() => import("@/components/knowledge/KnowledgeMarkdownEditor"));
 
 const formatDate = (value: string) => new Date(value).toLocaleString("vi-VN");
 
@@ -47,13 +46,16 @@ export default function KnowledgeManagementPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<KnowledgeDocumentDetail | null>(null);
   const [previewMarkdown, setPreviewMarkdown] = useState(false);
+  const [editingMarkdown, setEditingMarkdown] = useState(false);
+  const [editorDirty, setEditorDirty] = useState(false);
+  const [editorSaving, setEditorSaving] = useState(false);
+  const [editorReload, setEditorReload] = useState(0);
 
   const [workerHealth, setWorkerHealth] = useState<WorkerHealthResult | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [job, setJob] = useState<KnowledgeJob | null>(null);
 
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   // Metadata editing
@@ -105,15 +107,44 @@ export default function KnowledgeManagementPage() {
       setEditCategory(value.category ?? "");
       setEditVisibility(value.visibility);
       setEditAudience(value.audience.join(", "));
+      if (value.latestJob && ["QUEUED", "RUNNING"].includes(value.latestJob.status)) {
+        setJobId(value.latestJob.jobId);
+        setJob(value.latestJob);
+      }
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Không tải được chi tiết tài liệu."));
     }
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    void Promise.all([loadDocuments(), loadWorkerHealth()]);
-  }, [loadDocuments, loadWorkerHealth]);
+    let cancelled = false;
+    void adminKnowledgeService.list(offset, 50)
+      .then((page) => {
+        if (cancelled) return;
+        setDocuments(page.items);
+        setTotal(page.total);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toast.error(getApiErrorMessage(error, "Không tải được danh sách tài liệu."));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [offset]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void adminKnowledgeService.workerHealth()
+      .then((health) => { if (!cancelled) setWorkerHealth(health); })
+      .catch(() => {
+        if (!cancelled) setWorkerHealth({
+          status: "OFFLINE", activeWorkers: 0, workers: [],
+          message: "Không kiểm tra được trạng thái worker.",
+        });
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -127,6 +158,8 @@ export default function KnowledgeManagementPage() {
           setEditCategory(value.category ?? "");
           setEditVisibility(value.visibility);
           setEditAudience(value.audience.join(", "));
+          setJob(value.latestJob);
+          setJobId(value.latestJob && ["QUEUED", "RUNNING"].includes(value.latestJob.status) ? value.latestJob.jobId : null);
         }
       })
       .catch((error: unknown) => {
@@ -153,7 +186,7 @@ export default function KnowledgeManagementPage() {
           void loadWorkerHealth();
           if (selectedId) void loadDetail(selectedId);
           if (next.status === "COMPLETED") {
-            toast.success("Tài liệu đã được nhúng vector và kích hoạt thành công cho AI!");
+            toast.success("Đã xử lý xong tài liệu. Phiên bản AI đang dùng được hiển thị bên dưới.");
           } else {
             toast.error(`Xử lý tài liệu thất bại: ${next.errorMessage ?? "Lỗi không xác định"}`);
           }
@@ -173,34 +206,17 @@ export default function KnowledgeManagementPage() {
     };
   }, [jobId, selectedId, loadDocuments, loadDetail, loadWorkerHealth]);
 
-  async function handleUpload(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".md") || file.size > 1024 * 1024) {
-      toast.error("Chỉ chấp nhận file .md UTF-8 dung lượng tối đa 1 MB.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const result = await adminKnowledgeService.upload(file);
-      toast.success(
-        result.isNewVersion
-          ? "Đã tải tài liệu lên thành công dưới dạng Bản nháp. Hãy kiểm tra và bấm 'Duyệt nội dung'."
-          : "Nội dung file không đổi so với bản hiện tại."
-      );
-      setFile(null);
-      setSelectedId(result.documentId);
-      setOffset(0);
-      await Promise.all([loadDocuments(), loadDetail(result.documentId)]);
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "Tải tài liệu thất bại."));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const handleKnowledgeChanged = useCallback(() => {
+    void loadDocuments();
+    if (selectedId) void loadDetail(selectedId);
+  }, [loadDocuments, loadDetail, selectedId]);
 
   async function handlePrimaryAction(action: "approve" | "publish" | "reindex" | "archive") {
     if (!selectedId) return;
+    if (editingMarkdown || editorSaving) {
+      toast.info("Hãy lưu hoặc huỷ chỉnh sửa tài liệu trước khi thực hiện thao tác này.");
+      return;
+    }
 
     if (action === "archive" && !window.confirm(`Ẩn tài liệu "${detail?.title || selectedId}" khỏi AI?`)) {
       return;
@@ -285,9 +301,10 @@ export default function KnowledgeManagementPage() {
     }
 
     if (activeTab === "active") return doc.activeVersionId !== null && doc.status !== "ARCHIVED";
-    if (activeTab === "draft") return doc.status === "DRAFT";
+    if (activeTab === "draft") return doc.latestVersionStatus === "DRAFT";
     if (activeTab === "archived") return doc.status === "ARCHIVED";
-    if (activeTab === "processing") return doc.status === "APPROVED" && doc.activeVersionId === null;
+    if (activeTab === "processing") return ["APPROVED", "PUBLISHING"].includes(doc.latestVersionStatus ?? "");
+    if (activeTab === "failed") return doc.latestVersionStatus === "FAILED";
     return true;
   });
 
@@ -324,6 +341,7 @@ export default function KnowledgeManagementPage() {
           <button
             type="button"
             onClick={() => {
+              setLoading(true);
               void loadDocuments();
               void loadWorkerHealth();
             }}
@@ -367,38 +385,7 @@ export default function KnowledgeManagementPage() {
       )}
 
       {/* 2. Upload Document Card */}
-      <form
-        onSubmit={handleUpload}
-        className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-4 shadow-2xs"
-      >
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
-            <FileUp className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Tải lên tài liệu Markdown mới</div>
-            <div className="text-xs text-muted-foreground">
-              Định dạng .md UTF-8 có YAML front matter (document_id, title, visibility...). Tối đa 1 MB.
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            id="knowledge-file"
-            type="file"
-            accept=".md,text/markdown"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="text-xs file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2.5 file:py-1 file:text-xs file:font-medium"
-          />
-          <button
-            type="submit"
-            disabled={!file || busy}
-            className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-          >
-            {busy ? "Đang tải lên..." : "Tải lên bản nháp"}
-          </button>
-        </div>
-      </form>
+      <KnowledgeBatchUpload onChanged={handleKnowledgeChanged} />
 
       {/* 3. Main Workspace: Document List & Detail View */}
       <div className="grid gap-6 xl:grid-cols-[minmax(340px,1fr)_minmax(460px,1.4fr)]">
@@ -416,6 +403,7 @@ export default function KnowledgeManagementPage() {
               { id: "active", label: "Đang dùng cho AI" },
               { id: "draft", label: "Cần duyệt" },
               { id: "processing", label: "Đang xử lý" },
+              { id: "failed", label: "Lỗi xử lý" },
               { id: "archived", label: "Lưu trữ" },
             ].map((tab) => (
               <button
@@ -456,13 +444,17 @@ export default function KnowledgeManagementPage() {
             )}
             {filteredDocuments.map((doc) => {
               const isSelected = selectedId === doc.documentId;
-              const isAiActive = doc.activeVersionId !== null;
+              const isAiActive = doc.activeVersionId !== null && doc.status !== "ARCHIVED";
 
               return (
                 <button
                   type="button"
                   key={doc.documentId}
                   onClick={() => {
+                    if (editorSaving || selectedId === doc.documentId) return;
+                    if (editorDirty && !window.confirm("Chuyển tài liệu và bỏ các chỉnh sửa chưa lưu?")) return;
+                    setEditingMarkdown(false);
+                    setEditorDirty(false);
                     setDetail(null);
                     setJob(null);
                     setJobId(null);
@@ -486,24 +478,33 @@ export default function KnowledgeManagementPage() {
                       </span>
                     )}
                   </div>
+                  <p className="mt-1 break-all text-[11px] text-muted-foreground">{doc.sourceFilename ?? doc.documentId} · v{doc.latestVersion ?? "—"}</p>
 
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     {isAiActive ? (
                       <span className="inline-flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="h-3 w-3" /> Đang phục vụ AI
                       </span>
-                    ) : doc.status === "APPROVED" ? (
+                    ) : ["APPROVED", "PUBLISHING"].includes(doc.latestVersionStatus ?? "") ? (
                       <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
-                        <Clock className="h-3 w-3" /> Đã duyệt (Chờ xuất bản)
+                        <Clock className="h-3 w-3" /> Đang chờ xử lý
                       </span>
                     ) : (
                       <span className="text-muted-foreground/80">Bản nháp</span>
                     )}
                     {doc.category && <span>· {doc.category}</span>}
+                    {doc.latestVersionStatus === "FAILED" && <span className="text-destructive">· Bản mới xử lý lỗi</span>}
                   </div>
                 </button>
               );
             })}
+          </div>
+          <div className="mt-3 flex items-center justify-between border-t pt-3 text-xs">
+            <button type="button" disabled={offset === 0 || loading} onClick={() => { setLoading(true); setOffset(Math.max(0, offset - 50)); }}
+              className="rounded border px-3 py-1 disabled:opacity-40">Trang trước</button>
+            <span>{total ? offset + 1 : 0}–{Math.min(offset + documents.length, total)} / {total}</span>
+            <button type="button" disabled={offset + 50 >= total || loading} onClick={() => { setLoading(true); setOffset(offset + 50); }}
+              className="rounded border px-3 py-1 disabled:opacity-40">Trang sau</button>
           </div>
         </section>
 
@@ -512,9 +513,9 @@ export default function KnowledgeManagementPage() {
           {!detail ? (
             <div className="flex flex-1 flex-col items-center justify-center py-20 text-center text-muted-foreground">
               <FileText className="h-10 w-10 text-muted-foreground/40" />
-              <p className="mt-3 text-sm font-medium">Chọn một tài liệu bên trái để xem nội dung và phê duyệt</p>
+              <p className="mt-3 text-sm font-medium">Chọn một tài liệu bên trái để mở và chỉnh sửa Markdown</p>
               <p className="text-xs text-muted-foreground/80">
-                Bạn có thể duyệt nội dung, yêu cầu AI xuất bản, hoặc thử nghiệm câu hỏi.
+                Cập nhật sẽ tăng version và tự thay dữ liệu vector sau khi xử lý thành công.
               </p>
             </div>
           ) : (
@@ -532,14 +533,20 @@ export default function KnowledgeManagementPage() {
                   </div>
                 </div>
 
-                <button
+                <div className="flex flex-wrap gap-2"><button type="button" disabled={detail.status === "ARCHIVED" || busy || editorSaving || editingMarkdown}
+                  onClick={() => { setPreviewMarkdown(true); setEditingMarkdown(true); }}
+                  className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-40">
+                  Chỉnh sửa nội dung
+                </button><button
                   type="button"
+                  disabled={editingMarkdown || editorSaving}
                   onClick={() => setPreviewMarkdown(!previewMarkdown)}
                   className="inline-flex items-center gap-1.5 rounded-lg border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
                 >
                   <Eye className="h-3.5 w-3.5" />
-                  {previewMarkdown ? "Đóng xem trước" : "Xem nội dung Markdown"}
+                  {previewMarkdown ? "Đóng xem trước" : "Xem tài liệu"}
                 </button>
+                </div>
               </div>
 
               {/* Status Indicator Cards */}
@@ -571,7 +578,7 @@ export default function KnowledgeManagementPage() {
                       ({latestVersion?.status === "PUBLISHED"
                         ? "Đã sẵn sàng"
                         : latestVersion?.status === "APPROVED"
-                        ? "Đã duyệt, chờ xuất bản"
+                        ? "Đã nhận, chờ xử lý"
                         : latestVersion?.status === "DRAFT"
                         ? "Bản nháp (Cần duyệt)"
                         : latestVersion?.status === "FAILED"
@@ -702,7 +709,7 @@ export default function KnowledgeManagementPage() {
                     {detail.status !== "ARCHIVED" && (
                       <button
                         type="button"
-                        disabled={busy}
+                        disabled={busy || editorSaving || editingMarkdown}
                         onClick={() => void handlePrimaryAction("archive")}
                         className="rounded-lg border border-destructive/30 px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-40"
                         title="Ẩn tài liệu khỏi AI"
@@ -755,18 +762,16 @@ export default function KnowledgeManagementPage() {
                 )}
               </div>
 
-              {/* Markdown Preview Area */}
-              {previewMarkdown && (
-                <div className="rounded-xl border bg-muted/20 p-4">
-                  <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
-                    <span>Nội dung Markdown ({latestVersion?.version})</span>
-                    <span>{latestVersion?.contentHash?.slice(0, 12)}</span>
-                  </div>
-                  <pre className="max-h-80 overflow-y-auto whitespace-pre-wrap rounded-lg bg-background p-3 text-xs leading-relaxed font-mono">
-                    {latestVersion?.rawMarkdown || "Nội dung markdown đang được tải hoặc chưa khả dụng."}
-                  </pre>
-                </div>
-              )}
+              {(previewMarkdown || editingMarkdown) && <Suspense fallback={<p className="text-sm text-muted-foreground">Đang tải trình soạn thảo...</p>}><KnowledgeMarkdownEditor
+                key={`${detail.documentId}:${editorReload}`} documentId={detail.documentId}
+                editable={editingMarkdown} canEdit={detail.status !== "ARCHIVED" && !busy}
+                onEdit={() => setEditingMarkdown(true)} onClose={() => setEditingMarkdown(false)}
+                onDirtyChange={setEditorDirty} onSavingChange={setEditorSaving}
+                onSaved={(result) => {
+                  setEditingMarkdown(false); setEditorDirty(false); setJob(null); setJobId(result.jobId);
+                  setEditorReload((value) => value + 1);
+                  handleKnowledgeChanged();
+                }} /></Suspense>}
             </div>
           )}
         </section>

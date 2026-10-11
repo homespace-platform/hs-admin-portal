@@ -9,6 +9,9 @@ export interface KnowledgeDocument {
   activeVersionId: string | null;
   createdAt: string;
   updatedAt: string;
+  sourceFilename: string | null;
+  latestVersion: string | null;
+  latestVersionStatus: string | null;
 }
 
 export interface KnowledgeVersion {
@@ -83,6 +86,24 @@ export interface KnowledgeUploadResult {
   isNewVersion: boolean;
   title: string;
   visibility: string;
+  jobId: string;
+  sourceFilename: string;
+}
+
+export interface KnowledgeContent {
+  documentId: string;
+  sourceFilename: string;
+  versionId: string;
+  version: string;
+  markdown: string;
+}
+
+export interface KnowledgeBatchItem {
+  filename: string;
+  success: boolean;
+  result?: KnowledgeUploadResult;
+  error?: string;
+  statusCode?: number;
 }
 
 export interface KnowledgeSearchResult {

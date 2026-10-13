@@ -42,6 +42,14 @@ const STATUS_CONFIG: Record<
     label: "Đã thanh lý",
     className: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30",
   },
+  EXPIRED: {
+    label: "Hết thời hạn · Chờ quyết toán",
+    className: "bg-amber-500/10 text-amber-700 border-amber-500/30",
+  },
+  CLOSED: {
+    label: "Đã hoàn tất quyết toán",
+    className: "bg-slate-500/10 text-slate-600 border-slate-500/30",
+  },
   CANCELLED: {
     label: "Đã hủy",
     className: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30",
@@ -157,6 +165,8 @@ export default function ContractsListPage() {
             <option value="PENDING_REVIEW">Chờ xem xét</option>
             <option value="ACTIVE">Đang có hiệu lực</option>
             <option value="TERMINATED">Đã thanh lý</option>
+            <option value="EXPIRED">Hết thời hạn · Chờ quyết toán</option>
+            <option value="CLOSED">Đã hoàn tất quyết toán</option>
             <option value="CANCELLED">Đã hủy</option>
           </select>
         </div>

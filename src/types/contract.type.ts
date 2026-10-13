@@ -10,6 +10,8 @@ export type ContractStatus =
   | "DRAFT"
   | "PENDING_REVIEW"
   | "ACTIVE"
+  | "EXPIRED"
+  | "CLOSED"
   | "TERMINATED"
   | "CANCELLED";
 

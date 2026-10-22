@@ -289,14 +289,7 @@ export type ListingChargeRequest = {
   sortOrder: number;
 };
 
-export type ListingAddressRequest = {
-  provinceCode: string;
-  provinceName: string;
-  wardCode: string;
-  wardName: string;
-  streetLine: string;
-  fullAddress?: string;
-};
+export type ListingAddressRequest = { refId: string; addressNote?: string };
 
 export type ListingAddressSourceRequest = {
   type: "SAVED" | "NEW";
@@ -371,16 +364,7 @@ export type ListingMediaResponse = {
   sizeBytes: number;
 };
 
-export type ListingAddressResponse = {
-  id?: string;
-  listingId?: string;
-  provinceCode: string;
-  provinceName: string;
-  wardCode: string;
-  wardName: string;
-  streetLine: string;
-  fullAddress?: string;
-};
+export type ListingAddressResponse = import("@/services/vietmap.service").VietmapAddress & { id?: string; listingId?: string };
 
 export type ListingOwner = {
   id: string;

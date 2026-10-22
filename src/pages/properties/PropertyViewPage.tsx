@@ -225,8 +225,8 @@ export default function PropertyViewPage() {
   const statusHistory = data.statusHistory || [];
 
   const fullAddress =
-    listing.address?.fullAddress ||
-    [listing.address?.streetLine, listing.address?.wardName, listing.address?.provinceName]
+    listing.address?.display ||
+    [listing.address?.street, listing.address?.ward, listing.address?.city]
       .filter(Boolean)
       .join(", ");
 
@@ -993,9 +993,9 @@ export default function PropertyViewPage() {
         <SectionCard title="Địa chỉ & Vị trí" stepNumber={6}>
           <div className="space-y-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <DetailItem label="Tỉnh / Thành phố" value={listing.address?.provinceName} />
-              <DetailItem label="Phường / Xã" value={listing.address?.wardName} />
-              <DetailItem label="Địa chỉ đường / Số nhà" value={listing.address?.streetLine} />
+              <DetailItem label="Tỉnh / Thành phố" value={listing.address?.city} />
+              <DetailItem label="Phường / Xã" value={listing.address?.ward} />
+              <DetailItem label="Địa chỉ đường / Số nhà" value={listing.address?.street} />
             </div>
 
             <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5 text-xs">

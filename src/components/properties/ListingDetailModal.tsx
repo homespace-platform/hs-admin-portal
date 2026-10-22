@@ -170,7 +170,7 @@ export default function ListingDetailModal({
                 <h2 className="text-xl font-bold text-foreground">{listing.title}</h2>
                 <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span>{listing.address?.fullAddress || listing.address?.streetLine || "Chưa có địa chỉ"}</span>
+                  <span>{listing.address?.display || listing.address?.street || "Chưa có địa chỉ"}</span>
                 </p>
 
                 {listing.statusReason && (

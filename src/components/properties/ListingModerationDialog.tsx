@@ -218,8 +218,8 @@ export default function ListingModerationDialog({
               {listing.owner?.phone && ` (${listing.owner.phone})`}
               {("fullAddress" in listing && listing.fullAddress)
                 ? ` • ${listing.fullAddress}`
-                : ("address" in listing && listing.address?.fullAddress)
-                ? ` • ${listing.address.fullAddress}`
+                : ("address" in listing && listing.address?.display)
+                ? ` • ${listing.address.display}`
                 : ""}
             </p>
           </div>

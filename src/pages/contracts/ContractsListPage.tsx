@@ -30,6 +30,8 @@ const STATUS_CONFIG: Record<
     label: "Bản nháp (Chủ nhà đang soạn)",
     className: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/30",
   },
+  LANDLORD_SIGNATURE_PENDING: {label:"Chủ nhà đang ký",className:"bg-amber-50 text-amber-800"},
+  TENANT_SIGNATURE_PENDING: {label:"Chờ khách thuê ký",className:"bg-amber-50 text-amber-800"},
   PENDING_REVIEW: {
     label: "Chờ người thuê kiểm tra",
     className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
@@ -56,7 +58,10 @@ const STATUS_CONFIG: Record<
   },
 };
 
+import ContractModuleNav,{useAgreementKind} from "./ContractModuleNav";
+
 export default function ContractsListPage() {
+  const {kind,changeKind}=useAgreementKind();
   const [contracts, setContracts] = useState<ContractResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -71,13 +76,13 @@ export default function ContractsListPage() {
 
   useEffect(() => {
     loadContracts();
-  }, [statusFilter]);
+  }, [statusFilter,kind]);
 
   const loadContracts = async () => {
     setLoading(true);
     try {
       const statusParam = statusFilter === "ALL" ? undefined : statusFilter;
-      const data = await adminContractService.listContracts(statusParam);
+      const data = await adminContractService.listContracts(statusParam,undefined,kind);
       setContracts(data || []);
     } catch (err: any) {
       toast.error(
@@ -120,20 +125,21 @@ export default function ContractsListPage() {
 
   return (
     <div className="space-y-6">
+      <ContractModuleNav kind={kind} onKindChange={changeKind}/>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2.5">
             <FileCheck className="w-6 h-6 text-primary" />
-            Quản lý hợp đồng hệ thống
+            {kind === "DEPOSIT" ? "Hồ sơ hợp đồng đặt cọc" : "Quản lý hợp đồng thuê"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Theo dõi danh sách các hợp đồng thuê nhà phát sinh giữa Chủ nhà và Người thuê
+            {kind === "DEPOSIT" ? "Theo dõi văn bản cọc và hai chữ ký riêng; không phải trạng thái bắt đầu thuê." : "Theo dõi các hợp đồng thuê giữa chủ nhà và người thuê."}
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link to="/contracts/templates">
+          <Link to={`/contracts/templates?kind=${kind}`}>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <FileCode2 className="w-4 h-4 text-primary" />
               Quản lý mẫu Word
@@ -235,7 +241,7 @@ export default function ContractsListPage() {
                           variant="outline"
                           className={`text-[10px] ${statusConf.className}`}
                         >
-                          {statusConf.label}
+                          {c.agreementKind === "DEPOSIT" && c.status === "ACTIVE" ? "Đã ký đủ hai bên" : c.agreementKind === "DEPOSIT" && c.status === "DRAFT" ? "Đã lập · Chờ ký" : statusConf.label}
                         </Badge>
                       </td>
 

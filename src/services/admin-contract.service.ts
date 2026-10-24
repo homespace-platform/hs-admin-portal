@@ -18,9 +18,9 @@ export const adminContractService = {
   /**
    * Lấy danh mục mã trường (placeholder catalog) được hệ thống hỗ trợ
    */
-  async getCatalogFields(): Promise<TemplateFieldDefinition[]> {
+  async getCatalogFields(documentKind: "LEASE"|"DEPOSIT"="LEASE"): Promise<TemplateFieldDefinition[]> {
     const response = await axiosClient.get<ApiResponse<TemplateFieldDefinition[]>>(
-      "/api/v1/admin/contract-template-fields"
+      "/api/v1/admin/contract-template-fields", {params:{documentKind}}
     );
     return response.data.result;
   },
@@ -28,7 +28,12 @@ export const adminContractService = {
   /**
    * Lấy danh sách mẫu hợp đồng
    */
+  async importDepositDefaults(): Promise<ContractTemplateResponse[]> {
+    return (await axiosClient.post<ApiResponse<ContractTemplateResponse[]>>("/api/v1/admin/contract-templates/import-deposit-defaults")).data.result;
+  },
+
   async listTemplates(params?: {
+    documentKind?: "LEASE" | "DEPOSIT";
     status?: ContractTemplateStatus;
     category?: ListingCategory;
     page?: number;
@@ -157,10 +162,11 @@ export const adminContractService = {
   /**
    * Lấy danh sách hợp đồng trên toàn hệ thống
    */
-  async listContracts(status?: string, keyword?: string): Promise<ContractResponse[]> {
+  async listContracts(status?: string, keyword?: string, documentKind?: "LEASE" | "DEPOSIT"): Promise<ContractResponse[]> {
     const params: Record<string, string> = {};
     if (status) params.status = status;
     if (keyword) params.keyword = keyword;
+    if (documentKind) params.documentKind = documentKind;
 
     const response = await axiosClient.get<ApiResponse<ContractResponse[]>>(
       "/api/v1/admin/contracts",

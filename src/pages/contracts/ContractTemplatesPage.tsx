@@ -28,7 +28,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/utils/apiError";
 
+import ContractModuleNav,{useAgreementKind} from "./ContractModuleNav";
+
 export default function ContractTemplatesPage() {
+  const {kind,changeKind}=useAgreementKind();
   const navigate = useNavigate();
   const [templates, setTemplates] = useState<ContractTemplateResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +53,7 @@ export default function ContractTemplatesPage() {
   const loadTemplates = async () => {
     setLoading(true);
     try {
-      const list = await adminContractService.listTemplates({ size: 100 });
+      const list = await adminContractService.listTemplates({ size: 100, documentKind: kind });
       setTemplates(list || []);
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, "Không thể tải danh sách mẫu hợp đồng"));
@@ -61,14 +64,14 @@ export default function ContractTemplatesPage() {
 
   useEffect(() => {
     let cancelled = false;
-    adminContractService.listTemplates({ size: 100 })
+    adminContractService.listTemplates({ size: 100, documentKind: kind })
       .then((list) => { if (!cancelled) setTemplates(list || []); })
       .catch((error: unknown) => {
         if (!cancelled) toast.error(getApiErrorMessage(error, "Không thể tải danh sách mẫu hợp đồng"));
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [kind]);
 
   const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +108,7 @@ export default function ContractTemplatesPage() {
         name: createName.trim(),
         description: createDesc.trim() || undefined,
         category: createCategory,
+        documentKind: kind,
         storageObjectId: storageId,
         originalFileName: selectedFile.name,
       });
@@ -118,7 +122,7 @@ export default function ContractTemplatesPage() {
       loadTemplates();
 
       // Chuyển hướng tới trang chi tiết phiên bản vừa tạo
-      navigate(`/contracts/templates/${created.id}`);
+      navigate(`/contracts/templates/${created.id}?kind=${kind}`);
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error, "Không thể tạo mẫu hợp đồng"));
     } finally {
@@ -145,12 +149,14 @@ export default function ContractTemplatesPage() {
 
   return (
     <div className="space-y-6">
+      <ContractModuleNav kind={kind} onKindChange={changeKind}/>
+      {kind==="DEPOSIT" && <div className="rounded-xl border p-4 text-sm"><p className="mb-3">Nhập bộ 3 mẫu Word cọc D2 đã đóng gói sẵn, sau đó xem thử và phát hành từng mẫu.</p><Button disabled={loading||isSubmitting} onClick={async()=>{setIsSubmitting(true);try{await adminContractService.importDepositDefaults();await loadTemplates();toast.success("Đã nhập mẫu cọc nháp. Kiểm tra và phát hành từng mẫu.");}catch(e){toast.error(getApiErrorMessage(e,"Không nhập được mẫu cọc."));}finally{setIsSubmitting(false);}}}>Nhập 3 mẫu cọc có sẵn</Button></div>}
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2.5">
             <FileCode2 className="w-6 h-6 text-primary" />
-            Quản lý mẫu hợp đồng thuê nhà
+            Quản lý mẫu hợp đồng {kind==="DEPOSIT"?"đặt cọc":"thuê"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Mỗi loại bất động sản chỉ có một mẫu hệ thống. Khi thay file Word, hãy thêm phiên bản vào mẫu hiện có.
@@ -158,7 +164,7 @@ export default function ContractTemplatesPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link to="/contracts/fields">
+          <Link to={`/contracts/fields?kind=${kind}`}>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <BookOpen className="w-4 h-4 text-primary" />
               Từ điển mã trường

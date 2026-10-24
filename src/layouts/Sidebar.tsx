@@ -55,7 +55,7 @@ const MENU_ITEMS: MenuItem[] = [
     icon: Building2,
   },
   {
-    title: "Quản lý hợp đồng",
+    title: "Hợp đồng & đặt cọc",
     icon: FileText,
     children: [
       { title: "Từ điển mã trường", path: "/contracts/fields", icon: BookOpen },

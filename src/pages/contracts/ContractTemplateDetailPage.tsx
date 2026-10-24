@@ -197,14 +197,14 @@ export default function ContractTemplateDetailPage() {
         <div>
           <button
             type="button"
-            onClick={() => navigate("/contracts/templates")}
+            onClick={() => navigate(`/contracts/templates?kind=${template.documentKind||"LEASE"}`)}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 mb-2 font-medium cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Quay lại danh sách mẫu
           </button>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
             <FileCode2 className="w-6 h-6 text-primary" />
-            {template.name}
+            {template.documentKind==="DEPOSIT"?"[Đặt cọc] ":"[Thuê] "}{template.name}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {template.description || "Không có mô tả chi tiết."}
@@ -212,7 +212,7 @@ export default function ContractTemplateDetailPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link to="/contracts/fields" target="_blank">
+          <Link to={`/contracts/fields?kind=${template.documentKind||"LEASE"}`} target="_blank">
             <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <ExternalLink className="w-3.5 h-3.5" />
               Từ điển mã trường

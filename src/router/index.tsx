@@ -34,6 +34,7 @@ import NotFoundPage from "@/pages/not-found/NotFoundPage";
 import ContractTemplatesPage from "@/pages/contracts/ContractTemplatesPage";
 import ContractTemplateDetailPage from "@/pages/contracts/ContractTemplateDetailPage";
 import ContractFieldsPage from "@/pages/contracts/ContractFieldsPage";
+import ContractGuidePage from "@/pages/contracts/ContractGuidePage";
 import ContractsListPage from "@/pages/contracts/ContractsListPage";
 
 export default function AppRouter() {
@@ -83,6 +84,7 @@ export default function AppRouter() {
 
         {/* Contract Management */}
         <Route path="contracts">
+          <Route path="guide" element={<ContractGuidePage/>}/>
           <Route
             index
             element={<Navigate to="/contracts/templates" replace />}

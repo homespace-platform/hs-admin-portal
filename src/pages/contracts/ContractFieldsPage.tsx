@@ -20,7 +20,10 @@ function isRequiredForAllCategories(field: TemplateFieldDefinition): boolean {
   return field.requiredForCategories?.length === CATEGORY_OPTIONS.length;
 }
 
+import ContractModuleNav,{useAgreementKind} from "./ContractModuleNav";
+
 export default function ContractFieldsPage() {
+  const {kind,changeKind}=useAgreementKind();
   const [fields, setFields] = useState<TemplateFieldDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -29,12 +32,12 @@ export default function ContractFieldsPage() {
 
   useEffect(() => {
     loadFields();
-  }, []);
+  }, [kind]);
 
   const loadFields = async () => {
     setLoading(true);
     try {
-      const data = await adminContractService.getCatalogFields();
+      const data = await adminContractService.getCatalogFields(kind);
       setFields(data || []);
     } catch (err: any) {
       toast.error(
@@ -73,6 +76,7 @@ export default function ContractFieldsPage() {
 
   return (
     <div className="space-y-6">
+      <ContractModuleNav kind={kind} onKindChange={changeKind}/>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

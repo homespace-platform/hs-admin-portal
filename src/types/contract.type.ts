@@ -9,6 +9,8 @@ export type ContractTemplateSource = "SYSTEM" | "LANDLORD";
 export type ContractStatus =
   | "DRAFT"
   | "PENDING_REVIEW"
+  | "LANDLORD_SIGNATURE_PENDING"
+  | "TENANT_SIGNATURE_PENDING"
   | "ACTIVE"
   | "EXPIRED"
   | "CLOSED"
@@ -42,7 +44,10 @@ export interface TemplateFieldIssue {
   label: string;
 }
 
+export type AgreementDocumentKind = "LEASE" | "DEPOSIT";
+
 export interface ContractTemplateResponse {
+  documentKind?: AgreementDocumentKind;
   id: string;
   name: string;
   description?: string | null;
@@ -75,6 +80,7 @@ export interface ContractTemplateVersionResponse {
 }
 
 export interface CreateContractTemplateRequest {
+  documentKind?: AgreementDocumentKind;
   name: string;
   description?: string;
   category: ListingCategory;
@@ -94,6 +100,7 @@ export interface CreateTemplateVersionRequest {
 }
 
 export interface ContractResponse {
+  agreementKind?: string | null;
   id: string;
   contractNumber: string;
   rentalRequestId: string;

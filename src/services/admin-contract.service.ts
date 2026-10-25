@@ -28,10 +28,6 @@ export const adminContractService = {
   /**
    * Lấy danh sách mẫu hợp đồng
    */
-  async importDepositDefaults(): Promise<ContractTemplateResponse[]> {
-    return (await axiosClient.post<ApiResponse<ContractTemplateResponse[]>>("/api/v1/admin/contract-templates/import-deposit-defaults")).data.result;
-  },
-
   async listTemplates(params?: {
     documentKind?: "LEASE" | "DEPOSIT";
     status?: ContractTemplateStatus;

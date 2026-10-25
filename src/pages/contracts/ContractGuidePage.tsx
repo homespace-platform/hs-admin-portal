@@ -7,7 +7,7 @@ export default function ContractGuidePage() {
     <h1 className="text-2xl font-bold">Hướng dẫn quản lý hợp đồng và đặt cọc</h1>
     <section className="space-y-3 rounded-2xl border bg-card p-5">
       <h2 className="font-semibold">Thiết lập lần đầu</h2>
-      <ol className="list-decimal space-y-2 pl-5 text-sm"><li>Chọn Hợp đồng đặt cọc → Mẫu Word & phiên bản → Nhập 3 mẫu cọc có sẵn. Hệ thống tạo bản nháp, không tự ghi đè mẫu đã có.</li><li>Kiểm tra đúng HOUSE / APARTMENT / ROOM và đúng loại văn bản. Mỗi cặp loại văn bản + loại nhà có một mẫu hệ thống.</li><li>Nhà nguyên căn có 41 mã D2; căn hộ/phòng trọ có 42, thêm số căn/phòng. Đối chiếu mã thiếu/lạ và xem PDF thử trước khi phát hành.</li><li>Phát hành riêng từng mẫu. Khi thay Word, thêm phiên bản vào mẫu hiện có, kiểm tra và phát hành phiên bản mới.</li></ol>
+      <ol className="list-decimal space-y-2 pl-5 text-sm"><li>Chọn Hợp đồng đặt cọc → Mẫu Word & phiên bản → Tạo mẫu cho loại còn thiếu. Chọn HOUSE / APARTMENT / ROOM và upload file Word thủ công như mẫu hợp đồng thuê; hệ thống lưu phiên bản nháp lên storage.</li><li>Mỗi cặp loại văn bản + loại nhà có một mẫu hệ thống. Không cần đưa file Word vào backend hoặc build lại để thay mẫu.</li><li>Nhà nguyên căn có 41 mã D2; căn hộ/phòng trọ có 42, thêm số căn/phòng. Đối chiếu mã thiếu/lạ và xem PDF thử trước khi phát hành.</li><li>Phát hành riêng từng mẫu. Khi thay Word, thêm phiên bản vào mẫu hiện có, kiểm tra và phát hành phiên bản mới.</li></ol>
     </section>
     <section className="space-y-3 rounded-2xl border bg-card p-5">
       <h2 className="font-semibold">Hai luồng đều ký hai văn bản</h2>

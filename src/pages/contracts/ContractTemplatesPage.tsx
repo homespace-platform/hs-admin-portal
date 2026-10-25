@@ -150,7 +150,6 @@ export default function ContractTemplatesPage() {
   return (
     <div className="space-y-6">
       <ContractModuleNav kind={kind} onKindChange={changeKind}/>
-      {kind==="DEPOSIT" && <div className="rounded-xl border p-4 text-sm"><p className="mb-3">Nhập bộ 3 mẫu Word cọc D2 đã đóng gói sẵn, sau đó xem thử và phát hành từng mẫu.</p><Button disabled={loading||isSubmitting} onClick={async()=>{setIsSubmitting(true);try{await adminContractService.importDepositDefaults();await loadTemplates();toast.success("Đã nhập mẫu cọc nháp. Kiểm tra và phát hành từng mẫu.");}catch(e){toast.error(getApiErrorMessage(e,"Không nhập được mẫu cọc."));}finally{setIsSubmitting(false);}}}>Nhập 3 mẫu cọc có sẵn</Button></div>}
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

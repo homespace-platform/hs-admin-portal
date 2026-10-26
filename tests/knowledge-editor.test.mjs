@@ -63,7 +63,7 @@ test('switching an unchanged table document between modes preserves its canonica
   } finally { editor.destroy(); }
 });
 
-const knowledge = new URL('../../hs-infrastructure/documents/knowledge/', import.meta.url);
+const knowledge = new URL('../../hs-infra/documents/rag/', import.meta.url);
 for (const filename of readdirSync(knowledge).filter((name) => name.endsWith('.md') && name !== 'README.md')) {
   test(`round-trip preserves all formatted content: ${filename}`, () => {
     const { body } = splitKnowledgeMarkdown(readFileSync(new URL(filename, knowledge), 'utf8'));

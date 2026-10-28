@@ -70,7 +70,6 @@ const MENU_ITEMS: MenuItem[] = [
       { title: "Xử lý khiếu nại", path: "/operations/complaints", icon: AlertTriangle },
       { title: "Quản lý tin tức", path: "/operations/news", icon: Newspaper },
       { title: "Kho tri thức AI", path: "/operations/knowledge", icon: BookOpen },
-      { title: "Tiện ích xung quanh", path: "/operations/nearby", icon: Wrench },
     ],
   },
   {

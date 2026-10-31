@@ -979,10 +979,6 @@ export default function PropertyViewPage() {
               value={`${listing.pricing?.minimumLeaseMonths || 1} tháng`}
             />
             <DetailItem
-              label="Thuế VAT"
-              value={listing.pricing?.vatIncluded ? "Đã bao gồm VAT" : "Chưa bao gồm VAT"}
-            />
-            <DetailItem
               label="Phí quản lý tòa nhà"
               value={listing.pricing?.managementFeeIncluded ? "Đã bao gồm trong giá" : "Tính riêng"}
             />

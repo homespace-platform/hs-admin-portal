@@ -174,8 +174,8 @@ export const adminContractService = {
   /**
    * Chi tiết hợp đồng
    */
-  async getContract(contractId: string): Promise<ContractResponse> {
-    const response = await axiosClient.get<ApiResponse<ContractResponse>>(
+  async getContract(contractId: string): Promise<ContractResponse & { depositLedger?: import("@/types/deposit-ledger.type").DepositLedger | null }> {
+    const response = await axiosClient.get<ApiResponse<ContractResponse & { depositLedger?: import("@/types/deposit-ledger.type").DepositLedger | null }>>(
       `/api/v1/admin/contracts/${contractId}`
     );
     return response.data.result;

@@ -1,4 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import DepositLedgerSummary from "./DepositLedgerSummary";
+import { getApiErrorMessage } from "@/utils/apiError";
 import { Link } from "react-router-dom";
 import {
   FileCheck,
@@ -68,47 +70,41 @@ export default function ContractsListPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   // Modal chi tiết hợp đồng
-  const [selectedContract, setSelectedContract] = useState<ContractResponse | null>(null);
+  const [selectedContract, setSelectedContract] = useState<Awaited<ReturnType<typeof adminContractService.getContract>> | null>(null);
+  const detailGeneration = useRef(0);
   const [revisionData, setRevisionData] = useState<ContractRevisionResponse | null>(null);
   const [documents, setDocuments] = useState<ContractDocumentResponse[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  useEffect(() => {
-    loadContracts();
-  }, [statusFilter,kind]);
-
-  const loadContracts = async () => {
-    setLoading(true);
-    try {
-      const statusParam = statusFilter === "ALL" ? undefined : statusFilter;
-      const data = await adminContractService.listContracts(statusParam,undefined,kind);
-      setContracts(data || []);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "Không thể tải danh sách hợp đồng"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loadContracts = useCallback(() => adminContractService.listContracts(statusFilter === "ALL" ? undefined : statusFilter,undefined,kind)
+    .then(data => setContracts(data || []))
+    .catch(error => toast.error(getApiErrorMessage(error,"Không thể tải danh sách hợp đồng")))
+    .finally(() => setLoading(false)),[statusFilter,kind]);
+  useEffect(() => { void loadContracts(); }, [loadContracts]);
 
   const handleOpenDetail = async (contract: ContractResponse) => {
+    const token = ++detailGeneration.current;
     setSelectedContract(contract);
     setIsDetailModalOpen(true);
     setModalLoading(true);
+    setRevisionData(null);
+    setDocuments([]);
 
     try {
-      const [rev, docs] = await Promise.all([
+      const [rev, docs, detail] = await Promise.all([
         adminContractService.getContractRevision(contract.id),
         adminContractService.getContractDocuments(contract.id),
+        adminContractService.getContract(contract.id),
       ]);
+      if (token !== detailGeneration.current) return;
+      setSelectedContract(detail);
       setRevisionData(rev);
       setDocuments(docs || []);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Không thể tải chi tiết hợp đồng");
+    } catch (err) {
+      if (token === detailGeneration.current) toast.error(getApiErrorMessage(err,"Không thể tải chi tiết hợp đồng"));
     } finally {
-      setModalLoading(false);
+      if (token === detailGeneration.current) setModalLoading(false);
     }
   };
 
@@ -348,6 +344,7 @@ export default function ContractsListPage() {
                       <div>Diện tích: <span className="text-foreground font-medium">{revisionData.property?.areaText || "-"}</span></div>
                       <div>Giá thuê chốt: <strong className="text-primary">{revisionData.financial?.amountNumber || "-"}</strong></div>
                       <div>Tiền cọc chốt: <strong className="text-foreground">{revisionData.financial?.depositAmountNumber || "-"}</strong></div>
+                      <DepositLedgerSummary ledger={selectedContract.depositLedger} />
                       <div>Thời gian thuê: <span className="text-foreground font-medium">{revisionData.lease?.durationText || "-"}</span></div>
                       <div>Ngày bắt đầu: <span className="text-foreground font-medium">{revisionData.lease?.startDateText || "-"}</span></div>
                     </div>

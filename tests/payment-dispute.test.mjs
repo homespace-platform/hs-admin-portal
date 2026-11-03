@@ -12,7 +12,7 @@ function page(options={}){
   const states=[[c],c,"ESCALATED",1,false,false,"",false,options.reason??"Đã đọc toàn bộ ý kiến và chứng cứ",options.resolution??"REVIEW_TRANSFER"],updates=states.map(()=>[]),refs=[],calls=[],errors=[];
   const api={list:async()=>({result:[c],hasMore:false}),get:async id=>{calls.push({kind:"get",id});return {...c,revision:8};},act:async(...args)=>{calls.push({kind:"act",args});if(options.error)throw options.error;return c;}};
   const hooks={...React,useState(initial){const i=index++;return [i<states.length?states[i]:initial,value=>updates[i].push(value)];},useRef(initial){const i=refIndex++;return refs[i]??(refs[i]={current:initial});},useCallback(fn){return fn;},useEffect(){}};
-  const C=compile("src/pages/operations/ComplaintsPage.tsx",{
+  const C=compile("src/pages/operations/PaymentDisputesPanel.tsx",{
     react:hooks,"@/features/auth/useAuth":{useAuth:()=>({profile:{id:"admin"}})},"@/services/admin-payment-dispute.service":{adminPaymentDisputeService:api},
     "@/services/storage.service":{default:{}},"@/types/payment-dispute.type":labels,"@/utils/apiError":{getApiErrorMessage:e=>e.message},sonner:{toast:{success(){},error:e=>errors.push(e)}}
   }).default;

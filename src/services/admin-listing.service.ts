@@ -115,8 +115,9 @@ export const adminListingService = {
     return response.data.result;
   },
 
-  async decideEdit(listingId: string, editId: string, approve: boolean, reason: string): Promise<void> {
-    await axiosClient.patch(`/api/v1/admin/listings/${listingId}/edits/${editId}`, { approve, reason });
+  async decideEdit(listingId: string, editId: string, approve: boolean, reason: string): Promise<ListingDetailResponse> {
+    const response = await axiosClient.patch<ApiResponse<ListingDetailResponse>>(`/api/v1/admin/listings/${listingId}/edits/${editId}`, { approve, reason });
+    return response.data.result;
   },
 };
 

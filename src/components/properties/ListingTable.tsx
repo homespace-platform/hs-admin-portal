@@ -164,8 +164,8 @@ export default function ListingTable({
         <TableBody>
           {listings.map((item, index) => {
             const hasPendingEdit = Boolean(item.pendingEditId);
-            const isPendingReview = item.status === "PENDING_REVIEW" && !hasPendingEdit;
-            const isPublished = item.status === "PUBLISHED";
+            const isPendingReview = item.status === "PENDING_REVIEW" || hasPendingEdit;
+            const isPublished = item.status === "PUBLISHED" && !hasPendingEdit;
             const hasReason = Boolean(item.statusReason);
 
             return (
@@ -202,8 +202,6 @@ export default function ListingTable({
                       >
                         {item.title}
                       </p>
-                      {item.pendingEditId && <button type="button" className="text-xs font-semibold text-amber-700"
-                        onClick={() => onViewDetails(item)}>Xem bản sửa chờ duyệt</button>}
                       <p className="flex items-center gap-1 text-[11px] text-muted-foreground truncate">
                         <MapPin className="h-3 w-3 shrink-0 text-primary" />
                         <span className="truncate">{item.fullAddress || "Chưa có địa chỉ"}</span>
@@ -285,24 +283,13 @@ export default function ListingTable({
                       <span>Xem</span>
                     </button>
 
-                    {hasPendingEdit && (
-                      <button
-                        type="button"
-                        onClick={() => onViewDetails(item)}
-                        className="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-2xs transition-all"
-                        title="Xem và duyệt nội dung bản sửa"
-                      >
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        <span>Duyệt bản sửa</span>
-                      </button>
-                    )}
-
                     {/* New listings use status moderation; content edits use their exact edit ID. */}
                     {isPendingReview && (
                       <>
                         <button
                           type="button"
                           onClick={() => onOpenModeration(item, "PUBLISHED")}
+                          disabled={Boolean(item.protectedRental && !item.pendingEditId)}
                           className="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-2xs transition-all"
                           title="Duyệt bài đăng"
                         >
@@ -362,6 +349,7 @@ export default function ListingTable({
                         <button
                           type="button"
                           onClick={() => onOpenModeration(item, "PENDING_REVIEW")}
+                          disabled={Boolean(item.protectedRental)}
                           className="inline-flex h-8 items-center gap-1 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-2 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-colors"
                           title="Mở khóa và chuyển chờ duyệt"
                         >
@@ -371,6 +359,7 @@ export default function ListingTable({
                         <button
                           type="button"
                           onClick={() => onOpenModeration(item, "PUBLISHED")}
+                          disabled={Boolean(item.protectedRental)}
                           className="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-2xs transition-all"
                           title="Mở khóa và hiển thị lại ngay"
                         >

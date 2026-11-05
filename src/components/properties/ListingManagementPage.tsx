@@ -488,6 +488,7 @@ export default function ListingManagementPage({
 
       {/* Moderation Action Dialog */}
       <ListingModerationDialog
+        key={`${moderationTarget.listing?.id}:${moderationTarget.listing?.pendingEditId ?? "status"}:${moderationTarget.status}`}
         isOpen={Boolean(moderationTarget.listing && moderationTarget.status)}
         listing={moderationTarget.listing}
         targetStatus={moderationTarget.status}

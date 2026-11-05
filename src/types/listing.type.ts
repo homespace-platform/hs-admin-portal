@@ -373,6 +373,11 @@ export type ListingOwner = {
 };
 
 export type ListingDetailResponse = {
+  operationalStatus?: ListingStatus;
+  pendingEditId?: string | null;
+  maxMotorbikeCount?: number | null;
+  maxCarCount?: number | null;
+  policies?: Array<{ code: string; label: string; displayValue: string }>;
   id: string;
   ownerId: string;
   branchId?: string | null;
@@ -425,6 +430,8 @@ export type ListingStatusHistoryResponse = {
 };
 
 export type AdminListingDetailResponse = {
+  protectedRental?: boolean;
+  reviewError?: string | null;
   listing: ListingDetailResponse;
   statusHistory: ListingStatusHistoryResponse[];
   pendingEditId?: string | null;
@@ -433,6 +440,8 @@ export type AdminListingDetailResponse = {
 };
 
 export type AdminListingSummaryResponse = {
+  operationalStatus?: ListingStatus;
+  protectedRental?: boolean;
   pendingEditId?: string | null;
   id: string;
   title: string;

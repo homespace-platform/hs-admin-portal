@@ -23,6 +23,7 @@ interface ListingModerationDialogProps {
   isOpen: boolean;
   listing: AdminListingSummaryResponse | ListingDetailResponse | null;
   targetStatus: ListingStatus | null;
+  pendingEditId?: string | null;
   onClose: () => void;
   onSuccess: (updatedStatus: ListingStatus) => void;
 }
@@ -86,7 +87,17 @@ const DIALOG_TITLES: Record<
 function getDialogMeta(
   listing: AdminListingSummaryResponse | ListingDetailResponse,
   targetStatus: ListingStatus,
+  isContentDecision: boolean,
 ) {
+  if (isContentDecision && targetStatus === "PUBLISHED") {
+    const operational = listing.operationalStatus ?? listing.status;
+    if (operational === "RESERVED" || operational === "RENTED") {
+      return { ...DIALOG_TITLES.PUBLISHED, subtitle: "Duyệt nội dung và giữ tình trạng giữ chỗ hoặc cho thuê của hồ sơ hiện tại." };
+    }
+    if (operational === "HIDDEN") {
+      return { ...DIALOG_TITLES.PUBLISHED, subtitle: "Duyệt nội dung. Tin đăng tiếp tục được ẩn." };
+    }
+  }
   const isUnlockingViolation = listing.status === "VIOLATION";
 
   if (isUnlockingViolation && targetStatus === "PENDING_REVIEW") {
@@ -126,6 +137,7 @@ export default function ListingModerationDialog({
   isOpen,
   listing,
   targetStatus,
+  pendingEditId,
   onClose,
   onSuccess,
 }: ListingModerationDialogProps) {
@@ -140,7 +152,9 @@ export default function ListingModerationDialog({
     targetStatus === "HIDDEN" ||
     targetStatus === "VIOLATION";
 
-  const dialogMeta = getDialogMeta(listing, targetStatus);
+  const reviewedEditId = pendingEditId ?? listing.pendingEditId;
+  const isContentDecision = Boolean(reviewedEditId) && (targetStatus === "PUBLISHED" || targetStatus === "REJECTED");
+  const dialogMeta = getDialogMeta(listing, targetStatus, isContentDecision);
 
   function handleClose() {
     setReason("");
@@ -151,7 +165,7 @@ export default function ListingModerationDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!listing || !targetStatus) return;
+    if (!listing || !targetStatus || isSubmitting) return;
 
     if (listing.status === "RENTED" && targetStatus === "RENTED_EXTERNALLY") {
       setErrorMessage("Tin đã cho thuê qua HomeSpace nên không thể đánh dấu cho thuê ngoài hệ thống.");
@@ -172,11 +186,17 @@ export default function ListingModerationDialog({
     setErrorMessage(null);
 
     try {
-      await adminListingService.changeStatus(listing.id, targetStatus, reason);
+      let updatedStatus = targetStatus;
+      if (isContentDecision) {
+        const updated = await adminListingService.decideEdit(listing.id, reviewedEditId!, targetStatus === "PUBLISHED", reason);
+        updatedStatus = updated?.status ?? listing.operationalStatus ?? listing.status;
+      } else {
+        await adminListingService.changeStatus(listing.id, targetStatus, reason);
+      }
       setReason("");
       setErrorMessage(null);
       setIsSubmitting(false);
-      onSuccess(targetStatus);
+      onSuccess(updatedStatus);
     } catch (error: unknown) {
       console.error("Moderation error:", error);
       const msg = getApiErrorMessage(error, "Không thể cập nhật trạng thái bài đăng. Vui lòng thử lại.");

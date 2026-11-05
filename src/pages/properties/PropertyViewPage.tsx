@@ -25,6 +25,7 @@ import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
 import ListingStatusHistoryTimeline from "@/components/properties/ListingStatusHistoryTimeline";
 import AdminMediaViewer from "@/components/properties/AdminMediaViewer";
+import PendingListingContent from "@/components/properties/PendingListingContent";
 import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
@@ -161,6 +162,9 @@ export default function PropertyViewPage() {
 
   // Moderation Dialog State
   const [moderationTarget, setModerationTarget] = useState<ListingStatus | null>(null);
+  const [editReason, setEditReason] = useState("");
+  const [editError, setEditError] = useState("");
+  const [decidingEdit, setDecidingEdit] = useState(false);
 
   useEffect(() => {
     if (!listingId) return;
@@ -230,7 +234,7 @@ export default function PropertyViewPage() {
       .filter(Boolean)
       .join(", ");
 
-  const isPendingReview = listing.status === "PENDING_REVIEW";
+  const isPendingReview = listing.status === "PENDING_REVIEW" && !data.pendingEditId;
   const isPublished = listing.status === "PUBLISHED";
 
   function handleModerationSuccess() {
@@ -243,8 +247,59 @@ export default function PropertyViewPage() {
     }
   }
 
+  async function decideEdit(approve: boolean) {
+    if (!data?.pendingEditId || !listingId || decidingEdit) return;
+    setDecidingEdit(true);
+    setEditError("");
+    try {
+      await adminListingService.decideEdit(listingId, data.pendingEditId, approve, editReason.trim());
+      setData(await adminListingService.getById(listingId));
+      setEditReason("");
+    } catch (e) {
+      setEditError(getApiErrorMessage(e, "Không thể xử lý bản sửa. Tải lại trang để kiểm tra phiên bản."));
+    } finally {
+      setDecidingEdit(false);
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-in fade-in-50 duration-200">
+      {data.pendingEdit && data.pendingEditId && <section className="space-y-4 rounded-xl border border-amber-300 bg-card p-4">
+        <div>
+          <h2 className="text-base font-bold">Bản sửa chờ duyệt</h2>
+          <p className="text-sm text-muted-foreground">Duyệt nội dung mới và giữ trạng thái vận hành của bài đăng.</p>
+        </div>
+        <div className="grid gap-3 text-sm sm:grid-cols-2">
+          <div className="space-y-1 rounded-lg border p-3">
+            <h3 className="font-semibold">Nội dung đang áp dụng</h3>
+            <p>{listing.title}</p>
+            <p>Thời hạn tối thiểu {listing.pricing?.minimumLeaseMonths ?? "—"} tháng</p>
+            <p>Giá thuê {listing.pricing?.amount?.toLocaleString("vi-VN") ?? "—"} đ</p>
+          </div>
+          <div className="space-y-1 rounded-lg border p-3">
+            <h3 className="font-semibold">Nội dung đề xuất</h3>
+            <p>{data.pendingEdit.title}</p>
+            <p>Thời hạn tối thiểu {data.pendingEdit.pricing.minimumLeaseMonths} tháng</p>
+            <p>Giá thuê {data.pendingEdit.pricing.amount.toLocaleString("vi-VN")} đ</p>
+            <p className="whitespace-pre-wrap break-words">{data.pendingEdit.description}</p>
+          </div>
+        </div>
+        <details className="rounded-lg border p-3 text-sm">
+          <summary className="cursor-pointer font-semibold">Xem đầy đủ dữ liệu bản sửa</summary>
+          <PendingListingContent edit={data.pendingEdit} address={data.pendingAddress}/>
+        </details>
+        <label className="block text-sm font-medium">Lý do từ chối
+          <textarea value={editReason} onChange={event => setEditReason(event.target.value)} maxLength={1000}
+            disabled={decidingEdit} className="mt-1 block w-full rounded-lg border bg-background p-2" />
+        </label>
+        {editError && <p role="alert" className="text-sm text-destructive">{editError}</p>}
+        <div className="flex flex-wrap gap-2">
+          <button type="button" disabled={decidingEdit || !editReason.trim()} onClick={() => void decideEdit(false)}
+            className="rounded-lg border px-3 py-2 text-sm text-destructive disabled:opacity-50">Từ chối bản sửa</button>
+          <button type="button" disabled={decidingEdit} onClick={() => void decideEdit(true)}
+            className="rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50">Duyệt bản sửa</button>
+        </div>
+      </section>}
       {/* Top Breadcrumbs & Moderation Actions */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">

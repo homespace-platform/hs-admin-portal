@@ -114,6 +114,10 @@ export const adminListingService = {
     );
     return response.data.result;
   },
+
+  async decideEdit(listingId: string, editId: string, approve: boolean, reason: string): Promise<void> {
+    await axiosClient.patch(`/api/v1/admin/listings/${listingId}/edits/${editId}`, { approve, reason });
+  },
 };
 
 export default adminListingService;

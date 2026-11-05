@@ -163,7 +163,8 @@ export default function ListingTable({
         </TableHeader>
         <TableBody>
           {listings.map((item, index) => {
-            const isPendingReview = item.status === "PENDING_REVIEW";
+            const hasPendingEdit = Boolean(item.pendingEditId);
+            const isPendingReview = item.status === "PENDING_REVIEW" && !hasPendingEdit;
             const isPublished = item.status === "PUBLISHED";
             const hasReason = Boolean(item.statusReason);
 
@@ -201,6 +202,8 @@ export default function ListingTable({
                       >
                         {item.title}
                       </p>
+                      {item.pendingEditId && <button type="button" className="text-xs font-semibold text-amber-700"
+                        onClick={() => onViewDetails(item)}>Xem bản sửa chờ duyệt</button>}
                       <p className="flex items-center gap-1 text-[11px] text-muted-foreground truncate">
                         <MapPin className="h-3 w-3 shrink-0 text-primary" />
                         <span className="truncate">{item.fullAddress || "Chưa có địa chỉ"}</span>
@@ -282,7 +285,19 @@ export default function ListingTable({
                       <span>Xem</span>
                     </button>
 
-                    {/* Pending Review Actions: Approve / Reject */}
+                    {hasPendingEdit && (
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails(item)}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-2xs transition-all"
+                        title="Xem và duyệt nội dung bản sửa"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        <span>Duyệt bản sửa</span>
+                      </button>
+                    )}
+
+                    {/* New listings use status moderation; content edits use their exact edit ID. */}
                     {isPendingReview && (
                       <>
                         <button

@@ -427,9 +427,13 @@ export type ListingStatusHistoryResponse = {
 export type AdminListingDetailResponse = {
   listing: ListingDetailResponse;
   statusHistory: ListingStatusHistoryResponse[];
+  pendingEditId?: string | null;
+  pendingEdit?: CreateListingRequest | null;
+  pendingAddress?: string | null;
 };
 
 export type AdminListingSummaryResponse = {
+  pendingEditId?: string | null;
   id: string;
   title: string;
   category: ListingCategory;

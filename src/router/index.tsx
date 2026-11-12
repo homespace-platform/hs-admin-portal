@@ -23,6 +23,7 @@ import ComplaintsPage from "@/pages/operations/ComplaintsPage";
 import NewsListPage from "@/pages/operations/NewsListPage";
 import NewsManagementPage from "@/pages/operations/NewsManagementPage";
 import KnowledgeManagementPage from "@/pages/operations/KnowledgeManagementPage";
+import NotificationsPage from "@/pages/operations/NotificationsPage";
 import BlockchainExplorerPage from "@/pages/blockchain/BlockchainExplorerPage";
 import StatisticsPage from "@/pages/analytics/StatisticsPage";
 import AiForecastPage from "@/pages/analytics/AiForecastPage";
@@ -111,6 +112,7 @@ export default function AppRouter() {
             <Route path=":newsId/edit" element={<NewsManagementPage />} />
           </Route>
           <Route path="knowledge" element={<KnowledgeManagementPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* Blockchain Explorer */}

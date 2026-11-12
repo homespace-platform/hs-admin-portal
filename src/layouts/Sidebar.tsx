@@ -20,6 +20,7 @@ import {
   FileCode,
   BookOpen,
   Files,
+  Bell,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -70,6 +71,7 @@ const MENU_ITEMS: MenuItem[] = [
       { title: "Xử lý khiếu nại", path: "/operations/complaints", icon: AlertTriangle },
       { title: "Quản lý tin tức", path: "/operations/news", icon: Newspaper },
       { title: "Kho tri thức AI", path: "/operations/knowledge", icon: BookOpen },
+      { title: "Thông báo hệ thống", path: "/operations/notifications", icon: Bell },
     ],
   },
   {

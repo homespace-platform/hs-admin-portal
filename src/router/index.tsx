@@ -24,6 +24,7 @@ import NewsListPage from "@/pages/operations/NewsListPage";
 import NewsManagementPage from "@/pages/operations/NewsManagementPage";
 import KnowledgeManagementPage from "@/pages/operations/KnowledgeManagementPage";
 import NotificationsPage from "@/pages/operations/NotificationsPage";
+import NotificationCenterPage from "@/pages/notifications/NotificationsPage";
 import BlockchainExplorerPage from "@/pages/blockchain/BlockchainExplorerPage";
 import StatisticsPage from "@/pages/analytics/StatisticsPage";
 import AiForecastPage from "@/pages/analytics/AiForecastPage";
@@ -56,6 +57,9 @@ export default function AppRouter() {
         {/* Dashboard Route -> http://localhost:5000/dashboard */}
         <Route path="/operations/nearby" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+
+        {/* Admin pending-review notification center */}
+        <Route path="/notifications" element={<NotificationCenterPage />} />
 
         {/* User Management */}
         <Route path="users">

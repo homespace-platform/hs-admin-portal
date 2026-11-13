@@ -3,6 +3,7 @@ import { Outlet, useLocation, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { AdminQueueProvider } from "@/features/admin-queue/AdminQueueProvider";
 
 interface BreadcrumbItem {
   parent?: { title: string; path?: string };
@@ -60,6 +61,9 @@ const BREADCRUMB_MAP: Record<string, BreadcrumbItem> = {
   "/properties/view": {
     parent: { title: "Quản lý tin đăng", path: "/properties/all" },
     title: "Chi tiết tin đăng",
+  },
+  "/notifications": {
+    title: "Thông báo",
   },
   "/users": {
     parent: { title: "Quản lý tài khoản", path: "/users" },
@@ -138,6 +142,7 @@ export default function AdminLayout() {
   };
 
   return (
+    <AdminQueueProvider>
     <div className="min-h-screen bg-background text-foreground flex transition-colors">
       {/* 1. Sidebar Navigation */}
       <Sidebar
@@ -194,5 +199,6 @@ export default function AdminLayout() {
         </div>
       </div>
     </div>
+    </AdminQueueProvider>
   );
 }

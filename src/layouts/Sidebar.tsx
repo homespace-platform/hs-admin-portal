@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAdminQueue } from "@/features/admin-queue/adminQueueContext";
+import { formatQueueBadge } from "@/features/admin-queue/queueController";
 import {
   LayoutDashboard,
   Building2,
@@ -96,6 +98,7 @@ const MENU_ITEMS: MenuItem[] = [
 
 export default function Sidebar({ collapsed }: SidebarProps) {
   const location = useLocation();
+  const queue = useAdminQueue();
 
   // Keep track of open submenu groups
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
@@ -146,6 +149,10 @@ export default function Sidebar({ collapsed }: SidebarProps) {
           // Single menu item
           if (!item.children) {
             const isActive = location.pathname === item.path;
+            const pending = item.path === "/properties" && queue.active ? queue.count : null;
+            const pendingLabel = pending
+              ? `${item.title}, ${pending} tin chờ duyệt${queue.status === "stale" ? " (có thể đã cũ)" : ""}`
+              : undefined;
             return (
               <Link
                 key={item.title}
@@ -153,11 +160,20 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${isActive
                   ? "bg-primary/15 text-primary font-bold shadow-2xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
-                  } ${collapsed ? "justify-center px-0" : ""}`}
-                title={collapsed ? item.title : undefined}
+                  } ${collapsed ? "justify-center px-0" : ""} ${pending ? "relative" : ""}`}
+                title={pendingLabel ?? (collapsed ? item.title : undefined)}
+                aria-label={pendingLabel}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-primary" : ""}`} />
                 {!collapsed && <span className="truncate">{item.title}</span>}
+                {pending ? (
+                  <span
+                    aria-hidden="true"
+                    className={`min-w-4 h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none ${collapsed ? "absolute top-1 right-2" : "ml-auto"}`}
+                  >
+                    {formatQueueBadge(pending)}
+                  </span>
+                ) : null}
               </Link>
             );
           }

@@ -12,12 +12,31 @@ import type {
   ListingStatus,
 } from "@/types/listing.type";
 
+// Tiny in-memory invalidation so the queue poller refreshes right after a successful moderation write.
+const moderationListeners = new Set<() => void>();
+function notifyModerationChange() {
+  for (const listener of [...moderationListeners]) {
+    try {
+      listener();
+    } catch (err) {
+      console.warn("Moderation listener failed:", err);
+    }
+  }
+}
+
 export const adminListingService = {
+  onModerationChange(listener: () => void): () => void {
+    moderationListeners.add(listener);
+    return () => void moderationListeners.delete(listener);
+  },
+
   /**
    * Lấy danh sách tin đăng quản trị (hỗ trợ lọc, tìm kiếm, sắp xếp, phân trang)
    */
   async findAll(
-    params: AdminListingQueryParams = {}
+    params: AdminListingQueryParams = {},
+    signal?: AbortSignal,
+    timeout?: number
   ): Promise<PageResponse<AdminListingSummaryResponse>> {
     const {
       page = 1,
@@ -34,6 +53,8 @@ export const adminListingService = {
     const response = await axiosClient.get<PageResponse<AdminListingSummaryResponse>>(
       "/api/v1/admin/listings",
       {
+        signal,
+        ...(timeout ? { timeout } : {}),
         params: {
           page,
           size,
@@ -53,9 +74,10 @@ export const adminListingService = {
   /**
    * Lấy số lượng bài đăng theo từng trạng thái trên toàn hệ thống
    */
-  async getStatusCounts(): Promise<Record<string, number>> {
+  async getStatusCounts(signal?: AbortSignal, timeout?: number): Promise<Record<string, number>> {
     const response = await axiosClient.get<ApiResponse<Record<string, number>>>(
-      "/api/v1/admin/listings/counts"
+      "/api/v1/admin/listings/counts",
+      { signal, ...(timeout ? { timeout } : {}) }
     );
     return response.data.result;
   },
@@ -112,11 +134,13 @@ export const adminListingService = {
       `/api/v1/admin/listings/${listingId}/status`,
       payload
     );
+    notifyModerationChange();
     return response.data.result;
   },
 
   async decideEdit(listingId: string, editId: string, approve: boolean, reason: string): Promise<ListingDetailResponse> {
     const response = await axiosClient.patch<ApiResponse<ListingDetailResponse>>(`/api/v1/admin/listings/${listingId}/edits/${editId}`, { approve, reason });
+    notifyModerationChange();
     return response.data.result;
   },
 };

@@ -12,7 +12,7 @@ export interface BroadcastRequest {
 
 export interface BroadcastResult {
   broadcastId: string;
-  recipientCount: number;
+  status: "QUEUED";
 }
 
 export async function broadcastNotification(

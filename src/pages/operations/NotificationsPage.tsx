@@ -33,8 +33,8 @@ export default function NotificationsPage() {
     setRetryId(request.broadcastId);
     setSending(true);
     try {
-      const result = await broadcastNotification(request);
-      toast.success(`Đã tạo thông báo cho ${result.recipientCount} tài khoản người dùng.`);
+      await broadcastNotification(request);
+      toast.success("Đã tiếp nhận yêu cầu. Hệ thống đang gửi thông báo tới người dùng.");
       setTitle("");
       setBody("");
       setPriority("NORMAL");

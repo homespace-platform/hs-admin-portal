@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   BadgeCheck,
   LoaderCircle,
@@ -17,29 +17,26 @@ import type { KycStatus, KycStatusResponse } from "@/types/kyc.type";
 import { fetchCurrentUser } from "@/features/user/userSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-const POLL_INTERVAL_MS = 2500;
-const POLL_MAX_MS = 60_000;
-
 function statusMeta(status: KycStatus, rejectionReason?: string | null) {
   switch (status) {
     case "VERIFIED":
       return {
         title: "Danh tính đã được xác minh",
-        description: "Hồ sơ KYC của bạn đã được Didit xác nhận thành công.",
+        description: "Hồ sơ KYC của bạn đã được xác nhận thành công.",
         icon: ShieldCheck,
         tone: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
       };
     case "PENDING":
       return {
         title: "Đang xác minh danh tính",
-        description: "Hoàn tất CCCD / selfie trên Didit. Kết quả sẽ cập nhật tự động qua webhook.",
+        description: "Hoàn tất phiên xác minh với nhà cung cấp đã chọn.",
         icon: LoaderCircle,
         tone: "text-amber-600 bg-amber-500/10 border-amber-500/20",
       };
     case "REVIEW_REQUIRED":
       return {
         title: "Đang chờ xét duyệt",
-        description: "Didit cần xem xét thêm. Bạn không cần làm gì lúc này.",
+        description: "Hồ sơ đang cần được xem xét thêm.",
         icon: ShieldQuestion,
         tone: "text-sky-600 bg-sky-500/10 border-sky-500/20",
       };
@@ -77,51 +74,18 @@ export default function KycSection() {
   const kycOptional = Boolean(profile?.kycOptional || profile?.role === "ADMIN");
   const [kyc, setKyc] = useState<KycStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const pollUntilRef = useRef<number | null>(null);
-  const pollTimerRef = useRef<number | null>(null);
-
-  const stopPolling = useCallback(() => {
-    if (pollTimerRef.current != null) {
-      window.clearInterval(pollTimerRef.current);
-      pollTimerRef.current = null;
-    }
-    pollUntilRef.current = null;
-    setConfirming(false);
-  }, []);
+  const webAppUrl = import.meta.env.VITE_WEB_APP_URL?.replace(/\/+$/, "");
+  const verificationUrl = webAppUrl ? `${webAppUrl}/settings/account-security` : null;
 
   const refreshKycStatus = useCallback(async () => {
     const status = await kycService.getStatus();
     setKyc(status);
-    if (
-      status.status === "VERIFIED" ||
-      status.status === "REJECTED" ||
-      status.status === "EXPIRED" ||
-      status.status === "REVIEW_REQUIRED"
-    ) {
-      stopPolling();
-    }
     if (status.status === "VERIFIED" && userId) {
       void dispatch(fetchCurrentUser({ userId, force: true }));
     }
     return status;
-  }, [dispatch, stopPolling, userId]);
-
-  const startPolling = useCallback(() => {
-    stopPolling();
-    setConfirming(true);
-    pollUntilRef.current = Date.now() + POLL_MAX_MS;
-    pollTimerRef.current = window.setInterval(() => {
-      if (pollUntilRef.current != null && Date.now() > pollUntilRef.current) {
-        stopPolling();
-        toast.message("Đang chờ webhook Didit. Bạn có thể tải lại trạng thái sau.");
-        return;
-      }
-      void refreshKycStatus().catch(() => {});
-    }, POLL_INTERVAL_MS);
-  }, [refreshKycStatus, stopPolling]);
+  }, [dispatch, userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,67 +106,12 @@ export default function KycSection() {
     })();
     return () => {
       cancelled = true;
-      stopPolling();
     };
-  }, [stopPolling]);
-
-  const startKyc = async () => {
-    setStarting(true);
-    try {
-      const session = await kycService.createSession();
-      setKyc((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: session.status,
-              sessionId: session.sessionId,
-              sessionUrl: session.url,
-              rejectionReason: null,
-            }
-          : {
-              status: session.status,
-              verifiedAt: null,
-              provider: "DIDIT",
-              sessionId: session.sessionId,
-              sessionUrl: session.url,
-              rejectionReason: null,
-            },
-      );
-
-      const { DiditSdk } = await import("@didit-protocol/sdk-web");
-
-      DiditSdk.shared.onComplete = async () => {
-        startPolling();
-        try {
-          await refreshKycStatus();
-        } catch {
-          // polling continues
-        }
-      };
-
-      DiditSdk.shared.startVerification({
-        url: session.url,
-        configuration: {
-          closeModalOnComplete: true,
-          showExitConfirmation: true,
-        },
-      });
-    } catch (error) {
-      const msg = axios.isAxiosError(error) ? error.response?.data?.message : null;
-      toast.error(
-        typeof msg === "string" && msg.trim()
-          ? msg
-          : "Không thể mở phiên KYC. Kiểm tra cấu hình Didit trên server.",
-      );
-    } finally {
-      setStarting(false);
-    }
-  };
+  }, []);
 
   const cancelKyc = async () => {
     if (cancelling) return;
     setCancelling(true);
-    stopPolling();
     try {
       const status = await kycService.cancelSession();
       setKyc(status);
@@ -247,14 +156,27 @@ export default function KycSection() {
       </h3>
       <p className="text-xs text-muted-foreground">
         {kycOptional
-          ? "Tài khoản Admin được coi là đã xác minh danh tính (không bắt buộc Didit). Bạn vẫn có thể chạy KYC nếu muốn đồng bộ CCCD thật."
-          : "HomeSpace dùng Didit để xác minh CCCD và khuôn mặt. Trạng thái chính thức chỉ cập nhật sau webhook từ Didit — trình duyệt không tự đánh dấu đã xác minh."}
+          ? "Tài khoản Admin được coi là đã xác minh danh tính (không bắt buộc eKYC). Bạn vẫn có thể chạy KYC nếu muốn đồng bộ CCCD thật."
+          : "Xác minh CCCD và khuôn mặt qua VNPT eKYC trên HomeSpace."}
       </p>
+
+      <div className="grid gap-2 sm:grid-cols-3" aria-label="Nhà cung cấp xác minh">
+        <div className="rounded-xl border border-primary bg-primary/5 p-3 text-xs font-semibold text-primary">
+          VNPT eKYC
+          <p className="mt-1 text-[11px] font-normal text-muted-foreground">Đang hỗ trợ</p>
+        </div>
+        {["FPT AI eKYC", "Viettel AI eKYC"].map((provider) => (
+          <button key={provider} type="button" disabled className="rounded-xl border border-border p-3 text-left text-xs font-semibold text-muted-foreground opacity-60 disabled:cursor-not-allowed">
+            {provider}
+            <span className="mt-1 block text-[11px] font-normal">Sắp ra mắt</span>
+          </button>
+        ))}
+      </div>
 
       <div className={`rounded-2xl border p-4 sm:p-5 space-y-3 shadow-2xs ${meta.tone}`}>
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-xl bg-card/80 border border-border/60 shrink-0">
-            <Icon className={`w-5 h-5 ${status === "PENDING" || confirming ? "animate-spin" : ""}`} />
+            <Icon className={`w-5 h-5 ${status === "PENDING" ? "animate-spin" : ""}`} />
           </div>
           <div className="min-w-0 space-y-1">
             <div className="text-sm font-bold text-foreground">{meta.title}</div>
@@ -265,41 +187,29 @@ export default function KycSection() {
                 {format(new Date(kyc.verifiedAt), "HH:mm, dd/MM/yyyy", { locale: vi })}
               </p>
             )}
-            {confirming && status === "PENDING" && (
-              <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-                Đang xác nhận kết quả từ webhook…
-              </p>
-            )}
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          {canStart && (
-            <button
-              type="button"
-              onClick={() => void startKyc()}
-              disabled={starting || cancelling}
-              className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 disabled:opacity-60 cursor-pointer inline-flex items-center gap-1.5"
+          {canStart && verificationUrl && (
+            <a
+              href={verificationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 inline-flex items-center gap-1.5"
             >
-              {starting ? (
-                <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <ShieldCheck className="w-3.5 h-3.5" />
-              )}
-              <span>
-                {status === "PENDING"
-                  ? "Tiếp tục xác minh"
-                  : status === "REJECTED" || status === "EXPIRED"
-                    ? "Xác minh lại"
-                    : "Xác minh ngay"}
-              </span>
-            </button>
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Xác minh với VNPT trên HomeSpace
+            </a>
+          )}
+          {canStart && !verificationUrl && (
+            <p className="text-xs text-muted-foreground">Mở HomeSpace để xác minh danh tính với VNPT eKYC.</p>
           )}
           {canCancel && (
             <button
               type="button"
               onClick={() => void cancelKyc()}
-              disabled={cancelling || starting}
+              disabled={cancelling}
               className="h-9 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-500/15 disabled:opacity-60 cursor-pointer inline-flex items-center gap-1.5"
             >
               {cancelling ? (

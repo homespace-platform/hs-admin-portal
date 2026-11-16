@@ -6,7 +6,7 @@ export type KycStatus =
   | "REJECTED"
   | "EXPIRED";
 
-export type KycProvider = "DIDIT";
+export type KycProvider = "DIDIT" | "VNPT";
 
 export type KycStatusResponse = {
   status: KycStatus;
@@ -15,10 +15,4 @@ export type KycStatusResponse = {
   sessionId: string | null;
   sessionUrl: string | null;
   rejectionReason?: string | null;
-};
-
-export type KycSessionResponse = {
-  sessionId: string;
-  url: string;
-  status: KycStatus;
 };

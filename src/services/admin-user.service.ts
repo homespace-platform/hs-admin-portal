@@ -74,10 +74,3 @@ export async function getAdminUserKyc(userId: string): Promise<KycStatusResponse
   );
   return data.result;
 }
-
-export async function verifyAdminUserKyc(userId: string, cccd: string): Promise<KycStatusResponse> {
-  const { data } = await axiosClient.post<ApiResponse<KycStatusResponse>>(
-    `/api/v1/admin/users/${encodeURIComponent(userId)}/kyc/verify`, { cccd },
-  );
-  return data.result;
-}

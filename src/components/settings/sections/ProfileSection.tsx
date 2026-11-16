@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Camera, Check, LoaderCircle, ShieldCheck } from "lucide-react";
+import { Camera, Check, LoaderCircle, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Link } from "react-router-dom";
 import userService from "@/services/user.service";
 import storageService from "@/services/storage.service";
 import AddressEditor from "@/components/settings/AddressEditor";
@@ -237,7 +238,7 @@ function ProfileContent({
           ? requestError.message
           : "Không thể cập nhật ảnh đại diện.";
       toast.error(message);
-      throw new Error(message);
+      throw new Error(message, { cause: requestError });
     } finally {
       setUploadingAvatar(false);
     }
@@ -326,11 +327,16 @@ function ProfileContent({
             <IdentityBadge role={profile.role} kycVerified={profile.kycVerified} />
           </div>
           <p className="text-xs text-muted-foreground">{email}</p>
-          {profile.kycVerified && (
+          {profile.kycVerified ? (
             <div className="inline-flex items-start gap-1.5 max-w-full rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-2 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 text-left">
               <ShieldCheck className="w-3.5 h-3.5 mt-0.5 shrink-0" />
               <span>Tài khoản này đã xác minh danh tính</span>
             </div>
+          ) : (
+            <Link to="/settings/account-security" className="inline-flex items-start gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-[11px] text-amber-800 dark:text-amber-200">
+              <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              Tài khoản chưa xác minh danh tính. Xác minh KYC ngay
+            </Link>
           )}
         </div>
       </div>
@@ -390,17 +396,6 @@ function ProfileContent({
             </select>
           </div>
 
-          <ReadOnlyField
-            label="CCCD"
-            value={
-              profile.cccd?.trim()
-                ? profile.cccd
-                : profile.kycVerified
-                  ? "Chưa có số CCCD trên hồ sơ"
-                  : "Sẽ cập nhật sau khi xác minh KYC"
-            }
-            mono={Boolean(profile.cccd?.trim())}
-          />
         </div>
 
         <div className="pt-2 flex justify-end">

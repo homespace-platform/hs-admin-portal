@@ -4,6 +4,7 @@ import { Lock, Check, LoaderCircle, Shield } from "lucide-react";
 import userService from "@/services/user.service";
 import { useAuth } from "@/features/auth/useAuth";
 import { toast } from "sonner";
+import KycSection from "./KycSection";
 
 export default function AccountSecuritySection() {
   const { logout } = useAuth();
@@ -21,6 +22,10 @@ export default function AccountSecuritySection() {
     }
     if (newPassword.length < 8) {
       toast.error("Mật khẩu mới phải có tối thiểu 8 ký tự.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[@#$%^&+=!]/.test(newPassword)) {
+      toast.error("Mật khẩu mới phải có chữ hoa, chữ số và ký tự đặc biệt (@#$%^&+=!).");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -55,6 +60,7 @@ export default function AccountSecuritySection() {
 
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in-50 duration-200">
+      <KycSection />
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <Lock className="w-4 h-4 text-primary" />

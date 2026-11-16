@@ -7,6 +7,7 @@ import {
 import ProfileSection from "./sections/ProfileSection";
 import AppearanceSection from "./sections/AppearanceSection";
 import AccountSecuritySection from "./sections/AccountSecuritySection";
+import BankAccountsSection from "./sections/BankAccountsSection";
 import PrivacySection from "./sections/PrivacySection";
 import NotificationsSection from "./sections/NotificationsSection";
 import MessagesSection from "./sections/MessagesSection";
@@ -17,6 +18,8 @@ function SectionBody({ section }: { section: SettingsSectionId }) {
       return <AppearanceSection />;
     case "account-security":
       return <AccountSecuritySection />;
+    case "bank-accounts":
+      return <BankAccountsSection />;
     case "privacy":
       return <PrivacySection />;
     case "notifications":

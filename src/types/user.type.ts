@@ -25,6 +25,14 @@ export type UserProfile = {
 
 export type UpsertUserAddressRequest = { refId: string; addressNote?: string };
 
+export type OnboardingStatusResponse = {
+  completed: boolean;
+  version: number;
+  requiredSteps: string[];
+  completedSteps: string[];
+  nextStep: "PROFILE" | "ADDRESS" | "PASSWORD" | "BANK_ACCOUNT" | "COMPLETED";
+};
+
 export type UserAuditActor = {
   id: string;
   fullName?: string | null;

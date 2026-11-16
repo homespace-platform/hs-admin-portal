@@ -9,13 +9,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
 
-test("admin account security keeps password and SSO settings without self verification", () => {
+test("admin account security includes self KYC alongside password and SSO settings", () => {
   const source = fs.readFileSync(new URL("../src/components/settings/sections/AccountSecuritySection.tsx", import.meta.url), "utf8");
   const output = ts.transpileModule(source, { compilerOptions: {
     jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true,
   } }).outputText;
   const module = { exports: {} };
   const dependencies = {
+    "./KycSection": { __esModule: true, default: () => React.createElement("section", null, "Xác minh danh tính VNPT eKYC") },
     react: { ...React, useState: (initial) => [initial, () => {}] },
     "@/services/user.service": { updatePassword() { throw Error("Unexpected API call"); } },
     "@/features/auth/useAuth": { useAuth: () => ({ logout() {} }) },
@@ -27,5 +28,5 @@ test("admin account security keeps password and SSO settings without self verifi
   const html = renderToStaticMarkup(React.createElement(module.exports.default));
   assert.match(html, /Thay đổi mật khẩu/);
   assert.match(html, /Bảo mật đăng nhập SSO/);
-  assert.doesNotMatch(html, /KYC|VNPT|FPT|Viettel|Xác minh danh tính/);
+  assert.match(html, /Xác minh danh tính VNPT eKYC/);
 });

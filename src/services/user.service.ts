@@ -15,6 +15,13 @@ import type {
 let profileRequest: Promise<UserProfile> | null = null;
 
 const userService = {
+  async getOnboardingStatus(): Promise<import("@/types/user.type").OnboardingStatusResponse> {
+    const response = await axiosClient.get<ApiResponse<import("@/types/user.type").OnboardingStatusResponse>>(
+      "/api/v1/users/me/onboarding-status",
+    );
+    return response.data.result;
+  },
+
   async getProfile(): Promise<UserProfile> {
     if (!profileRequest) {
       profileRequest = axiosClient

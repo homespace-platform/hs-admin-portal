@@ -4,7 +4,6 @@ import { Lock, Check, LoaderCircle, Shield } from "lucide-react";
 import userService from "@/services/user.service";
 import { useAuth } from "@/features/auth/useAuth";
 import { toast } from "sonner";
-import KycSection from "@/components/settings/sections/KycSection";
 
 export default function AccountSecuritySection() {
   const { logout } = useAuth();
@@ -56,8 +55,6 @@ export default function AccountSecuritySection() {
 
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in-50 duration-200">
-      <KycSection />
-
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <Lock className="w-4 h-4 text-primary" />

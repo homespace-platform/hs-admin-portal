@@ -6,7 +6,7 @@ export type KycStatus =
   | "REJECTED"
   | "EXPIRED";
 
-export type KycProvider = "DIDIT" | "VNPT";
+export type KycProvider = "DIDIT" | "VNPT" | "ADMIN";
 
 export type KycStatusResponse = {
   status: KycStatus;

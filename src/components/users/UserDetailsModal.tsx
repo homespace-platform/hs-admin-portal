@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UserAvatar from "@/components/common/UserAvatar";
+import UserKycPanel from "./UserKycPanel";
 import { updateAdminUser } from "@/services/admin-user.service";
 import { getAllAdminRoles } from "@/services/admin-rbac.service";
 import type { AdminUser, UpdateAdminUserRequest, UserAuditActor } from "@/types/user.type";
@@ -327,6 +328,9 @@ export default function UserDetailsModal({
         ) : (
           /* User Information Grid */
           <div className="space-y-4 text-xs">
+            {selectedUser.role?.toUpperCase() !== "ADMIN" && (
+              <UserKycPanel key={selectedUser.id} userId={selectedUser.id} active={Boolean(selectedUser.active)} />
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-xl bg-muted/40 border border-border">
                 <span className="text-muted-foreground block text-[10px] font-bold uppercase">

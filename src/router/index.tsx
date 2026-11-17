@@ -25,6 +25,8 @@ import NewsManagementPage from "@/pages/operations/NewsManagementPage";
 import KnowledgeManagementPage from "@/pages/operations/KnowledgeManagementPage";
 import NotificationsPage from "@/pages/operations/NotificationsPage";
 import NotificationCenterPage from "@/pages/notifications/NotificationsPage";
+import PersonalNotificationsPage from "@/pages/notifications/PersonalNotificationsPage";
+import SystemAlertsPage from "@/pages/operations/SystemAlertsPage";
 import BlockchainExplorerPage from "@/pages/blockchain/BlockchainExplorerPage";
 import StatisticsPage from "@/pages/analytics/StatisticsPage";
 import AiForecastPage from "@/pages/analytics/AiForecastPage";
@@ -60,6 +62,7 @@ export default function AppRouter() {
 
         {/* Admin pending-review notification center */}
         <Route path="/notifications" element={<NotificationCenterPage />} />
+        <Route path="/notifications/feed" element={<PersonalNotificationsPage />} />
 
         {/* User Management */}
         <Route path="users">
@@ -110,6 +113,7 @@ export default function AppRouter() {
             element={<Navigate to="/operations/complaints" replace />}
           />
           <Route path="complaints" element={<ComplaintsPage />} />
+          <Route path="system-alerts" element={<SystemAlertsPage />} />
           <Route path="news">
             <Route index element={<NewsListPage />} />
             <Route path="create" element={<NewsManagementPage />} />

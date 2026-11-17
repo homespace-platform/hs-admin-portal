@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, Loader2 } from "lucide-react";
+import { ClipboardList, Loader2 } from "lucide-react";
 import { useAdminQueue } from "@/features/admin-queue/adminQueueContext";
 import { formatQueueBadge } from "@/features/admin-queue/queueController";
 import { usePendingListingRequests } from "@/features/admin-queue/usePendingListingRequests";
@@ -67,7 +67,7 @@ export default function AdminQueueBell() {
         title={label}
         className="relative w-10 h-10 rounded-full border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
       >
-        <Bell className="w-4 h-4" />
+        <ClipboardList className="w-4 h-4" />
         {shown !== null && shown > 0 && (
           <span
             aria-hidden="true"

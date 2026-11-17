@@ -6,16 +6,22 @@ import {getApiErrorMessage} from "@/utils/apiError";
 import {useAuth} from "@/features/auth/useAuth";
 import {complaintCategories,complaintStages,type ComplaintCase,type ComplaintAction} from "@/types/complaint.type";
 import ComplaintHistory from "@/components/complaint/ComplaintHistory";
+import {useSearchParams} from "react-router-dom";
+import {usePersonalNotifications} from "@/features/notifications/personalNotificationContext";
 const button="rounded-lg border px-3 py-2 text-sm disabled:opacity-50";
 const date=(value?:string)=>value?new Date(value).toLocaleString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"}):"—";
 export default function RentalComplaintsPanel(){
   const {profile}=useAuth();
+  const [search]=useSearchParams();
+  const caseId=search.get("caseId");
+  const {version:notificationVersion}=usePersonalNotifications();
   const [rows,setRows]=useState<ComplaintCase[]>([]),[current,setCurrent]=useState<ComplaintCase|null>(null);
   const [status,setStatus]=useState("ESCALATED"),[category,setCategory]=useState(""),[overdue,setOverdue]=useState(false),[page,setPage]=useState(1),[hasMore,setHasMore]=useState(false);
   const [loading,setLoading]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(false),[reason,setReason]=useState("");
   const [requestedFrom,setRequestedFrom]=useState("TENANT");
   const dialog=useRef<HTMLDialogElement>(null);
   const generation=useRef(0),detailScope=useRef(0),mutex=useRef(false);
+  const lastNotification=useRef(notificationVersion);
   const refresh=useCallback(()=>{
     const token=++generation.current;
     return service.list({status:status||undefined,category:category||undefined,overdue:overdue||undefined,page})
@@ -23,8 +29,24 @@ export default function RentalComplaintsPanel(){
       .catch(cause=>{if(token===generation.current)setError(getApiErrorMessage(cause,"Không tải được danh sách khiếu nại."));})
       .finally(()=>{if(token===generation.current)setLoading(false);});
   },[status,category,overdue,page]);
-  useEffect(()=>{const scope=generation;void refresh();return()=>{scope.current++;};},[refresh]);
+  useEffect(()=>{const scope=generation;void refresh();return()=>{scope.current++;};},[refresh,notificationVersion]);
   useEffect(()=>{const scope=detailScope;return()=>{scope.current++;};},[]);
+  useEffect(()=>{
+    const scope=detailScope;
+    if(!caseId||!/^[A-Za-z0-9_-]{1,100}$/.test(caseId)||profile?.role?.toUpperCase()!=="ADMIN")return;
+    const token=++scope.current;
+    void service.get(caseId).then(c=>{if(scope.current===token){setCurrent(c);setReason("");}})
+      .catch(cause=>{if(scope.current===token)toast.error(getApiErrorMessage(cause,"Không có quyền hoặc hồ sơ không còn khả dụng."));});
+    return()=>{scope.current++;};
+  },[caseId,profile?.role]);
+  useEffect(()=>{
+    if(lastNotification.current===notificationVersion)return;
+    lastNotification.current=notificationVersion;
+    if(!current?.id||mutex.current)return;
+    const scope=detailScope.current;
+    void service.get(current.id).then(c=>{if(scope===detailScope.current)setCurrent(previous=>previous?.id===c.id&&c.revision>=previous.revision?c:previous);})
+      .catch(()=>{/* Keep the current detail and entered reply; explicit reload remains available. */});
+  },[notificationVersion,current?.id]);
   async function open(id:string){const token=++detailScope.current;setCurrent(null);setReason("");
     try{const c=await service.get(id);if(token===detailScope.current){setCurrent(c);}}
     catch(cause){if(token===detailScope.current)toast.error(getApiErrorMessage(cause,"Không tải được hồ sơ khiếu nại."));}

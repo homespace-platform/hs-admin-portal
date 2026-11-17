@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import UserDropdown from "./UserDropdown";
 import AdminQueueBell from "./AdminQueueBell";
+import PersonalNotificationBell from "./PersonalNotificationBell";
 
 interface HeaderProps {
   collapsed: boolean;
@@ -44,6 +45,7 @@ export default function Header({ collapsed, onToggleCollapse }: HeaderProps) {
       <div className="flex items-center gap-3 shrink-0">
         {/* Pending-review queue bell (shared poller from AdminQueueProvider) */}
         <AdminQueueBell />
+        <PersonalNotificationBell />
 
         {/* User Dropdown (Pill trigger + Popup Menu giống Client) */}
         <UserDropdown />

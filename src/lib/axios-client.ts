@@ -8,6 +8,9 @@ import keycloak from "@/lib/keycloak";
 import { clearAuth } from "@/features/auth/authStore";
 
 declare module "axios" {
+  export interface AxiosRequestConfig {
+    backendHealthProbe?: boolean;
+  }
   export interface InternalAxiosRequestConfig {
     _retry?: boolean;
   }
@@ -35,6 +38,10 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 axiosClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    if (config.backendHealthProbe) {
+      config.headers.delete("Authorization");
+      return config;
+    }
     try {
       await keycloak.updateToken(30);
       if (keycloak.token) {
@@ -52,6 +59,11 @@ axiosClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config;
+    if (originalRequest?.backendHealthProbe) return Promise.reject(error);
+    if (typeof window !== "undefined" && !axios.isCancel(error)
+        && (!error.response || [502, 503, 504].includes(error.response.status))) {
+      window.dispatchEvent(new Event("hs:backend-health-check"));
+    }
 
     if (!originalRequest || !error.response) {
       return Promise.reject(error);

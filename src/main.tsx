@@ -6,6 +6,7 @@ import App from "./App.tsx";
 import StoreProvider from "./store/StoreProvider.tsx";
 import AuthInitializer from "./features/auth/AuthInitializer.tsx";
 import { ThemeProvider } from "./components/theme/ThemeProvider.tsx";
+import BackendHealthGate from "./components/system/BackendHealthGate.tsx";
 import "./index.css";
 
 const root = createRoot(document.getElementById("root")!);
@@ -14,12 +15,14 @@ root.render(
   <StrictMode>
     <StoreProvider>
       <ThemeProvider defaultTheme="light" storageKey="hs-admin-theme">
-        <AuthInitializer>
-          <BrowserRouter>
-            <App />
-            <Toaster position="top-right" richColors closeButton />
-          </BrowserRouter>
-        </AuthInitializer>
+        <BackendHealthGate>
+          <AuthInitializer>
+            <BrowserRouter>
+              <App />
+              <Toaster position="top-right" richColors closeButton />
+            </BrowserRouter>
+          </AuthInitializer>
+        </BackendHealthGate>
       </ThemeProvider>
     </StoreProvider>
   </StrictMode>,

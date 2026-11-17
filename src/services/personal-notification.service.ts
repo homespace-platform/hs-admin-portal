@@ -17,6 +17,11 @@ export interface PersonalNotificationPage {
   nextCursor: string | null;
   hasMore: boolean;
 }
+export interface NotificationPreference {
+  category: string;
+  push: boolean;
+  email: boolean;
+}
 const base = "/api/v1/notifications";
 
 export function personalNotificationPath(item: PersonalNotification, isAdmin: boolean): string | null {
@@ -32,10 +37,28 @@ export function personalNotificationPath(item: PersonalNotification, isAdmin: bo
   }
   // Client business routes are not interchangeable with administration routes.
   if (item.actionPath === "/settings/account-security") return item.actionPath;
-  return null;
+  const path = item.actionPath;
+  if (!path || !/^\/(?:dashboard(?:\/|\?|$)|chat(?:\/|\?|$)|news(?:\/|\?|$)|notifications(?:\/|\?|$)|settings(?:\/|\?|$)|favorites(?:\/|\?|$)|rent(?:\/|\?|$))/.test(path)
+      || path.startsWith("//") || path.includes("\\") || /\s/.test(path) || [...path].some(character => character.charCodeAt(0) < 32)
+      || /(^|\/)\.\.(\/|$|\?|#)/.test(path) || path.includes("://")) return null;
+  const base = import.meta.env.VITE_WEB_APP_URL;
+  if (!base) throw new Error("VITE_WEB_APP_URL is required for notification links");
+  const origin = new URL(base);
+  if (!/^https?:$/.test(origin.protocol) || origin.username || origin.password || origin.pathname !== "/" || origin.search || origin.hash) {
+    throw new Error("VITE_WEB_APP_URL must be an HTTP(S) origin");
+  }
+  return new URL(path, origin).href;
 }
 
 export const personalNotificationService = {
+  async preferences(): Promise<NotificationPreference[]> {
+    const { data } = await axiosClient.get<ApiResponse<{ items: NotificationPreference[] }>>(`${base}/preferences`, { timeout: 10_000 });
+    return data.result.items;
+  },
+  async setPush(category: string, enabled: boolean): Promise<NotificationPreference[]> {
+    const { data } = await axiosClient.patch<ApiResponse<{ items: NotificationPreference[] }>>(`${base}/preferences`, { category, channel: "push", enabled }, { timeout: 10_000 });
+    return data.result.items;
+  },
   async feed(cursor?: string, signal?: AbortSignal): Promise<PersonalNotificationPage> {
     const { data } = await axiosClient.get<ApiResponse<PersonalNotificationPage>>(`${base}/feed`, { params: { limit: 20, cursor }, signal, timeout: 10_000 });
     return data.result;

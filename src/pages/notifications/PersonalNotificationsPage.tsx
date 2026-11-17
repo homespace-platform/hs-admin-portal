@@ -45,7 +45,9 @@ export default function PersonalNotificationsPage() {
         <h2 className="font-semibold">{item.title}</h2><p className="whitespace-pre-wrap text-sm">{item.body}</p>
         <time className="text-xs text-muted-foreground" dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString("vi-VN")}</time>
         <div className="flex gap-4 text-sm">
-          {path && <Link to={path} className="text-primary underline" onClick={() => { if (!item.readAt) void mutate(() => service.read(item.id)); }}>Xem chi tiết</Link>}
+          {path && (path.startsWith("http")
+            ? <a href={path} className="text-primary underline" onClick={() => { if (!item.readAt) void mutate(() => service.read(item.id)); }}>Xem chi tiết ↗</a>
+            : <Link to={path} className="text-primary underline" onClick={() => { if (!item.readAt) void mutate(() => service.read(item.id)); }}>Xem chi tiết</Link>)}
           {!item.readAt && <button type="button" disabled={busy} onClick={() => void mutate(() => service.read(item.id))}>Đánh dấu đã đọc</button>}
           <button type="button" disabled={busy} onClick={() => void mutate(() => service.remove(item.id))}>Xóa</button>
         </div>

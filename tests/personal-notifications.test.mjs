@@ -6,19 +6,26 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url), ts = require("typescript"), React = require("react");
 function load(file, deps = {}, timers = globalThis) {
   const module = { exports: {} };
-  const source = fs.readFileSync(new URL(`../${file}`, import.meta.url), "utf8").replaceAll("import.meta.env.VITE_GATEWAY_BASE_URL", '"http://localhost:8080"');
+  const source = fs.readFileSync(new URL(`../${file}`, import.meta.url), "utf8")
+    .replaceAll("import.meta.env.VITE_GATEWAY_BASE_URL", '"http://localhost:8080"')
+    .replaceAll("import.meta.env.VITE_WEB_APP_URL", '"https://web.homespace.test"');
   const output = ts.transpileModule(source, { compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
   vm.runInThisContext(`(function(require,module,exports,setTimeout,clearTimeout,setInterval,clearInterval){${output}\n})`)(name => deps[name] ?? require(name), module, module.exports, timers.setTimeout, timers.clearTimeout, timers.setInterval, timers.clearInterval);
   return module.exports;
 }
 const notice = { id: "notice-1", type: "COMPLAINT_ESCALATED", metadata: { caseId: "case-1", rentalRequestId: "rental-1", audience: "ADMIN" }, actionPath: "/operations/complaints?caseId=case-1" };
-test("notification links use trusted admin metadata and never navigate to a client or external route", () => {
+test("notification links preserve admin routes and send business events only to the configured web origin", () => {
   const { personalNotificationPath: path } = load("src/services/personal-notification.service.ts", { "@/lib/axios-client": {} });
   assert.equal(path(notice, true), "/operations/complaints?caseId=case-1");
   assert.equal(path(notice, false), null);
   assert.equal(path({ ...notice, metadata: { ...notice.metadata, audience: "PARTY" } }, true), null);
   for (const caseId of ["//evil", "../case", "", "x?other=y"]) assert.equal(path({ ...notice, metadata: { ...notice.metadata, caseId } }, true), null);
-  assert.equal(path({ ...notice, type: "MEMBERSHIP_ACTIVATED", actionPath: "/dashboard/membership" }, true), null);
+  for (const route of ["/dashboard/membership", "/chat?channel=direct&conversationId=room-1", "/news/article-1", "/favorites", "/rent/listing-1"]) {
+    assert.equal(path({ ...notice, type: "MEMBERSHIP_ACTIVATED", actionPath: route }, true), `https://web.homespace.test${route}`);
+  }
+  for (const route of ["//evil.test", "/dashboard/../operations", "/dashboard\\evil", "/dashboard\nother", "/dashboard-bad", "/operations/complaints"]) {
+    assert.equal(path({ ...notice, type: "OTHER", actionPath: route }, true), null);
+  }
   assert.equal(path({ ...notice, type: "SYSTEM", actionPath: "https://evil.test" }, true), null);
   assert.equal(path({ ...notice, type: "KYC_VERIFIED", actionPath: "/settings/account-security" }, true), "/settings/account-security");
   assert.equal(path({ ...notice, type: "SYSTEM_INCIDENT_OPENED", metadata: { incidentId: "incident-1" } }, true), "/operations/system-alerts?incidentId=incident-1");
@@ -31,6 +38,18 @@ test("personal feed API scopes identity on backend and encodes all mutation IDs"
   assert.equal(calls[1][2].params.cursor, "cursor"); assert.equal(calls[1][2].params.recipientId, undefined);
   assert.equal(calls[2][1], "/api/v1/notifications/a%2Fb/read"); assert.equal(calls[3][1], "/api/v1/notifications/a%2Fb"); assert.equal(calls[4][1], "/api/v1/notifications/read-all");
   client.get = async () => ({ data: { result: { count: -1 } } }); await assert.rejects(service.unread(), /không hợp lệ/);
+});
+test("preferences use the existing partial update contract without accepting a caller user id", async () => {
+  const calls = [];
+  const item = { category: "CONTRACT", push: false, email: true };
+  const client = Object.fromEntries(["get", "patch"].map(method => [method, async (...args) => {
+    calls.push([method, ...args]); return { data: { result: { items: [item] } } };
+  }]));
+  const { personalNotificationService: service } = load("src/services/personal-notification.service.ts", { "@/lib/axios-client": client });
+  assert.deepEqual(await service.preferences(), [item]);
+  assert.deepEqual(await service.setPush("CONTRACT", false), [item]);
+  assert.deepEqual(calls, [["get", "/api/v1/notifications/preferences", { timeout: 10_000 }],
+    ["patch", "/api/v1/notifications/preferences", { category: "CONTRACT", channel: "push", enabled: false }, { timeout: 10_000 }]]);
 });
 async function fixture(run) {
   const { JSDOM } = require("jsdom"), dom = new JSDOM("<body><div id='root'></div>", { url: "http://localhost:5000" });
@@ -50,6 +69,7 @@ test("socket uses Gateway and refreshed token, coalesces events, drops the old i
     "@/features/admin-queue/adminAccess": { resolveAdminAccess: auth => ({ access: "ready", userId: auth.userId }) },
     "@/services/personal-notification.service": { personalNotificationService: { unread: () => { calls++; return new Promise(resolve => { resolveCount = resolve; }); } } },
     "./personalNotificationContext": { PersonalNotificationContext: context }, "@/lib/keycloak": keycloak,
+    "@/services/notification-push.service": { startPush: async () => () => {} },
     "socket.io-client": { io: (url, config) => { const handlers = {}; const socket = { handlers, connected: false, on(event, fn) { handlers[event] = fn; }, connect() { return socket; }, disconnect() { socket.disconnected = true; return socket; } }; sockets.push(socket); options.push({ url, ...config }); return socket; } },
   }, clock).default;
   let latest;
@@ -126,4 +146,33 @@ test("operations screen highlights the requested incident and keeps resolved his
   assert.equal(document.querySelector('[aria-current="true"]').id, "incident-incident-1");
   assert.match(document.body.textContent, /BLOCKCHAIN · Cần kiểm tra/); assert.match(document.body.textContent, /GATEWAY · Đã phục hồi/);
   assert.match(document.body.textContent, /doc-1/);
+}));
+
+test("notification settings persist push preferences, keep email unavailable and hide stale account responses", async () => fixture(async ({ root, act }) => {
+  let owner = "admin-a", resolveSave;
+  const calls = [], item = { category: "CONTRACT", push: true, email: true };
+  const Section = load("src/components/settings/sections/NotificationsSection.tsx", {
+    "@/features/auth/useAuth": { useAuth: () => ({ authenticated: true, userId: owner }) },
+    "sonner": { toast: { success() {}, error() {} } },
+    "@/services/personal-notification.service": { personalNotificationService: {
+      preferences: async () => [{ ...item }],
+      setPush: (category, enabled) => { calls.push([category, enabled]); return new Promise(resolve => { resolveSave = resolve; }); },
+    } },
+    "@/services/notification-push.service": {
+      isPushConfigured: () => false, isPushOptedIn: () => false, getPushStatus: () => "unavailable",
+      enablePush() {}, disablePush() {},
+    },
+  }).default;
+  const render = () => root.render(React.createElement(Section));
+  await act(async () => render());
+  assert.match(document.body.textContent, /Email: sắp ra mắt/);
+  const checkbox = document.querySelector('input[type="checkbox"]');
+  assert.equal(checkbox.checked, true);
+  await act(async () => checkbox.click());
+  assert.deepEqual(calls, [["CONTRACT", false]]);
+  owner = "admin-b";
+  await act(async () => render());
+  await act(async () => resolveSave([{ ...item, push: false }]));
+  assert.equal(document.querySelector('input[type="checkbox"]').checked, true);
+  assert.equal(document.querySelector("button").disabled, true);
 }));

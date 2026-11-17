@@ -4,6 +4,7 @@ import keycloak from "@/lib/keycloak";
 import { sessionCleared } from "@/features/auth/authSlice";
 import { userCleared } from "@/features/user/userSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { unregisterPushBeforeLogout } from "@/services/notification-push.service";
 
 export function useAuth() {
   const dispatch = useAppDispatch();
@@ -16,7 +17,8 @@ export function useAuth() {
     [],
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try { await unregisterPushBeforeLogout(); } catch { /* Continue logout if the notification service is unavailable. */ }
     dispatch(sessionCleared());
     dispatch(userCleared());
     navigate("/");

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/features/auth/useAuth";
 import { Button } from "@/components/ui/button";
-import keycloak from "@/lib/keycloak";
 import { getUserProfileApi } from "@/services/userApi";
 import type { UserProfileResponse } from "@/types/UserProfileResponse";
 
@@ -22,7 +21,7 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 export default function ProfilePage() {
-  const { fullName, email, username } = useAuth();
+  const { fullName, email, username, logout } = useAuth();
   const fallback = fullName || email || username || "Người dùng";
 
   const [profile, setProfile] = useState<UserProfileResponse | null>(null);
@@ -53,10 +52,6 @@ export default function ProfilePage() {
     };
   }, []);
 
-  const handleLogout = () => {
-    keycloak.logout({ redirectUri: window.location.origin });
-  };
-
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
@@ -64,7 +59,7 @@ export default function ProfilePage() {
           <span className="text-sm font-semibold text-slate-800">
             HomeSpace Admin
           </span>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <Button variant="ghost" size="sm" onClick={() => void logout()}>
             <LogOut className="h-4 w-4" data-icon="inline-start" />
             Đăng xuất
           </Button>

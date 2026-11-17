@@ -5,6 +5,7 @@ import { personalNotificationService } from "@/services/personal-notification.se
 import { PersonalNotificationContext } from "./personalNotificationContext";
 import { io } from "socket.io-client";
 import keycloak from "@/lib/keycloak";
+import { startPush } from "@/services/notification-push.service";
 
 export default function PersonalNotificationProvider({ children }: { children: ReactNode }) {
   const auth = useAppSelector(state => state.auth), user = useAppSelector(state => state.user);
@@ -48,6 +49,8 @@ export default function PersonalNotificationProvider({ children }: { children: R
     });
     let coalesced: ReturnType<typeof setTimeout> | undefined;
     const changed = () => { clearTimeout(coalesced); coalesced = setTimeout(() => void load(true), 150); };
+    let stopPush = () => {};
+    void startPush(changed).then(stop => { if (disposed) stop(); else stopPush = stop; }).catch(() => {});
     socket.on("connect", () => { connected = true; clearTimeout(timer); changed(); });
     for (const event of ["notification:new", "notification:read", "notification:deleted", "notification:unread-count"]) socket.on(event, changed);
     socket.on("disconnect", reason => {
@@ -63,12 +66,18 @@ export default function PersonalNotificationProvider({ children }: { children: R
     }, 30_000);
     socket.connect();
     const resume = () => { clearTimeout(timer); void load(); };
+    const onWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.event === "notifications.changed") changed();
+    };
+    navigator.serviceWorker?.addEventListener("message", onWorkerMessage);
     refreshRef.current = () => { void load(true); };
     document.addEventListener("visibilitychange", resume);
     window.addEventListener("focus", resume); window.addEventListener("online", resume);
     void load();
     return () => {
       disposed = true; clearTimeout(timer); clearTimeout(coalesced); clearInterval(tokenTimer); socket.disconnect(); request?.abort(); refreshRef.current = () => {};
+      stopPush();
+      navigator.serviceWorker?.removeEventListener("message", onWorkerMessage);
       document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("focus", resume); window.removeEventListener("online", resume);
     };

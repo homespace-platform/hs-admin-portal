@@ -1,20 +1,18 @@
-import { useState } from "react";
 import { Bell } from "lucide-react";
 
 export default function NotificationsSection() {
-  const [notifyPendingPosts, setNotifyPendingPosts] = useState(true);
-  const [notifyComplaints, setNotifyComplaints] = useState(true);
-  const [notifySystemErrors, setNotifySystemErrors] = useState(true);
-
   return (
     <div className="space-y-6 max-w-2xl animate-in fade-in-50 duration-200">
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <Bell className="w-4 h-4 text-primary" />
           <span>Cài đặt thông báo quản trị</span>
+          <span className="ml-2 rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
+            Sắp ra mắt
+          </span>
         </h3>
         <p className="text-xs text-muted-foreground">
-          Chọn các sự kiện hệ thống bạn muốn nhận thông báo tức thời.
+          Tính năng tùy chỉnh thông báo đang được phát triển.
         </p>
       </div>
 
@@ -26,9 +24,9 @@ export default function NotificationsSection() {
           </div>
           <input
             type="checkbox"
-            checked={notifyPendingPosts}
-            onChange={(e) => setNotifyPendingPosts(e.target.checked)}
-            className="w-4 h-4 accent-primary cursor-pointer"
+            disabled
+            aria-label="Tin đăng mới cần kiểm duyệt — Sắp ra mắt"
+            className="w-4 h-4 accent-primary cursor-not-allowed opacity-50"
           />
         </div>
 
@@ -39,9 +37,9 @@ export default function NotificationsSection() {
           </div>
           <input
             type="checkbox"
-            checked={notifyComplaints}
-            onChange={(e) => setNotifyComplaints(e.target.checked)}
-            className="w-4 h-4 accent-primary cursor-pointer"
+            disabled
+            aria-label="Khiếu nại và tranh chấp hợp đồng — Sắp ra mắt"
+            className="w-4 h-4 accent-primary cursor-not-allowed opacity-50"
           />
         </div>
 
@@ -52,9 +50,9 @@ export default function NotificationsSection() {
           </div>
           <input
             type="checkbox"
-            checked={notifySystemErrors}
-            onChange={(e) => setNotifySystemErrors(e.target.checked)}
-            className="w-4 h-4 accent-primary cursor-pointer"
+            disabled
+            aria-label="Cảnh báo lỗi Gateway và Blockchain RPC — Sắp ra mắt"
+            className="w-4 h-4 accent-primary cursor-not-allowed opacity-50"
           />
         </div>
       </div>

@@ -58,10 +58,6 @@ function ProfileContent({
   const [username, setUsername] = useState(profile.username || "");
   const [phone, setPhone] = useState(profile.phone || "");
   const [email, setEmail] = useState(profile.email || "");
-  const [dob, setDob] = useState(profile.dob || "");
-  const [gender, setGender] = useState<"FEMALE" | "MALE" | "OTHER" | "">(
-    (profile.gender as "FEMALE" | "MALE" | "OTHER") || "",
-  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -165,9 +161,7 @@ function ProfileContent({
     firstName !== (profile.firstName || "") ||
     lastName !== (profile.lastName || "") ||
     phone !== (profile.phone || "") ||
-    email !== (profile.email || "") ||
-    dob !== (profile.dob || "") ||
-    gender !== ((profile.gender as "FEMALE" | "MALE" | "OTHER") || "");
+    email !== (profile.email || "");
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,8 +175,6 @@ function ProfileContent({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim() || null,
-        dob: dob || null,
-        gender: (gender as "FEMALE" | "MALE" | "OTHER") || null,
       };
 
       await userService.updateProfile(request);
@@ -374,28 +366,6 @@ function ProfileContent({
             onChange={setEmail}
             type="email"
           />
-          <TextField
-            label="Ngày sinh"
-            value={dob}
-            onChange={setDob}
-            type="date"
-            max={getLatestAdultBirthDate()}
-          />
-
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-foreground">Giới tính</label>
-            <select
-              value={gender}
-              onChange={(e) => setGender((e.target.value || "") as "FEMALE" | "MALE" | "OTHER" | "")}
-              className="w-full h-10 px-3.5 bg-muted/50 focus:bg-background rounded-xl border border-border focus:border-primary text-xs sm:text-sm text-foreground outline-none transition-all cursor-pointer"
-            >
-              <option value="">Chưa cập nhật</option>
-              <option value="MALE">Nam</option>
-              <option value="FEMALE">Nữ</option>
-              <option value="OTHER">Khác</option>
-            </select>
-          </div>
-
         </div>
 
         <div className="pt-2 flex justify-end">
@@ -461,14 +431,6 @@ function formatInstant(value?: string | null) {
     }).format(date);
 }
 
-function getLatestAdultBirthDate() {
-  const today = new Date();
-  const year = today.getFullYear() - 18;
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 function formatRole(role?: string | null) {
   if (role === "USER") return "Người dùng";
   if (role === "ADMIN") return "Quản trị viên";
@@ -490,7 +452,6 @@ function TextField({
   onChange,
   type = "text",
   inputMode,
-  max,
   error,
 }: {
   label: string;
@@ -498,7 +459,6 @@ function TextField({
   onChange: (value: string) => void;
   type?: React.HTMLInputTypeAttribute;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
-  max?: string;
   error?: string;
 }) {
   return (
@@ -507,7 +467,6 @@ function TextField({
       <input
         type={type}
         inputMode={inputMode}
-        max={max}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={Boolean(error)}

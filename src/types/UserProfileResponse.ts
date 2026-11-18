@@ -7,8 +7,6 @@ export interface UserProfileResponse {
   emailVerified?: boolean | null;
   avatarUrl?: string | null;
   phone?: string | null;
-  dob?: string | null;
-  gender?: string | null;
   role?: string | null;
   active?: boolean | null;
   createdAt?: string | null;

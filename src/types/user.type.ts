@@ -10,8 +10,6 @@ export type UserProfile = {
   avatarStorageId?: string | null;
   phone?: string | null;
   cccd?: string | null;
-  dob?: string | null;
-  gender?: string | null;
   roleId?: string | null;
   role?: string | null;
   onBoarded?: boolean | null;
@@ -31,6 +29,9 @@ export type OnboardingStatusResponse = {
   requiredSteps: string[];
   completedSteps: string[];
   nextStep: "PROFILE" | "ADDRESS" | "PASSWORD" | "BANK_ACCOUNT" | "COMPLETED";
+  passwordSet?: boolean;
+  missingRequirements?: Array<"PROFILE" | "ADDRESS" | "BANK_ACCOUNT" | "KYC">;
+  serviceReady?: boolean;
 };
 
 export type UserAuditActor = {
@@ -62,8 +63,6 @@ export type UpdateAdminUserRequest = {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
-  dob?: string | null;
-  gender?: "FEMALE" | "MALE" | "OTHER" | null;
   roleId?: string | null;
 };
 
@@ -73,8 +72,6 @@ export type UpdateUserProfileRequest = {
   firstName: string;
   lastName: string;
   phone: string | null;
-  dob: string | null;
-  gender: "FEMALE" | "MALE" | "OTHER" | null;
 };
 
 export type UpdatePasswordRequest = {
@@ -90,8 +87,6 @@ export type OnboardingRequest = {
   firstName: string | null;
   lastName: string | null;
   phone: string | null;
-  dob: string | null;
-  gender: "FEMALE" | "MALE" | "OTHER" | null;
 };
 
 export type SetInitialPasswordRequest = {

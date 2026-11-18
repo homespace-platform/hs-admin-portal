@@ -17,7 +17,7 @@ import { getAllAdminRoles } from "@/services/admin-rbac.service";
 import type { AdminUser, UpdateAdminUserRequest, UserAuditActor } from "@/types/user.type";
 import type { AdminRole } from "@/types/rbac.type";
 import { toast } from "sonner";
-import { formatRole, formatGender, formatDate, parseAuditActor, getApiErrorMessage } from "../../utils/userUtils";
+import { formatRole, formatDate, parseAuditActor, getApiErrorMessage } from "../../utils/userUtils";
 import { formatRoleLabel } from "@/components/rbac/rbacUtils";
 import Can from "@/components/common/Can";
 import { PERMISSIONS } from "@/config/permissions";
@@ -29,8 +29,6 @@ type EditFormState = {
   username: string;
   email: string;
   phone: string;
-  dob: string;
-  gender: "" | "FEMALE" | "MALE" | "OTHER";
   roleId: string;
 };
 
@@ -40,8 +38,6 @@ const EMPTY_EDIT_FORM: EditFormState = {
   username: "",
   email: "",
   phone: "",
-  dob: "",
-  gender: "",
   roleId: "",
 };
 
@@ -110,8 +106,6 @@ export default function UserDetailsModal({
       username: user.username ?? "",
       email: user.email ?? "",
       phone: user.phone ?? "",
-      dob: user.dob ?? "",
-      gender: (user.gender as EditFormState["gender"]) ?? "",
       roleId: user.roleId ?? "",
     });
     setIsEditing(true);
@@ -127,8 +121,6 @@ export default function UserDetailsModal({
         firstName: editForm.firstName.trim() || undefined,
         lastName: editForm.lastName.trim() || undefined,
         phone: editForm.phone.trim() || undefined,
-        dob: editForm.dob || undefined,
-        gender: editForm.gender || undefined,
         ...(isSelf || !canChangeRole ? {} : { roleId: editForm.roleId || undefined }),
       };
 
@@ -250,36 +242,6 @@ export default function UserDetailsModal({
                 )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-foreground">Ngày sinh</label>
-                <Input
-                  type="date"
-                  value={editForm.dob}
-                  onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
-                  className="h-10 rounded-xl text-xs sm:text-sm bg-muted/40"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-foreground">Giới tính</label>
-                <select
-                  value={editForm.gender}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      gender: e.target.value as EditFormState["gender"],
-                    })
-                  }
-                  className="h-10 w-full px-3 rounded-xl border border-border bg-muted/40 text-xs sm:text-sm font-medium text-foreground outline-none cursor-pointer"
-                >
-                  <option value="">Chưa cập nhật</option>
-                  <option value="MALE">Nam</option>
-                  <option value="FEMALE">Nữ</option>
-                  <option value="OTHER">Khác</option>
-                </select>
-              </div>
-            </div>
-
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-foreground">Vai trò</label>
               <select
@@ -387,25 +349,6 @@ export default function UserDetailsModal({
                 </span>
                 <span className="font-semibold text-foreground mt-0.5 block truncate font-mono">
                   @{selectedUser.username}
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-muted/40 border border-border">
-                <span className="text-muted-foreground block text-[10px] font-bold uppercase">
-                  Ngày sinh
-                </span>
-                <span className="font-semibold text-foreground mt-0.5 block">
-                  {selectedUser.dob || "Chưa cập nhật"}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-muted/40 border border-border">
-                <span className="text-muted-foreground block text-[10px] font-bold uppercase">
-                  Giới tính
-                </span>
-                <span className="font-semibold text-foreground mt-0.5 block">
-                  {formatGender(selectedUser.gender)}
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-muted/40 border border-border">

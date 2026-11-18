@@ -85,8 +85,6 @@ export default function ProfilePage() {
               <Field label="Họ" value={profile.lastName || "—"} />
               <Field label="Tên" value={profile.firstName || "—"} />
               <Field label="Số điện thoại" value={profile.phone || "—"} />
-              <Field label="Ngày sinh" value={profile.dob || "—"} />
-              <Field label="Giới tính" value={profile.gender || "—"} />
               <Field label="Vai trò" value={profile.role || "—"} />
               <Field
                 label="Email đã xác thực"

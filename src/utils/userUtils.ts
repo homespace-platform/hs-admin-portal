@@ -7,13 +7,6 @@ export function formatRole(role?: string | null): string {
   return role || "Chưa phân vai trò";
 }
 
-export function formatGender(gender?: string | null): string {
-  if (gender === "MALE") return "Nam";
-  if (gender === "FEMALE") return "Nữ";
-  if (gender === "OTHER") return "Khác";
-  return "Chưa cập nhật";
-}
-
 export function formatDate(dateString?: string | null): string {
   if (!dateString) return "N/A";
   const date = new Date(dateString);

@@ -3,6 +3,7 @@ import { Outlet, useLocation, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import ProfileReminder from "@/features/onboarding/ProfileReminder";
 import { AdminQueueProvider } from "@/features/admin-queue/AdminQueueProvider";
 import PersonalNotificationProvider from "@/features/notifications/PersonalNotificationProvider";
 
@@ -157,6 +158,7 @@ export default function AdminLayout() {
           collapsed={collapsed}
           onToggleCollapse={() => setCollapsed(!collapsed)}
         />
+        <ProfileReminder />
 
         {/* Page Content Container with Breadcrumb below Header */}
         <div className="flex-1 p-6 lg:p-8 bg-slate-50/50 dark:bg-background overflow-x-hidden space-y-4">

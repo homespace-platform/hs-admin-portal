@@ -122,7 +122,7 @@ function userModal(granted, props = {}) {
     "@/services/admin-user.service": { updateAdminUser: async () => ({}) },
     "@/services/admin-rbac.service": { getAllAdminRoles: async () => { roleCalls.push("roles"); return [{ id: "r1", name: "USER" }]; } },
     sonner: { toast: { success() {}, error() {} } },
-    "../../utils/userUtils": { formatRole: () => "Người dùng", formatGender: () => "", formatDate: () => "", parseAuditActor: () => ({}), getApiErrorMessage: () => "" },
+    "../../utils/userUtils": { formatRole: () => "Người dùng", formatDate: () => "", parseAuditActor: () => ({}), getApiErrorMessage: () => "" },
     "@/components/rbac/rbacUtils": { formatRoleLabel: name => name },
   }).default;
   const user = { id: "u1", username: "u1", email: "u@x", role: "USER", roleId: "r1", active: true };

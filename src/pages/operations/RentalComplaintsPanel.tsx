@@ -4,6 +4,8 @@ import {adminComplaintService as service} from "@/services/admin-complaint.servi
 import storageService from "@/services/storage.service";
 import {getApiErrorMessage} from "@/utils/apiError";
 import {useAuth} from "@/features/auth/useAuth";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 import {complaintCategories,complaintStages,type ComplaintCase,type ComplaintAction} from "@/types/complaint.type";
 import ComplaintHistory from "@/components/complaint/ComplaintHistory";
 import {useSearchParams} from "react-router-dom";
@@ -12,6 +14,9 @@ const button="rounded-lg border px-3 py-2 text-sm disabled:opacity-50";
 const date=(value?:string)=>value?new Date(value).toLocaleString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"}):"—";
 export default function RentalComplaintsPanel(){
   const {profile}=useAuth();
+  const canResolve=useHasPermission(PERMISSIONS.COMPLAINT_RESOLVE);
+  // Evidence files need STORAGE_VIEW; the signed contract PDF is read through the contract admin API (CONTRACT_VIEW).
+  const canStorage=useHasPermission(PERMISSIONS.STORAGE_VIEW),canContract=useHasPermission(PERMISSIONS.CONTRACT_VIEW);
   const [search]=useSearchParams();
   const caseId=search.get("caseId");
   const {version:notificationVersion}=usePersonalNotifications();
@@ -74,7 +79,7 @@ export default function RentalComplaintsPanel(){
       if(source?.purpose==="SIGNED_FINAL"){
         const blob=await service.sourcePdf(source);if(tab.closed)return;
         const url=URL.createObjectURL(blob);tab.location.href=url;setTimeout(()=>URL.revokeObjectURL(url),60000);
-      }else{const url=await storageService.getViewUrl(id);if(!tab.closed)tab.location.href=url;}
+      }else{const url=await storageService.getAdminFileUrl(id);if(!tab.closed)tab.location.href=url;}
     }catch(cause){tab.close();toast.error(getApiErrorMessage(cause,"Không mở được chứng cứ."));}
   }
   return <div className="space-y-4">
@@ -96,10 +101,10 @@ export default function RentalComplaintsPanel(){
       {current.status==="OPEN"&&(current.adminReviewCount??0)===1&&<p role="status" className="rounded-lg border p-3 text-sm">Đã kết luận lần 1. Hai bên tiếp tục trao đổi; admin chỉ xử lý lần 2 khi một bên chuyển lại hồ sơ.</p>}
       <p>{current.reason}</p><p className="text-xs text-muted-foreground">Hồ sơ thuê: {current.rentalRequestId}{current.contractId?" · Hợp đồng: "+current.contractId:""}</p>
       {current.decision&&<div className="rounded border bg-blue-50 p-3 text-sm text-blue-950"><strong>Kết luận HomeSpace · Lần {current.adminReviewCount??1}</strong><p>{current.decision}</p><p>Đã có kết luận chưa đồng nghĩa đã nhận tiền.</p></div>}
-      <div className="flex flex-wrap gap-2">{current.evidenceIds.map((id,i)=><button type="button" key={id} className={button} onClick={()=>void proof(id)}>Xem chứng cứ {i+1}</button>)}</div>
+      <div className="flex flex-wrap gap-2">{canStorage&&current.evidenceIds.map((id,i)=><button type="button" key={id} className={button} onClick={()=>void proof(id)}>Xem chứng cứ {i+1}</button>)}</div>
       {current.status==="RESOLVED"&&current.closingReason&&<p>Lý do đóng / thống nhất: {current.closingReason}</p>}
-      <ComplaintHistory complaint={current} onProof={(id,document)=>void proof(id,document)}/>
-      {current.allowedActions.length>0&&<div className="space-y-3">
+      <ComplaintHistory complaint={current} onProof={(id,document)=>void proof(id,document)} canOpen={document=>document?.purpose==="SIGNED_FINAL"?canContract:canStorage}/>
+      {canResolve&&current.allowedActions.length>0&&<div className="space-y-3">
         <textarea aria-label="Căn cứ xử lý khiếu nại" value={reason} maxLength={500} onChange={e=>setReason(e.target.value)} placeholder="Nội dung trao đổi / yêu cầu bổ sung / kết luận (10–500 ký tự)" className="min-h-24 w-full rounded-lg border p-3"/>
         {current.allowedActions.includes("CLAIM")&&<button type="button" className={button} disabled={busy||!valid} onClick={()=>void act("CLAIM")}>{current.assignedTo&&current.assignedTo!==profile?.id?"Chuyển xử lý về tôi":"Tiếp nhận khiếu nại"}</button>}
         {current.allowedActions.includes("REQUEST_INFO")&&<div className="flex gap-2"><select aria-label="Bên cần bổ sung" value={requestedFrom} onChange={e=>setRequestedFrom(e.target.value)} className="rounded border p-2"><option value="TENANT">Người thuê</option><option value="LANDLORD">Chủ nhà</option></select><button type="button" className={button} disabled={busy||!valid} onClick={()=>void act("REQUEST_INFO")}>Yêu cầu bổ sung</button></div>}

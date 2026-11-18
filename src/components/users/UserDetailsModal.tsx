@@ -19,6 +19,9 @@ import type { AdminRole } from "@/types/rbac.type";
 import { toast } from "sonner";
 import { formatRole, formatGender, formatDate, parseAuditActor, getApiErrorMessage } from "../../utils/userUtils";
 import { formatRoleLabel } from "@/components/rbac/rbacUtils";
+import Can from "@/components/common/Can";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 
 type EditFormState = {
   firstName: string;
@@ -73,13 +76,15 @@ export default function UserDetailsModal({
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>(EMPTY_EDIT_FORM);
   const [roles, setRoles] = useState<AdminRole[]>([]);
+  // Changing a role needs ROLE_UPDATE; the role list endpoint needs ROLE_VIEW.
+  const canChangeRole = useHasPermission([PERMISSIONS.ROLE_UPDATE, PERMISSIONS.ROLE_VIEW]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !canChangeRole) return;
     getAllAdminRoles()
       .then(setRoles)
       .catch(() => setRoles([]));
-  }, [isOpen]);
+  }, [isOpen, canChangeRole]);
 
   useEffect(() => {
     if (isInitialEditing && selectedUser) {
@@ -124,7 +129,7 @@ export default function UserDetailsModal({
         phone: editForm.phone.trim() || undefined,
         dob: editForm.dob || undefined,
         gender: editForm.gender || undefined,
-        ...(isSelf ? {} : { roleId: editForm.roleId || undefined }),
+        ...(isSelf || !canChangeRole ? {} : { roleId: editForm.roleId || undefined }),
       };
 
       const updated = await updateAdminUser(selectedUser.id, payload);
@@ -279,7 +284,7 @@ export default function UserDetailsModal({
               <label className="block text-xs font-semibold text-foreground">Vai trò</label>
               <select
                 value={editForm.roleId}
-                disabled={isSelf}
+                disabled={isSelf || !canChangeRole}
                 onChange={(e) => setEditForm({ ...editForm, roleId: e.target.value })}
                 className="h-10 w-full px-3 rounded-xl border border-border bg-muted/40 text-xs sm:text-sm font-medium text-foreground outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -293,6 +298,10 @@ export default function UserDetailsModal({
               {isSelf ? (
                 <p className="text-[11px] text-amber-500 font-medium">
                   Bạn không thể tự đổi vai trò của tài khoản đang đăng nhập.
+                </p>
+              ) : !canChangeRole ? (
+                <p className="text-[11px] text-amber-500 font-medium">
+                  Bạn không có quyền thay đổi vai trò người dùng.
                 </p>
               ) : null}
             </div>
@@ -329,7 +338,9 @@ export default function UserDetailsModal({
           /* User Information Grid */
           <div className="space-y-4 text-xs">
             {selectedUser.role?.toUpperCase() !== "ADMIN" && (
-              <UserKycPanel key={selectedUser.id} userId={selectedUser.id} active={Boolean(selectedUser.active)} />
+              <Can permission={PERMISSIONS.KYC_VIEW}>
+                <UserKycPanel key={selectedUser.id} userId={selectedUser.id} active={Boolean(selectedUser.active)} />
+              </Can>
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-xl bg-muted/40 border border-border">
@@ -459,50 +470,56 @@ export default function UserDetailsModal({
 
             {/* Modal Footer Actions */}
             <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => startEditing(selectedUser)}
-                className="rounded-xl text-xs font-bold cursor-pointer"
-              >
-                <Pencil className="w-4 h-4 mr-1.5" />
-                <span>Chỉnh sửa</span>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => onResendInvitation(selectedUser)}
-                disabled={resendingId === selectedUser.id || !selectedUser.active}
-                className="rounded-xl text-xs font-bold cursor-pointer"
-              >
-                {resendingId === selectedUser.id ? (
-                  <LoaderCircle className="w-4 h-4 animate-spin mr-1.5" />
-                ) : (
-                  <Send className="w-4 h-4 mr-1.5" />
-                )}
-                <span>Gửi lại lời mời</span>
-              </Button>
-              <Button
-                variant={selectedUser.active ? "destructive" : "default"}
-                onClick={() => onToggleActive(selectedUser)}
-                disabled={
-                  updatingId === selectedUser.id ||
-                  Boolean(selectedUser.id === currentUserId && selectedUser.active)
-                }
-                className="rounded-xl text-xs font-bold cursor-pointer"
-                title={
-                  selectedUser.id === currentUserId && selectedUser.active
-                    ? "Không thể khóa tài khoản đang đăng nhập"
-                    : undefined
-                }
-              >
-                {updatingId === selectedUser.id ? (
-                  <LoaderCircle className="w-4 h-4 animate-spin mr-1.5" />
-                ) : selectedUser.active ? (
-                  <Lock className="w-4 h-4 mr-1.5" />
-                ) : (
-                  <Unlock className="w-4 h-4 mr-1.5" />
-                )}
-                <span>{selectedUser.active ? "Khóa tài khoản" : "Mở khóa tài khoản"}</span>
-              </Button>
+              <Can permission={PERMISSIONS.USER_UPDATE}>
+                <Button
+                  variant="outline"
+                  onClick={() => startEditing(selectedUser)}
+                  className="rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  <Pencil className="w-4 h-4 mr-1.5" />
+                  <span>Chỉnh sửa</span>
+                </Button>
+              </Can>
+              <Can permission={PERMISSIONS.USER_CREATE}>
+                <Button
+                  variant="outline"
+                  onClick={() => onResendInvitation(selectedUser)}
+                  disabled={resendingId === selectedUser.id || !selectedUser.active}
+                  className="rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  {resendingId === selectedUser.id ? (
+                    <LoaderCircle className="w-4 h-4 animate-spin mr-1.5" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-1.5" />
+                  )}
+                  <span>Gửi lại lời mời</span>
+                </Button>
+              </Can>
+              <Can permission={PERMISSIONS.USER_UPDATE}>
+                <Button
+                  variant={selectedUser.active ? "destructive" : "default"}
+                  onClick={() => onToggleActive(selectedUser)}
+                  disabled={
+                    updatingId === selectedUser.id ||
+                    Boolean(selectedUser.id === currentUserId && selectedUser.active)
+                  }
+                  className="rounded-xl text-xs font-bold cursor-pointer"
+                  title={
+                    selectedUser.id === currentUserId && selectedUser.active
+                      ? "Không thể khóa tài khoản đang đăng nhập"
+                      : undefined
+                  }
+                >
+                  {updatingId === selectedUser.id ? (
+                    <LoaderCircle className="w-4 h-4 animate-spin mr-1.5" />
+                  ) : selectedUser.active ? (
+                    <Lock className="w-4 h-4 mr-1.5" />
+                  ) : (
+                    <Unlock className="w-4 h-4 mr-1.5" />
+                  )}
+                  <span>{selectedUser.active ? "Khóa tài khoản" : "Mở khóa tài khoản"}</span>
+                </Button>
+              </Can>
             </div>
           </div>
         )}

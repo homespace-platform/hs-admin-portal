@@ -1,4 +1,5 @@
 import axios from "axios";
+import { knownApiErrorMessage } from "@/utils/apiError";
 
 export function formatRole(role?: string | null): string {
   if (role === "ADMIN") return "Quản trị viên";
@@ -106,14 +107,10 @@ export function formatAuditActor(
 }
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {
+  const known = knownApiErrorMessage(error);
+  if (known) return known;
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as { code?: number; message?: string } | undefined;
-    if (data?.code === 2017) {
-      return "Bạn không thể khóa tài khoản đang đăng nhập.";
-    }
-    if (data?.code === 2018) {
-      return "Bạn không thể tự đổi vai trò của tài khoản đang đăng nhập.";
-    }
     if (typeof data?.message === "string" && data.message.trim()) {
       return data.message;
     }

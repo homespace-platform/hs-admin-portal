@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { X, Pencil, Check, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS, permissionScope, type PermissionScope } from "@/config/permissions";
 import { Badge } from "@/components/ui/badge";
 import { updateAdminRole } from "@/services/admin-rbac.service";
 import type { AdminPermission, AdminRole } from "@/types/rbac.type";
@@ -39,15 +41,32 @@ export default function RoleDetailsModal({
     setIsEditing(isInitialEditing);
   }, [selectedRole, isInitialEditing]);
 
-  const groupedPermissions = useMemo(() => {
-    const groups: Record<string, AdminPermission[]> = {};
+  const isAdminRole = selectedRole?.name?.toUpperCase() === "ADMIN";
+  const isUserRole = selectedRole?.name?.toUpperCase() === "USER";
+  const lockedReason = isAdminRole ? "Bộ quyền của vai trò ADMIN do hệ thống quản lý và bị khóa, không thể thay đổi." : null;
+
+  // Scope first (user features, then admin), then the existing prefix grouping.
+  const scopedGroups = useMemo(() => {
+    const scopes: Record<PermissionScope, Record<string, AdminPermission[]>> = { USER: {}, ADMIN: {} };
     for (const permission of allPermissions) {
       const prefix = permission.name.split("_")[0] || "OTHER";
-      groups[prefix] = groups[prefix] || [];
-      groups[prefix].push(permission);
+      const groups = scopes[permissionScope(permission)];
+      (groups[prefix] = groups[prefix] || []).push(permission);
     }
-    return Object.entries(groups);
+    return (["USER", "ADMIN"] as const)
+      .map((scope) => ({ scope, groups: Object.entries(scopes[scope]) }))
+      .filter((section) => section.groups.length > 0);
   }, [allPermissions]);
+
+  // The backend enforces this too: ADMIN is locked; USER takes only user-scope codes (admin-scope ones can only be removed).
+  const isDisabled = (permission: AdminPermission) =>
+    isAdminRole ||
+    (isUserRole && permissionScope(permission) === "ADMIN" && !selectedPermissionIds.includes(permission.id));
+
+  const setAllUserScope = (on: boolean) => {
+    const ids = allPermissions.filter((item) => permissionScope(item) === "USER").map((item) => item.id);
+    setSelectedPermissionIds((prev) => [...prev.filter((id) => !ids.includes(id)), ...(on ? ids : [])]);
+  };
 
   if (!isOpen || !selectedRole) return null;
 
@@ -122,30 +141,54 @@ export default function RoleDetailsModal({
             </div>
             <div className="space-y-2">
               <p className="font-semibold text-foreground">Danh sách quyền</p>
-              <div className="max-h-64 overflow-y-auto rounded-xl border border-border p-3 space-y-3">
-                {groupedPermissions.map(([group, items]) => (
-                  <div key={group} className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground">{group}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                      {items.map((permission) => (
-                        <label
-                          key={permission.id}
-                          className="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-muted/60 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedPermissionIds.includes(permission.id)}
-                            onChange={() => togglePermission(permission.id)}
-                            className="mt-0.5 accent-primary"
-                          />
-                          <span>
-                            <span className="font-mono font-semibold block">{permission.name}</span>
-                            <span className="text-muted-foreground">{permission.description}</span>
-                          </span>
-                        </label>
-                      ))}
+              {lockedReason && (
+                <p role="note" className="text-[11px] font-medium text-amber-600 dark:text-amber-400">{lockedReason}</p>
+              )}
+              <div className="max-h-64 overflow-y-auto rounded-xl border border-border p-3 space-y-4">
+                {scopedGroups.map(({ scope, groups }) => (
+                  <section key={scope} className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold text-foreground">
+                        {scope === "USER" ? "Quyền tính năng người dùng" : "Quyền quản trị"}
+                      </p>
+                      {scope === "USER" && isUserRole && (
+                        <div className="flex gap-3 text-[11px] font-semibold text-primary">
+                          <button type="button" onClick={() => setAllUserScope(true)} className="cursor-pointer hover:underline">Bật tất cả</button>
+                          <button type="button" onClick={() => setAllUserScope(false)} className="cursor-pointer hover:underline">Tắt tất cả</button>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                    {scope === "ADMIN" && isUserRole && (
+                      <p role="note" className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                        Quyền quản trị chỉ dành cho ADMIN
+                      </p>
+                    )}
+                    {groups.map(([group, items]) => (
+                      <div key={group} className="space-y-1.5">
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground">{group}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          {items.map((permission) => (
+                            <label
+                              key={permission.id}
+                              className="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-muted/60 cursor-pointer has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedPermissionIds.includes(permission.id)}
+                                disabled={isDisabled(permission)}
+                                onChange={() => togglePermission(permission.id)}
+                                className="mt-0.5 accent-primary"
+                              />
+                              <span>
+                                <span className="font-mono font-semibold block">{permission.name}</span>
+                                <span className="text-muted-foreground">{permission.description}</span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </section>
                 ))}
               </div>
             </div>
@@ -215,12 +258,14 @@ export default function RoleDetailsModal({
                 <span className="text-right break-words">{formatAuditActor(selectedRole.updatedBy)}</span>
               </div>
             </div>
-            <div className="flex justify-end pt-2">
-              <Button variant="outline" onClick={() => setIsEditing(true)} className="rounded-xl text-xs font-bold cursor-pointer">
-                <Pencil className="w-4 h-4 mr-1.5" />
-                Chỉnh sửa
-              </Button>
-            </div>
+            <Can permission={PERMISSIONS.ROLE_UPDATE}>
+              <div className="flex justify-end pt-2">
+                <Button variant="outline" onClick={() => setIsEditing(true)} className="rounded-xl text-xs font-bold cursor-pointer">
+                  <Pencil className="w-4 h-4 mr-1.5" />
+                  Chỉnh sửa
+                </Button>
+              </div>
+            </Can>
           </div>
         )}
       </div>

@@ -28,6 +28,8 @@ import AdminMediaViewer from "./AdminMediaViewer";
 import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
 import adminListingService from "@/services/admin-listing.service";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 import { getApiErrorMessage } from "@/utils/apiError";
 
 interface ListingDetailModalProps {
@@ -80,9 +82,11 @@ export default function ListingDetailModal({
   isOpen,
   listingId,
   onClose,
-  onOpenModeration,
+  onOpenModeration: onOpenModerationAllowed,
 }: ListingDetailModalProps) {
   const { userId } = useAuth();
+  // No LISTING_MODERATE: the detail stays readable, the moderation actions disappear.
+  const onOpenModeration = useHasPermission(PERMISSIONS.LISTING_MODERATE) ? onOpenModerationAllowed : undefined;
   const [data, setData] = useState<AdminListingDetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

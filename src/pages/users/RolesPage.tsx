@@ -12,8 +12,12 @@ import RoleTable from "@/components/rbac/RoleTable";
 import UserPagination from "@/components/users/UserPagination";
 import RoleDetailsModal from "@/components/rbac/RoleDetailsModal";
 import { getApiErrorMessage } from "@/utils/userUtils";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 
 export default function RolesPage() {
+  // The permission catalogue (PERMISSION_VIEW) only feeds the role editor (ROLE_UPDATE).
+  const canEditPermissions = useHasPermission([PERMISSIONS.ROLE_UPDATE, PERMISSIONS.PERMISSION_VIEW]);
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [allPermissions, setAllPermissions] = useState<AdminPermission[]>([]);
   const [page, setPage] = useState(1);
@@ -47,10 +51,11 @@ export default function RolesPage() {
   }, [fetchRoles]);
 
   useEffect(() => {
+    if (!canEditPermissions) return;
     getAllAdminPermissions()
       .then(setAllPermissions)
       .catch(() => setAllPermissions([]));
-  }, []);
+  }, [canEditPermissions]);
 
   const openDetails = async (role: AdminRole, editing: boolean) => {
     setSelectedRole(role);

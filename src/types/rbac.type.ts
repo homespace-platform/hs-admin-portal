@@ -4,6 +4,8 @@ export type AdminPermission = {
   id: string;
   name: string;
   description?: string | null;
+  /** Computed by the backend; fall back to permissionScope() when absent. */
+  scope?: "ADMIN" | "USER" | null;
   active?: boolean | null;
   createdAt?: string | null;
   updatedAt?: string | null;

@@ -1,3 +1,5 @@
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 import {
   Eye,
   CheckCircle,
@@ -84,6 +86,7 @@ export default function ListingTable({
   onViewDetails,
   onOpenModeration,
 }: ListingTableProps) {
+  const canModerate = useHasPermission(PERMISSIONS.LISTING_MODERATE);
   if (loading) {
     return (
       <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-2xs">
@@ -284,7 +287,7 @@ export default function ListingTable({
                     </button>
 
                     {/* New listings use status moderation; content edits use their exact edit ID. */}
-                    {isPendingReview && (
+                    {canModerate && isPendingReview && (
                       <>
                         <button
                           type="button"
@@ -310,7 +313,7 @@ export default function ListingTable({
                     )}
 
                     {/* Published Actions: Rented externally / Hide / Violation */}
-                    {isPublished && (
+                    {canModerate && isPublished && (
                       <>
                         <button
                           type="button"
@@ -344,7 +347,7 @@ export default function ListingTable({
                       </>
                     )}
 
-                    {item.status === "VIOLATION" && (
+                    {canModerate && item.status === "VIOLATION" && (
                       <>
                         <button
                           type="button"

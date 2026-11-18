@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { createRequire } from "node:module";
+import { permissionMocks } from "./helpers/permission-mocks.mjs";
 
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
@@ -201,6 +202,7 @@ test("real React provider scopes counts to verified identity and bell navigation
   for (const key of globals) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value: key === "IS_REACT_ACT_ENVIRONMENT" ? true : dom.window[key] });
   const context = load("src/features/admin-queue/adminQueueContext.ts");
   const controllers = [], toasts = [];
+  let granted = ["LISTING_VIEW"];
   let auth = { initialized: true, authenticated: true, userId: "A", roles: [] };
   let user = { status: "succeeded", loadedForUserId: "A", profile: { id: "A", role: "ADMIN" } };
   const queueModule = {
@@ -208,6 +210,7 @@ test("real React provider scopes counts to verified identity and bell navigation
     createQueueController(opts) { const c = { opts, destroyed: false, start() {}, refresh() {}, destroy() { this.destroyed = true; } }; controllers.push(c); return c; },
   };
   const { AdminQueueProvider } = load("src/features/admin-queue/AdminQueueProvider.tsx", {
+    ...permissionMocks(() => granted),
     "@/config/admin-queue-alerts.config": config,
     "@/services/admin-listing.service": { adminListingService: { getStatusCounts() {}, onModerationChange: () => () => {} } },
     "@/store/hooks": { useAppSelector: (selector) => selector({ auth, user }) }, "./adminQueueContext": context,
@@ -249,6 +252,11 @@ test("real React provider scopes counts to verified identity and bell navigation
     await React.act(async () => render());
     assert.equal(controllers[1].destroyed, true); assert.equal(controllers.length, 2);
     assert.doesNotMatch(document.body.textContent, /Hiện có 2/); assert.deepEqual(toasts, []);
+    // An ADMIN without LISTING_VIEW must not start the /admin/listings poller; granting it later does.
+    user = { ...user, profile: { id: "B", role: "ADMIN" } }; granted = [];
+    await React.act(async () => render()); assert.equal(controllers.length, 2);
+    granted = ["LISTING_VIEW"];
+    await React.act(async () => render()); assert.equal(controllers.length, 3);
   } finally {
     await React.act(async () => root.unmount()); dom.window.close();
     for (const [key, desc] of old) { if (desc) Object.defineProperty(globalThis, key, desc); else delete globalThis[key]; }

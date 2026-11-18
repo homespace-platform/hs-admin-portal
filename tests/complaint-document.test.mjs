@@ -20,7 +20,7 @@ test("signed source resolves its exact historical PDF then reads only verified b
  const bytes=await f.service.sourcePdf(source);
  assert.equal(await bytes.text(),"verified PDF");assert.equal(bytes.type,"application/pdf");
  assert.equal(f.calls[0][1],"/api/v1/admin/contracts/workflow%2Fa/documents");
- assert.equal(f.calls[1][1],"/api/v1/contracts/documents/doc%2Fa/content");assert.equal(f.calls[1][3].responseType,"blob");
+ assert.equal(f.calls[1][1],"/api/v1/admin/contracts/documents/doc%2Fa/content");assert.equal(f.calls[1][3].responseType,"blob");
 });
 
 test("missing or ambiguous source identity never falls back to a newer PDF or direct storage",async()=>{

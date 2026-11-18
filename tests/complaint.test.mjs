@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import {createRequire} from "node:module";
+import {permissionMocks} from "./helpers/permission-mocks.mjs";
 const require=createRequire(import.meta.url),ts=require("typescript"),React=require("react"),{renderToStaticMarkup}=require("react-dom/server");
 function compile(file,dependencies={}){const loaded={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL("../"+file,import.meta.url),"utf8"),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:loaded,exports:loaded.exports,require:name=>dependencies[name]??require(name),window:{open:()=>null}});return loaded.exports;}
 const labels=compile("src/types/complaint.type.ts"),History=compile("src/components/complaint/ComplaintHistory.tsx",{"@/types/complaint.type":labels}).default;
@@ -12,7 +13,7 @@ function page(options={}){
   let index=0,refIndex=0;const refs=[],calls=[],errors=[];
   const hooks={...React,useState(initial){const i=index++;return [i<states.length?states[i]:initial,v=>updates[i].push(v)];},useRef(initial){const i=refIndex++;return refs[i]??(refs[i]={current:initial});},useCallback:fn=>fn,useEffect(){}};
   const api={list:async(...args)=>{calls.push({kind:"list",args});return {result:[],hasMore:false};},get:async(...args)=>{calls.push({kind:"get",args});return c;},act:async(...args)=>{calls.push({kind:"act",args});if(options.error)throw options.error;return options.pending??c;}};
-  const C=compile("src/pages/operations/RentalComplaintsPanel.tsx",{react:hooks,"@/features/auth/useAuth":{useAuth:()=>({profile:{id:options.actor??"admin"}})},"@/services/admin-complaint.service":{adminComplaintService:api},"@/services/storage.service":{default:{}},"@/types/complaint.type":labels,"@/components/complaint/ComplaintHistory":{__esModule:true,default:History},"@/utils/apiError":{getApiErrorMessage:e=>e.message},sonner:{toast:{success(){},error:e=>errors.push(e)}}}).default;
+  const C=compile("src/pages/operations/RentalComplaintsPanel.tsx",{react:hooks,...permissionMocks(options.granted),"@/features/notifications/personalNotificationContext":{usePersonalNotifications:()=>({version:0})},"react-router-dom":{useSearchParams:()=>[new URLSearchParams()]},"@/features/auth/useAuth":{useAuth:()=>({profile:{id:options.actor??"admin"}})},"@/services/admin-complaint.service":{adminComplaintService:api},"@/services/storage.service":{default:{}},"@/types/complaint.type":labels,"@/components/complaint/ComplaintHistory":{__esModule:true,default:History},"@/utils/apiError":{getApiErrorMessage:e=>e.message},sonner:{toast:{success(){},error:e=>errors.push(e)}}}).default;
   const tree=C();return {tree,html:renderToStaticMarkup(tree),calls,errors,updates};
 }
 function text(n){if(n==null||typeof n==="boolean")return "";if(Array.isArray(n))return n.map(text).join("");return typeof n==="object"?text(n.props?.children):String(n);}
@@ -51,7 +52,7 @@ test("closing a view during an action prevents its late response from reopening 
   let release;const pending=new Promise(resolve=>{release=resolve;});const f=page({pending});button(f,"Gửi kết luận lần 1").props.onClick();button(f,"Đóng").props.onClick();release({});await tick();assert.equal(f.updates[1].at(-1),null);assert.equal(f.updates[10].length,0);
 });
 test("payment disputes remain available in their own existing panel",()=>{
-  const C=compile("src/pages/operations/ComplaintsPage.tsx",{react:{...React,useState:()=>["payment",()=>{}]},"./RentalComplaintsPanel":{__esModule:true,default:()=>React.createElement("p",null,"Rental")},"./PaymentDisputesPanel":{__esModule:true,default:()=>React.createElement("p",null,"Existing payment disputes")}});
+  const C=compile("src/pages/operations/ComplaintsPage.tsx",{...permissionMocks(),react:{...React,useState:()=>["payment",()=>{}]},"react-router-dom":{useSearchParams:()=>[new URLSearchParams()]},"./RentalComplaintsPanel":{__esModule:true,default:()=>React.createElement("p",null,"Rental")},"./PaymentDisputesPanel":{__esModule:true,default:()=>React.createElement("p",null,"Existing payment disputes")}});
   const html=renderToStaticMarkup(C.default());assert.match(html,/Existing payment disputes/);assert.match(html,/Khiếu nại hồ sơ thuê/);
 });
 test("history shows original agreement and settlement grounds, never raw JSON or forged receipt",()=>{
@@ -76,4 +77,28 @@ test("final closed case and party-admin access both explain their read-only stat
   const final=page({case:{status:"RESOLVED",adminReviewCount:2,finalClosed:true,allowedActions:[]}});
   assert.match(final.html,/Đã kết luận lần 2 và đóng hồ sơ/);assert.equal(find(final.tree,n=>n.type==="textarea"),undefined);
   const own=page({actor:"owner",case:{allowedActions:[]}});assert.match(own.html,/không được tự xử lý khiếu nại/);
+});
+
+function complaintsPage(granted,tab="rental"){
+  const C=compile("src/pages/operations/ComplaintsPage.tsx",{...permissionMocks(granted),react:{...React,useState:()=>[tab,()=>{}]},"react-router-dom":{useSearchParams:()=>[new URLSearchParams()]},"./RentalComplaintsPanel":{__esModule:true,default:()=>React.createElement("p",null,"Rental panel")},"./PaymentDisputesPanel":{__esModule:true,default:()=>React.createElement("p",null,"Dispute panel")}});
+  return renderToStaticMarkup(C.default());
+}
+test("complaints page mounts only the panels this admin may read",()=>{
+  let html=complaintsPage(["DISPUTE_VIEW"],"rental");assert.match(html,/Dispute panel/);assert.doesNotMatch(html,/Rental panel|Khiếu nại hồ sơ thuê/);
+  html=complaintsPage(["COMPLAINT_VIEW"],"payment");assert.match(html,/Rental panel/);assert.doesNotMatch(html,/Dispute panel|Đối soát chuyển tiền/);
+  html=complaintsPage(["COMPLAINT_VIEW","DISPUTE_VIEW"]);assert.match(html,/Khiếu nại hồ sơ thuê/);assert.match(html,/Đối soát chuyển tiền/);
+});
+test("complaint actions need COMPLAINT_RESOLVE; read access keeps the detail",()=>{
+  const allowed=page({case:{allowedActions:["CLAIM"],assignedTo:undefined,stage:"WAITING_ADMIN"}});assert.ok(button(allowed,"Tiếp nhận khiếu nại"));
+  const readOnly=page({granted:["COMPLAINT_VIEW"],case:{allowedActions:["CLAIM"],assignedTo:undefined,stage:"WAITING_ADMIN"}});
+  assert.equal(find(readOnly.tree,n=>n.type==="button"&&text(n)==="Tiếp nhận khiếu nại"),undefined);assert.doesNotMatch(readOnly.html,/Căn cứ xử lý khiếu nại/);assert.match(readOnly.html,/Phản đối khấu trừ cọc/);
+});
+
+test("history proof buttons honour canOpen (storage files vs signed contract PDFs)",()=>{
+  const c=example();c.events=[{revision:1,action:"DECIDE",actorRole:"ADMIN",occurredAt:c.openedAt,reason:"x",metadataJson:'{"evidenceIds":["proof"]}'}];
+  c.sources=[{kind:"CANCELLATION",workflowId:"w",revision:1,proposal:{},evidenceIds:["src-proof"],history:[],documents:[{storageObjectId:"s1",purpose:"SIGNED_FINAL",signingContractId:"k"},{storageObjectId:"s2",purpose:"SIGNED_LANDLORD"}]}];
+  const render=canOpen=>renderToStaticMarkup(React.createElement(History,{complaint:c,onProof(){},canOpen}));
+  const all=render();assert.match(all,/Chứng cứ của phản hồi này/);assert.match(all,/Bằng chứng nguồn/);assert.equal((all.match(/PDF căn cứ/g)||[]).length,2);
+  const none=render(()=>false);assert.doesNotMatch(none,/Chứng cứ của phản hồi này|Bằng chứng nguồn|PDF căn cứ/);
+  const noContract=render(d=>d?.purpose!=="SIGNED_FINAL");assert.equal((noContract.match(/PDF căn cứ/g)||[]).length,1);assert.match(noContract,/Bằng chứng nguồn/);
 });

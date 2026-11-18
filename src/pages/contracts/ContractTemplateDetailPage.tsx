@@ -26,6 +26,8 @@ import type {
 import { CATEGORY_DESCRIPTIONS, CATEGORY_NAMES } from "@/utils/listing-labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS } from "@/config/permissions";
 
 export default function ContractTemplateDetailPage() {
   const { templateId } = useParams<{ templateId: string }>();
@@ -218,14 +220,16 @@ export default function ContractTemplateDetailPage() {
               Từ điển mã trường
             </Button>
           </Link>
-          <Button
-            size="sm"
-            onClick={() => setIsNewVersionModalOpen(true)}
-            className="gap-1.5 text-xs font-semibold shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            Thêm phiên bản Word mới
-          </Button>
+          <Can permission={PERMISSIONS.CONTRACT_TEMPLATE_MANAGE}>
+            <Button
+              size="sm"
+              onClick={() => setIsNewVersionModalOpen(true)}
+              className="gap-1.5 text-xs font-semibold shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              Thêm phiên bản Word mới
+            </Button>
+          </Can>
         </div>
       </div>
 
@@ -370,21 +374,23 @@ export default function ContractTemplateDetailPage() {
                       </Button>
 
                       {!isPublished && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          disabled={hasWarnings}
-                          onClick={() => handlePublish(v.id, v.versionNumber)}
-                          className="gap-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto"
-                          title={
-                            hasWarnings
-                              ? "Không thể xuất bản: còn mã trường không hợp lệ hoặc thiếu trường bắt buộc. Hãy sửa file Word và tải phiên bản mới."
-                              : "Áp dụng phiên bản này cho các hợp đồng tạo mới"
-                          }
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          Xuất bản (Publish)
-                        </Button>
+                        <Can permission={PERMISSIONS.CONTRACT_TEMPLATE_PUBLISH}>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            disabled={hasWarnings}
+                            onClick={() => handlePublish(v.id, v.versionNumber)}
+                            className="gap-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto"
+                            title={
+                              hasWarnings
+                                ? "Không thể xuất bản: còn mã trường không hợp lệ hoặc thiếu trường bắt buộc. Hãy sửa file Word và tải phiên bản mới."
+                                : "Áp dụng phiên bản này cho các hợp đồng tạo mới"
+                            }
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Xuất bản (Publish)
+                          </Button>
+                        </Can>
                       )}
                     </div>
                   </div>

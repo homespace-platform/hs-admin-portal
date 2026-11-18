@@ -1,6 +1,8 @@
 import { Search, RefreshCw, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS } from "@/config/permissions";
 
 export type StatusFilterType = "ALL" | "ACTIVE" | "INACTIVE";
 
@@ -78,16 +80,18 @@ export default function UserToolbar({
           <span className="hidden sm:inline">Làm mới</span>
         </Button>
 
-        {/* Create User Button */}
-        <Button
-          variant="default"
-          size="default"
-          onClick={onOpenCreateModal}
-          className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 shadow-md shadow-primary/20 cursor-pointer"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>Tạo người dùng</span>
-        </Button>
+        <Can permission={PERMISSIONS.USER_CREATE}>
+          {/* Create User Button */}
+          <Button
+            variant="default"
+            size="default"
+            onClick={onOpenCreateModal}
+            className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 shadow-md shadow-primary/20 cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Tạo người dùng</span>
+          </Button>
+        </Can>
       </div>
     </div>
   );

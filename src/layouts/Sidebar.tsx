@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAdminQueue } from "@/features/admin-queue/adminQueueContext";
 import { formatQueueBadge } from "@/features/admin-queue/queueController";
+import { useCanAccessPath } from "@/hooks/usePermission";
 import {
   LayoutDashboard,
   Building2,
@@ -100,6 +101,13 @@ const MENU_ITEMS: MenuItem[] = [
 export default function Sidebar({ collapsed }: SidebarProps) {
   const location = useLocation();
   const queue = useAdminQueue();
+  const canAccess = useCanAccessPath();
+  // Hide entries the admin cannot open, and groups left empty.
+  const menuItems = MENU_ITEMS.flatMap((item): MenuItem[] => {
+    if (!item.children) return !item.path || canAccess(item.path) ? [item] : [];
+    const children = item.children.filter((child) => canAccess(child.path));
+    return children.length ? [{ ...item, children }] : [];
+  });
 
   // Keep track of open submenu groups
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
@@ -144,7 +152,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
       {/* 2. Navigation Menu */}
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5 no-scrollbar">
-        {MENU_ITEMS.map((item) => {
+        {menuItems.map((item) => {
           const Icon = item.icon;
 
           // Single menu item

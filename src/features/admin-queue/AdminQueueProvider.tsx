@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { parseAdminQueueAlertsConfig } from "@/config/admin-queue-alerts.config";
 import { adminListingService } from "@/services/admin-listing.service";
 import { useAppSelector } from "@/store/hooks";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 import { resolveAdminAccess } from "./adminAccess";
 import { AdminQueueContext, type AdminQueueValue } from "./adminQueueContext";
 import { createQueueController, type QueueSnapshot } from "./queueController";
@@ -18,7 +20,9 @@ export function AdminQueueProvider({ children }: { children: ReactNode }) {
   const auth = useAppSelector((s) => s.auth);
   const user = useAppSelector((s) => s.user);
   const { access, userId } = resolveAdminAccess(auth, user);
-  const owner = config.enabled && access === "ready" ? userId : null;
+  // The queue polls /admin/listings (LISTING_VIEW): without it, never start the poller.
+  const canViewListings = useHasPermission(PERMISSIONS.LISTING_VIEW);
+  const owner = config.enabled && access === "ready" && canViewListings ? userId : null;
   const [held, setHeld] = useState<Held | null>(null);
 
   useEffect(() => {

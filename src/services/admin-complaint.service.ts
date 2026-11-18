@@ -17,7 +17,7 @@ export const adminComplaintService = {
     }
     try {
       const response = await axiosClient.post<Blob>(
-        "/api/v1/contracts/documents/" + encodeURIComponent(matches[0].id) + "/content",
+        "/api/v1/admin/contracts/documents/" + encodeURIComponent(matches[0].id) + "/content",
         null, { responseType: "blob" },
       );
       return new Blob([response.data], {type:"application/pdf"});

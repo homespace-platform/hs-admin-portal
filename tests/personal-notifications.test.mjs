@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { createRequire } from "node:module";
+import { permissionMocks } from "./helpers/permission-mocks.mjs";
 const require = createRequire(import.meta.url), ts = require("typescript"), React = require("react");
 function load(file, deps = {}, timers = globalThis) {
   const module = { exports: {} };
@@ -114,7 +115,7 @@ test("complaint notification opens the exact protected detail and rejects a non-
   window.HTMLDialogElement.prototype.close = function () { this.open = false; };
   const calls = []; let role = "ADMIN", notificationVersion = 0, revision = 7;
   const Panel = load("src/pages/operations/RentalComplaintsPanel.tsx", {
-    "sonner": { toast: { error() {} } }, "@/services/storage.service": {},
+    ...permissionMocks(), "sonner": { toast: { error() {} } }, "@/services/storage.service": {},
     "react-router-dom": { useSearchParams: () => [new URLSearchParams("caseId=case-1")] },
     "@/features/notifications/personalNotificationContext": { usePersonalNotifications: () => ({ version: notificationVersion }) },
     "@/features/auth/useAuth": { useAuth: () => ({ profile: { id: "admin-a", role } }) },
@@ -138,6 +139,7 @@ test("complaint notification opens the exact protected detail and rejects a non-
 test("operations screen highlights the requested incident and keeps resolved history", async () => fixture(async ({ root, act }) => {
   const items = [{ id: "incident-1", component: "BLOCKCHAIN", open: true, openedAt: "2026-11-17T00:00:00Z", resourceId: "doc-1" }, { id: "incident-2", component: "GATEWAY", open: false, openedAt: "2026-11-16T00:00:00Z", resolvedAt: "2026-11-17T00:00:00Z" }];
   const Page = load("src/pages/operations/SystemAlertsPage.tsx", {
+    ...permissionMocks(),
     "react-router-dom": { useSearchParams: () => [new URLSearchParams("incidentId=incident-1")] },
     "@/features/notifications/personalNotificationContext": { usePersonalNotifications: () => ({ owner: "admin-a", version: 1, refresh() {} }) },
     "@/services/personal-notification.service": { listOperationalIncidents: async () => items },

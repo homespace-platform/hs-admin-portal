@@ -1,29 +1,33 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { usePersonalNotifications } from "@/features/notifications/personalNotificationContext";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 import { listOperationalIncidents, type OperationalIncident } from "@/services/personal-notification.service";
 
 export default function SystemAlertsPage() {
   const { owner, version, refresh } = usePersonalNotifications();
   const [search] = useSearchParams();
+  const canView = useHasPermission(PERMISSIONS.INCIDENT_VIEW);
   const [snapshot, setSnapshot] = useState<{ owner: string; items: OperationalIncident[] } | null>(null);
   const [error, setError] = useState("");
   const mine = snapshot?.owner === owner ? snapshot : null;
   const selected = search.get("incidentId");
   useEffect(() => {
-    if (!owner) return;
+    if (!owner || !canView) return;
     let disposed = false;
     const controller = new AbortController();
     void listOperationalIncidents(controller.signal).then(items => {
       if (!disposed) { setSnapshot({ owner, items }); setError(""); }
     }).catch(() => { if (!disposed) setError("Không tải được cảnh báo hệ thống. Hãy thử lại."); });
     return () => { disposed = true; controller.abort(); };
-  }, [owner, version]);
+  }, [owner, version, canView]);
   return <section className="max-w-3xl space-y-4">
     <div className="flex items-center justify-between"><h1 className="text-xl font-bold">Cảnh báo vận hành</h1><button type="button" onClick={refresh}>Tải lại</button></div>
     <p className="text-sm text-muted-foreground">Tối đa 100 sự cố gần nhất. Thông báo phục hồi không thay thế việc kiểm tra hồ sơ liên quan.</p>
     {error && <p role="alert">{error}</p>}
-    {!mine && !error && <p role="status">Đang tải cảnh báo…</p>}
+    {!canView && <p role="alert">Bạn không có quyền xem cảnh báo vận hành.</p>}
+    {canView && !mine && !error && <p role="status">Đang tải cảnh báo…</p>}
     {mine?.items.length === 0 && <p>Chưa có sự cố được ghi nhận.</p>}
     {mine && selected && !mine.items.some(item => item.id === selected) && <p role="status">Sự cố được chọn không nằm trong danh sách gần nhất hoặc bạn không có quyền xem.</p>}
     <ul className="space-y-3">{mine?.items.map(item => <li key={item.id} id={`incident-${item.id}`} aria-current={selected === item.id ? "true" : undefined}

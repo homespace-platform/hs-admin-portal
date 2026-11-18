@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import axios from "axios";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/useAuth";
 import {
@@ -147,12 +146,7 @@ export default function UsersPage() {
       await resendAdminUserInvitation(user.id);
       toast.success(`Đã gửi lại email kích hoạt tới ${user.email}. Link mới có hiệu lực 12 giờ.`);
     } catch (error) {
-      const message = axios.isAxiosError(error)
-        ? error.response?.data?.message
-        : error instanceof Error
-          ? error.message
-        : "Không thể gửi lại lời mời.";
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, "Không thể gửi lại lời mời."));
     } finally {
       setResendingId(null);
     }

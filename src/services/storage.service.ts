@@ -73,6 +73,14 @@ const storageService = {
     );
     return response.data.result.url;
   },
+
+  /** Admin view of another user's file (needs STORAGE_VIEW); own files keep getViewUrl. */
+  async getAdminFileUrl(storageId: string): Promise<string> {
+    const response = await axiosClient.get<ApiResponse<StorageUrlResponse>>(
+      `/api/v1/admin/storage/${encodeURIComponent(storageId)}/download-url`,
+    );
+    return response.data.result.url;
+  },
 };
 
 async function upload(

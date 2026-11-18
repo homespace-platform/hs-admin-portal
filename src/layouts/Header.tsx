@@ -6,6 +6,8 @@ import {
 import UserDropdown from "./UserDropdown";
 import AdminQueueBell from "./AdminQueueBell";
 import PersonalNotificationBell from "./PersonalNotificationBell";
+import Can from "@/components/common/Can";
+import { PERMISSIONS } from "@/config/permissions";
 
 interface HeaderProps {
   collapsed: boolean;
@@ -44,7 +46,9 @@ export default function Header({ collapsed, onToggleCollapse }: HeaderProps) {
       {/* 2. Right Actions: Notification + User Dropdown */}
       <div className="flex items-center gap-3 shrink-0">
         {/* Pending-review queue bell (shared poller from AdminQueueProvider) */}
-        <AdminQueueBell />
+        <Can permission={PERMISSIONS.LISTING_VIEW}>
+          <AdminQueueBell />
+        </Can>
         <PersonalNotificationBell />
 
         {/* User Dropdown (Pill trigger + Popup Menu giống Client) */}

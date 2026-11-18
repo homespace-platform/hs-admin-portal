@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { createRequire } from "node:module";
+import { permissionMocks } from "./helpers/permission-mocks.mjs";
 
 const require = createRequire(import.meta.url);
 const ts = require("typescript"), React = require("react");
@@ -16,6 +17,7 @@ function compile(file, dependencies = {}) {
 const ui = Object.fromEntries(Object.entries({ Table: "table", TableBody: "tbody", TableCell: "td", TableHead: "th", TableHeader: "thead", TableRow: "tr" })
   .map(([name, tag]) => [name, props => React.createElement(tag, props)]));
 const Table = compile("src/components/properties/ListingTable.tsx", {
+  ...permissionMocks(),
   "@/components/ui/table": ui,
   "@/components/ui/skeleton": { Skeleton: () => null },
   "./ListingStatusBadge": { __esModule: true, default: ({ status }) => React.createElement("span", null, status) },
@@ -131,6 +133,7 @@ test(`admin detail uses normal sections and moderation controls${reviewError ? "
   const state = [data, false, "", null];
   const Dialog = () => null;
   const Page = compile("src/pages/properties/PropertyViewPage.tsx", {
+    ...permissionMocks(),
     react: { ...React, useEffect() {}, useState: () => { const i = index++; return [state[i], value => updates.push([i, value])]; } },
     "react-router-dom": { useSearchParams: () => [new URLSearchParams("id=listing")], useNavigate: () => () => {}, Link: ({ children }) => React.createElement("a", null, children) },
     "@/features/auth/useAuth": { useAuth: () => ({ userId: "admin" }) },
@@ -171,4 +174,18 @@ test("edit decisions use the reviewed edit ID instead of the status moderation e
     ["/api/v1/admin/listings/listing/edits/exact-edit-version", { approve: true, reason: "" }],
     ["/api/v1/admin/listings/listing/edits/exact-edit-version", { approve: false, reason: "Nội dung cần sửa lại" }],
   ]);
+});
+
+test("moderation buttons need LISTING_MODERATE while the listing stays viewable", () => {
+  const ReadOnly = compile("src/components/properties/ListingTable.tsx", {
+    ...permissionMocks(["LISTING_VIEW"]),
+    "@/components/ui/table": ui, "@/components/ui/skeleton": { Skeleton: () => null },
+    "./ListingStatusBadge": { __esModule: true, default: ({ status }) => React.createElement("span", null, status) },
+    "@/utils/listing-labels": { CATEGORY_NAMES: { ROOM: "Phòng trọ" } },
+  }).default;
+  for (const status of ["PENDING_REVIEW", "PUBLISHED", "VIOLATION"]) {
+    const tree = ReadOnly({ listings: [{ id: "listing", category: "ROOM", title: "Phòng", status, priceAmount: 1 }], loading: false, page: 1, size: 10, onViewDetails() {}, onOpenModeration() {} });
+    assert.equal(buttons(tree, "Xem").length, 1);
+    for (const label of ["Duyệt", "Từ chối", "Thuê ngoài", "Ẩn", "Khóa", "Mở khóa", "Hiển thị lại"]) assert.equal(buttons(tree, label).length, 0, `${status}/${label}`);
+  }
 });

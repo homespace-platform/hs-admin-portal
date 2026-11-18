@@ -7,6 +7,7 @@ import {
 import { useAppDispatch } from "@/store/hooks";
 import { sessionCleared, sessionInitialized } from "@/features/auth/authSlice";
 import { fetchCurrentUser, userCleared } from "@/features/user/userSlice";
+import { fetchPermissions } from "@/features/permission/permissionSlice";
 
 export default function AuthInitializer({
   children,
@@ -40,6 +41,7 @@ export default function AuthInitializer({
 
         dispatch(sessionInitialized(session));
         if (session.authenticated && session.userId) {
+          void dispatch(fetchPermissions());
           dispatch(fetchCurrentUser({ userId: session.userId }))
             .unwrap()
             .then((profile) => {

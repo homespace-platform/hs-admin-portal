@@ -27,6 +27,8 @@ import ListingStatusHistoryTimeline from "@/components/properties/ListingStatusH
 import AdminMediaViewer from "@/components/properties/AdminMediaViewer";
 import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 import adminListingService from "@/services/admin-listing.service";
 import { getApiErrorMessage } from "@/utils/apiError";
 import type {
@@ -151,6 +153,7 @@ export default function PropertyViewPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const canModerate = useHasPermission(PERMISSIONS.LISTING_MODERATE);
   const listingId = searchParams.get("id");
 
   const [data, setData] = useState<AdminListingDetailResponse | null>(null);
@@ -297,7 +300,7 @@ export default function PropertyViewPage() {
           </button>
 
           {/* Pending Review Actions */}
-          {isPendingReview && (
+          {canModerate && isPendingReview && (
             <>
               <button
                 type="button"
@@ -320,7 +323,7 @@ export default function PropertyViewPage() {
           )}
 
           {/* Published Actions */}
-          {isPublished && (
+          {canModerate && isPublished && (
             <>
               <button
                 type="button"
@@ -349,7 +352,7 @@ export default function PropertyViewPage() {
             </>
           )}
 
-          {listing.status === "VIOLATION" && (
+          {canModerate && listing.status === "VIOLATION" && (
             <>
               <button
                 type="button"
@@ -373,7 +376,7 @@ export default function PropertyViewPage() {
           )}
 
           {/* Re-open if rejected, hidden or already rented */}
-          {!data.pendingEditId && !data.protectedRental && (listing.status === "REJECTED" ||
+          {canModerate && !data.pendingEditId && !data.protectedRental && (listing.status === "REJECTED" ||
             listing.status === "HIDDEN" ||
             listing.status === "EXPIRED" ||
             listing.status === "RENTED_EXTERNALLY") && (

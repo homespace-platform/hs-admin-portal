@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS, permissionScope } from "@/config/permissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AdminPermission } from "@/types/rbac.type";
 import { formatDate } from "@/utils/userUtils";
@@ -36,6 +38,7 @@ export default function PermissionTable({
         <TableRow className="border-border">
           <TableHead className="w-12 text-center text-xs font-bold uppercase">STT</TableHead>
           <TableHead className="text-xs font-bold uppercase">Quyền hạn</TableHead>
+          <TableHead className="text-xs font-bold uppercase">Phạm vi</TableHead>
           <TableHead className="text-xs font-bold uppercase">Mô tả</TableHead>
           <TableHead className="text-xs font-bold uppercase">Ngày tạo</TableHead>
           <TableHead className="text-right text-xs font-bold uppercase pr-6">Thao tác</TableHead>
@@ -52,6 +55,9 @@ export default function PermissionTable({
                 <Skeleton className="h-6 w-32 rounded-full" />
               </TableCell>
               <TableCell>
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </TableCell>
+              <TableCell>
                 <Skeleton className="h-4 w-48 rounded" />
               </TableCell>
               <TableCell>
@@ -64,7 +70,7 @@ export default function PermissionTable({
           ))
         ) : permissions.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={5} className="h-64 text-center">
+            <TableCell colSpan={6} className="h-64 text-center">
               <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
                 <KeyRound className="w-10 h-10 text-muted-foreground/40" />
                 <p className="text-sm font-semibold">Không tìm thấy quyền hạn phù hợp.</p>
@@ -81,6 +87,11 @@ export default function PermissionTable({
                 <TableCell>
                   <Badge variant="secondary" className="text-[11px] font-bold font-mono">
                     {permission.name}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={permissionScope(permission) === "USER" ? "success" : "outline"} className="text-[11px] font-bold">
+                    {permissionScope(permission) === "USER" ? "Người dùng" : "Quản trị"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground max-w-md truncate">
@@ -103,15 +114,17 @@ export default function PermissionTable({
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => onStartEdit(permission)}
-                      className="rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
-                      title="Chỉnh sửa mô tả"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
+                    <Can permission={PERMISSIONS.PERMISSION_UPDATE}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => onStartEdit(permission)}
+                        className="rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                        title="Chỉnh sửa mô tả"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </Can>
                   </div>
                 </TableCell>
               </TableRow>

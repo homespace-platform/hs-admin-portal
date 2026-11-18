@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS, permissionScope } from "@/config/permissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AdminRole } from "@/types/rbac.type";
 import { formatDate } from "@/utils/userUtils";
@@ -79,6 +81,7 @@ export default function RoleTable({
         ) : (
           roles.map((role, index) => {
             const permissionCount = role.permissions?.length ?? 0;
+            const userScopeCount = (role.permissions ?? []).filter((item) => permissionScope(item) === "USER").length;
             return (
               <TableRow key={role.id} className="border-border hover:bg-muted/30 transition-colors">
                 <TableCell className="text-center font-medium text-xs text-muted-foreground">
@@ -104,6 +107,11 @@ export default function RoleTable({
                   <Badge variant={permissionCount > 0 ? "success" : "outline"} className="text-[11px] font-bold">
                     {permissionCount} quyền
                   </Badge>
+                  {permissionCount > 0 && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      {userScopeCount} người dùng · {permissionCount - userScopeCount} quản trị
+                    </p>
+                  )}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
@@ -122,15 +130,17 @@ export default function RoleTable({
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => onStartEdit(role)}
-                      className="rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
-                      title="Chỉnh sửa mô tả / quyền"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
+                    <Can permission={PERMISSIONS.ROLE_UPDATE}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => onStartEdit(role)}
+                        className="rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                        title="Chỉnh sửa mô tả / quyền"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </Can>
                   </div>
                 </TableCell>
               </TableRow>

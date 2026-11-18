@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { X, Pencil, Check, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS } from "@/config/permissions";
 import { Badge } from "@/components/ui/badge";
 import { updateAdminPermission } from "@/services/admin-rbac.service";
 import type { AdminPermission } from "@/types/rbac.type";
@@ -143,12 +145,14 @@ export default function PermissionDetailsModal({
                 <span className="text-right break-words">{formatAuditActor(selectedPermission.updatedBy)}</span>
               </div>
             </div>
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setIsEditing(true)} className="rounded-xl text-xs font-bold cursor-pointer">
-                <Pencil className="w-4 h-4 mr-1.5" />
-                Chỉnh sửa mô tả
-              </Button>
-            </div>
+            <Can permission={PERMISSIONS.PERMISSION_UPDATE}>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsEditing(true)} className="rounded-xl text-xs font-bold cursor-pointer">
+                  <Pencil className="w-4 h-4 mr-1.5" />
+                  Chỉnh sửa mô tả
+                </Button>
+              </div>
+            </Can>
           </div>
         )}
       </div>

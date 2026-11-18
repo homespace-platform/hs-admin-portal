@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import {createRequire} from "node:module";
+import {permissionMocks} from "./helpers/permission-mocks.mjs";
 const require=createRequire(import.meta.url),ts=require("typescript"),React=require("react"),{renderToStaticMarkup}=require("react-dom/server");
 function compile(file,dependencies){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL("../"+file,import.meta.url),"utf8"),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require:name=>dependencies[name]??require(name),window:{open:()=>null}});return module.exports;}
 const labels=compile("src/types/payment-dispute.type.ts",{});
@@ -13,8 +14,8 @@ function page(options={}){
   const api={list:async()=>({result:[c],hasMore:false}),get:async id=>{calls.push({kind:"get",id});return {...c,revision:8};},act:async(...args)=>{calls.push({kind:"act",args});if(options.error)throw options.error;return c;}};
   const hooks={...React,useState(initial){const i=index++;return [i<states.length?states[i]:initial,value=>updates[i].push(value)];},useRef(initial){const i=refIndex++;return refs[i]??(refs[i]={current:initial});},useCallback(fn){return fn;},useEffect(){}};
   const C=compile("src/pages/operations/PaymentDisputesPanel.tsx",{
-    react:hooks,"@/features/auth/useAuth":{useAuth:()=>({profile:{id:"admin"}})},"@/services/admin-payment-dispute.service":{adminPaymentDisputeService:api},
-    "@/services/storage.service":{default:{}},"@/types/payment-dispute.type":labels,"@/utils/apiError":{getApiErrorMessage:e=>e.message},sonner:{toast:{success(){},error:e=>errors.push(e)}}
+    react:hooks,...permissionMocks(options.granted),"@/features/auth/useAuth":{useAuth:()=>({profile:{id:"admin"}})},"@/services/admin-payment-dispute.service":{adminPaymentDisputeService:api},
+    "@/services/storage.service":{__esModule:true,default:{getAdminFileUrl:async id=>{calls.push({kind:"adminFile",id});return "https://signed.example/"+id;},getViewUrl:async()=>{throw new Error("non-admin storage route");}}},"@/types/payment-dispute.type":labels,"@/utils/apiError":{getApiErrorMessage:e=>e.message},sonner:{toast:{success(){},error:e=>errors.push(e)}}
   }).default;
   const tree=C();return {tree,html:renderToStaticMarkup(tree),calls,errors,updates};
 }
@@ -48,4 +49,22 @@ test("audit shows the route from each proposal and tolerates old metadata",()=>{
   assert.match(f.html,/Mở lại bước gửi chứng từ/);
   assert.equal(labels.eventResolution('null'),undefined);
   assert.equal(labels.eventResolution('{broken'),undefined);
+});
+
+test("dispute actions need DISPUTE_RESOLVE; read access keeps the detail",()=>{
+  assert.ok(button(page(),"Tiếp nhận xử lý"));
+  const readOnly=page({granted:["DISPUTE_VIEW"]});
+  assert.equal(find(readOnly.tree,n=>n.type==="button"&&text(n)==="Tiếp nhận xử lý"),undefined);assert.doesNotMatch(readOnly.html,/Lý do xử lý đối soát/);assert.match(readOnly.html,/Cần kiểm tra khoản tiền/);
+});
+
+test("evidence opens through the admin storage URL, not the uploader-only view URL",async()=>{
+  const f=page({case:{evidences:[{storageId:"proof-1"}]}});
+  await button(f,"Xem chứng cứ 1").props.onClick();await tick();
+  assert.deepEqual(f.calls.filter(c=>c.kind==="adminFile"),[{kind:"adminFile",id:"proof-1"}]);assert.deepEqual(f.errors,[]);
+});
+
+test("evidence buttons need STORAGE_VIEW, the only permission the evidence route accepts",()=>{
+  const evidences={case:{evidences:[{storageId:"proof-1"}]}};
+  assert.match(page(evidences).html,/Xem chứng cứ 1/);
+  assert.doesNotMatch(page({...evidences,granted:["DISPUTE_VIEW","DISPUTE_RESOLVE"]}).html,/Xem chứng cứ/);
 });

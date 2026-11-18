@@ -13,6 +13,34 @@ const API_ERROR_MESSAGES: Record<string, string> = {
     "Mật khẩu phải gồm ít nhất 1 chữ hoa, 1 chữ số và 1 ký tự đặc biệt.",
 };
 
+// Backend ApiResponse carries the numeric business code in `code` (hs-user-service UserErrorCode / ErrorCode).
+const API_ERROR_CODE_MESSAGES: Record<number, string> = {
+  1003: "Bạn không có quyền thực hiện thao tác này.", // ErrorCode.UNAUTHORIZED (ownership/business denial, gateway)
+  1009: "Bạn không có quyền thực hiện thao tác này.", // ErrorCode.PERMISSION_DENIED (method-security AccessDenied)
+  2017: "Bạn không thể khóa tài khoản đang đăng nhập.",
+  2018: "Bạn không thể tự đổi vai trò của tài khoản đang đăng nhập.",
+  2019: "Không thể khóa/hạ quyền quản trị viên cuối cùng.",
+  2020: "Bạn không thể chỉnh sửa người dùng đang nắm quyền mà bạn không có.",
+  2103: "Bộ quyền của vai trò ADMIN bị khóa, không thể thay đổi.",
+  2104: "Vai trò USER chỉ được cấp quyền tính năng người dùng", // UserErrorCode.ROLE_PERMISSION_SCOPE_INVALID
+  2203: "Bạn không thể cấp quyền mà chính bạn không có.",
+};
+export const FORBIDDEN_MESSAGE = "Bạn không có quyền thực hiện thao tác này.";
+
+/** Friendly Vietnamese text for known admin/RBAC codes and plain 403s; null when the server message should be used. */
+export function knownApiErrorMessage(error: unknown): string | null {
+  if (!axios.isAxiosError(error) || !error.response) return null;
+  const data = error.response.data as { code?: unknown } | undefined;
+  const raw = data?.code;
+  const code = typeof raw === "number" ? raw : typeof raw === "string" && /^\d+$/.test(raw) ? Number(raw) : NaN;
+  // Broadcast reuses code 2019 for its own idempotency conflict; keep that server message.
+  if (code === 2019 && error.config?.url?.includes("/admin/broadcast")) return null;
+  if (Number.isInteger(code) && API_ERROR_CODE_MESSAGES[code]) return API_ERROR_CODE_MESSAGES[code];
+  // A 403 without a specific business code (e.g. gateway or missing permission) gets the generic text.
+  if (error.response.status === 403 && !Number.isInteger(code)) return FORBIDDEN_MESSAGE;
+  return null;
+}
+
 function translateApiErrorMessage(message: string) {
   return API_ERROR_MESSAGES[message] ?? message;
 }
@@ -28,6 +56,9 @@ export function getApiErrorMessage(
   error: unknown,
   defaultMessage = "Đã xảy ra lỗi, vui lòng thử lại."
 ): string {
+  const known = knownApiErrorMessage(error);
+  if (known) return known;
+
   if (axios.isAxiosError(error) && error.response?.data) {
     const data = error.response.data as {
       code?: string | number;

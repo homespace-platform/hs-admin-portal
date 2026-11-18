@@ -5,6 +5,8 @@ import storageService from "@/services/storage.service";
 import { eventResolution, resolutionLabels, type DisputeResolution, type PaymentDisputeCase } from "@/types/payment-dispute.type";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useAuth } from "@/features/auth/useAuth";
+import { PERMISSIONS } from "@/config/permissions";
+import { useHasPermission } from "@/hooks/usePermission";
 
 const date = (value?: string) => value ? new Date(value).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }) : "—";
 const statusLabels = { OPEN: "Hai bên đối soát", ESCALATED: "Chuyển quản trị viên", RESOLVED: "Đã mở hướng xử lý" };
@@ -13,6 +15,8 @@ const button = "rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity
 
 export default function PaymentDisputesPanel() {
   const { profile } = useAuth();
+  const canResolve = useHasPermission(PERMISSIONS.DISPUTE_RESOLVE);
+  const canViewFiles = useHasPermission(PERMISSIONS.STORAGE_VIEW); // evidence files use the admin storage route
   const [rows, setRows] = useState<PaymentDisputeCase[]>([]), [current, setCurrent] = useState<PaymentDisputeCase | null>(null);
   const [status, setStatus] = useState("ESCALATED"), [page, setPage] = useState(1), [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true), [error, setError] = useState(""), [busy, setBusy] = useState(false);
@@ -55,7 +59,7 @@ export default function PaymentDisputesPanel() {
   }
   async function proof(id: string) {
     const tab = window.open("", "_blank");
-    try { const url = await storageService.getViewUrl(id); if (tab) { tab.opener = null; tab.location.href = url; } }
+    try { const url = await storageService.getAdminFileUrl(id); if (tab) { tab.opener = null; tab.location.href = url; } }
     catch (cause) { tab?.close(); toast.error(getApiErrorMessage(cause, "Không mở được chứng cứ.")); }
   }
   return <div className="space-y-5">
@@ -68,10 +72,10 @@ export default function PaymentDisputesPanel() {
       <div className="flex items-center justify-between"><h2 className="text-lg font-bold">Hồ sơ đối soát · {statusLabels[current.status]}</h2><button type="button" className={button} onClick={() => { detailGeneration.current++; setCurrent(null); }}>Đóng</button></div>
       <p>{current.reason}</p><p className="text-sm">Giá trị lúc mở: <strong>{current.amount.toLocaleString("vi-VN")} {current.currency}</strong>. Bên chuyển: {current.direction === "LANDLORD_TO_TENANT" ? "Chủ nhà" : "Người thuê"}. Bên nhận: {current.direction === "LANDLORD_TO_TENANT" ? "Người thuê" : "Chủ nhà"}.</p>
       <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Quyết định chỉ mở lại bước gửi hoặc kiểm tra chứng từ. Bên nhận phải tự xác nhận tiền thực nhận; không đổi số tiền, xóa nghĩa vụ hay hoàn tiền tự động.</p>
-      <div className="flex flex-wrap gap-2">{current.evidences.map((e,i) => <button type="button" className={button} key={`${e.storageId}-${i}`} onClick={() => void proof(e.storageId)}>Xem chứng cứ {i+1}</button>)}</div>
+      <div className="flex flex-wrap gap-2">{canViewFiles && current.evidences.map((e,i) => <button type="button" className={button} key={`${e.storageId}-${i}`} onClick={() => void proof(e.storageId)}>Xem chứng cứ {i+1}</button>)}</div>
       <ol className="max-h-96 space-y-2 overflow-y-auto text-sm">{current.events.map(e => <li className="rounded-lg border bg-muted/20 p-3" key={e.revision}><strong>{actionLabels[e.action] ?? e.action}</strong> · {e.actorRole === "ADMIN" ? "Quản trị viên" : e.actorRole === "LANDLORD" ? "Chủ nhà" : "Người thuê"} · {date(e.occurredAt)}<p>{e.reason}</p>{eventResolution(e.metadataJson) && <p>{eventResolution(e.metadataJson)}</p>}</li>)}</ol>
       {current.resolution && <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-950"><strong>{resolutionLabels[current.resolution]}</strong><p>{current.resolutionReason}</p><p>Bên nhận vẫn cần xác nhận thực nhận qua thao tác thanh toán riêng.</p></div>}
-      {current.allowedActions.length > 0 && <div className="space-y-3">
+      {canResolve && current.allowedActions.length > 0 && <div className="space-y-3">
         <textarea aria-label="Lý do xử lý đối soát" value={reason} onChange={e => setReason(e.target.value)} maxLength={500} placeholder="Căn cứ xử lý / lý do tiếp nhận (10–500 ký tự)" className="min-h-24 w-full rounded-lg border p-3" />
         {current.allowedActions.includes("CLAIM") && <button type="button" className={button} disabled={busy || reason.trim().length < 10} onClick={() => void act("CLAIM")}>{current.assignedTo && current.assignedTo !== profile?.id ? "Chuyển việc xử lý về tôi" : "Tiếp nhận xử lý"}</button>}
         {current.allowedActions.includes("DECIDE") && <div className="space-y-2"><div className="flex flex-wrap gap-3"><select aria-label="Quyết định hướng xử lý" value={resolution} onChange={e => setResolution(e.target.value as DisputeResolution)} className="max-w-full rounded-lg border p-2">{Object.entries(resolutionLabels).map(([value,label]) => <option key={value} value={value} disabled={value === "REVIEW_TRANSFER" && !current.evidences.length}>{label}</option>)}</select><button type="button" className="rounded-lg bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50" disabled={busy || reason.trim().length < 10 || resolution === "REVIEW_TRANSFER" && !current.evidences.length} onClick={() => void act("DECIDE")}>Áp dụng hướng xử lý</button></div>{!current.evidences.length && <p className="text-sm text-muted-foreground">Chưa có chứng cứ; yêu cầu hai bên bổ sung trước khi mở bước kiểm tra tiền đã chuyển.</p>}</div>}

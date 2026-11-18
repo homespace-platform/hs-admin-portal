@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS } from "@/config/permissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserAvatar from "@/components/common/UserAvatar";
 import type { AdminUser } from "@/types/user.type";
@@ -212,40 +214,44 @@ export default function UserTable({
                         <Eye className="w-4 h-4" />
                       </Button>
 
-                      {/* Edit Button */}
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => onStartEdit(user)}
-                        className="rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
-                        title="Chỉnh sửa thông tin"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
+                      <Can permission={PERMISSIONS.USER_UPDATE}>
+                        {/* Edit Button */}
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => onStartEdit(user)}
+                          className="rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                          title="Chỉnh sửa thông tin"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </Can>
 
-                      {/* Toggle Lock / Unlock Button */}
-                      <Button
-                        variant={user.active ? "destructive" : "outline"}
-                        size="icon-sm"
-                        onClick={() => onToggleActive(user)}
-                        disabled={isUpdating || Boolean(isSelfAccount && user.active)}
-                        className="rounded-lg cursor-pointer"
-                        title={
-                          isSelfAccount && user.active
-                            ? "Không thể khóa tài khoản đang đăng nhập"
-                            : user.active
-                            ? "Khóa tài khoản"
-                            : "Mở khóa tài khoản"
-                        }
-                      >
-                        {isUpdating ? (
-                          <LoaderCircle className="w-4 h-4 animate-spin" />
-                        ) : user.active ? (
-                          <Lock className="w-4 h-4" />
-                        ) : (
-                          <Unlock className="w-4 h-4 text-emerald-600" />
-                        )}
-                      </Button>
+                      <Can permission={PERMISSIONS.USER_UPDATE}>
+                        {/* Toggle Lock / Unlock Button */}
+                        <Button
+                          variant={user.active ? "destructive" : "outline"}
+                          size="icon-sm"
+                          onClick={() => onToggleActive(user)}
+                          disabled={isUpdating || Boolean(isSelfAccount && user.active)}
+                          className="rounded-lg cursor-pointer"
+                          title={
+                            isSelfAccount && user.active
+                              ? "Không thể khóa tài khoản đang đăng nhập"
+                              : user.active
+                              ? "Khóa tài khoản"
+                              : "Mở khóa tài khoản"
+                          }
+                        >
+                          {isUpdating ? (
+                            <LoaderCircle className="w-4 h-4 animate-spin" />
+                          ) : user.active ? (
+                            <Lock className="w-4 h-4" />
+                          ) : (
+                            <Unlock className="w-4 h-4 text-emerald-600" />
+                          )}
+                        </Button>
+                      </Can>
                     </div>
                   </TableCell>
                 </TableRow>

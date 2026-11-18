@@ -25,6 +25,8 @@ import {
 } from "@/utils/listing-labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Can from "@/components/common/Can";
+import { PERMISSIONS } from "@/config/permissions";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/utils/apiError";
 
@@ -169,15 +171,17 @@ export default function ContractTemplatesPage() {
               Từ điển mã trường
             </Button>
           </Link>
-          <Button
-            onClick={() => setIsCreateModalOpen(true)}
-            disabled={loading || availableCategories.length === 0}
-            size="sm"
-            className="gap-1.5 text-xs font-semibold shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            Tạo mẫu cho loại còn thiếu
-          </Button>
+          <Can permission={PERMISSIONS.CONTRACT_TEMPLATE_MANAGE}>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              disabled={loading || availableCategories.length === 0}
+              size="sm"
+              className="gap-1.5 text-xs font-semibold shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              Tạo mẫu cho loại còn thiếu
+            </Button>
+          </Can>
         </div>
       </div>
 

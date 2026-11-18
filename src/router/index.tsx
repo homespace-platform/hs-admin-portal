@@ -1,6 +1,9 @@
+import type { ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "@/layouts/AdminLayout";
 import AuthGuard from "@/features/auth/AuthGuard";
+import RequirePermission from "@/features/auth/RequirePermission";
+import { PERMISSIONS, ROUTE_PERMISSIONS, type RouteKey } from "@/config/permissions";
 
 // Pages
 import LoginPage from "@/pages/login/LoginPage";
@@ -41,6 +44,11 @@ import ContractFieldsPage from "@/pages/contracts/ContractFieldsPage";
 import ContractGuidePage from "@/pages/contracts/ContractGuidePage";
 import ContractsListPage from "@/pages/contracts/ContractsListPage";
 
+// Gate with the shared route map; without children it guards nested routes via <Outlet />.
+const guard = (key: RouteKey, page?: ReactNode) => (
+  <RequirePermission {...ROUTE_PERMISSIONS[key]}>{page}</RequirePermission>
+);
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -61,19 +69,19 @@ export default function AppRouter() {
         <Route path="/dashboard" element={<DashboardPage />} />
 
         {/* Admin pending-review notification center */}
-        <Route path="/notifications" element={<NotificationCenterPage />} />
+        <Route path="/notifications" element={<RequirePermission permission={PERMISSIONS.LISTING_VIEW}><NotificationCenterPage /></RequirePermission>} />
         <Route path="/notifications/feed" element={<PersonalNotificationsPage />} />
 
         {/* User Management */}
         <Route path="users">
-          <Route index element={<UsersPage />} />
+          <Route index element={guard("/users", <UsersPage />)} />
           <Route path="members" element={<Navigate to="/users" replace />} />
-          <Route path="roles" element={<RolesPage />} />
-          <Route path="permissions" element={<PermissionsPage />} />
+          <Route path="roles" element={guard("/users/roles", <RolesPage />)} />
+          <Route path="permissions" element={guard("/users/permissions", <PermissionsPage />)} />
         </Route>
 
         {/* Property Management */}
-        <Route path="properties">
+        <Route path="properties" element={guard("/properties")}>
           <Route index element={<AllPropertiesPage />} />
           <Route path="all" element={<AllPropertiesPage />} />
           <Route path="pending" element={<PendingPropertiesPage />} />
@@ -98,12 +106,12 @@ export default function AppRouter() {
             index
             element={<Navigate to="/contracts/templates" replace />}
           />
-          <Route path="templates">
+          <Route path="templates" element={guard("/contracts/templates")}>
             <Route index element={<ContractTemplatesPage />} />
             <Route path=":templateId" element={<ContractTemplateDetailPage />} />
           </Route>
-          <Route path="fields" element={<ContractFieldsPage />} />
-          <Route path="all" element={<ContractsListPage />} />
+          <Route path="fields" element={guard("/contracts/fields", <ContractFieldsPage />)} />
+          <Route path="all" element={guard("/contracts/all", <ContractsListPage />)} />
         </Route>
 
         {/* Operations & Support */}
@@ -112,15 +120,15 @@ export default function AppRouter() {
             index
             element={<Navigate to="/operations/complaints" replace />}
           />
-          <Route path="complaints" element={<ComplaintsPage />} />
-          <Route path="system-alerts" element={<SystemAlertsPage />} />
+          <Route path="complaints" element={guard("/operations/complaints", <ComplaintsPage />)} />
+          <Route path="system-alerts" element={guard("/operations/system-alerts", <SystemAlertsPage />)} />
           <Route path="news">
             <Route index element={<NewsListPage />} />
             <Route path="create" element={<NewsManagementPage />} />
             <Route path=":newsId/edit" element={<NewsManagementPage />} />
           </Route>
           <Route path="knowledge" element={<KnowledgeManagementPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="notifications" element={guard("/operations/notifications", <NotificationsPage />)} />
         </Route>
 
         {/* Blockchain Explorer */}

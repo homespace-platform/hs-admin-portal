@@ -454,7 +454,7 @@ export default function PropertyViewPage() {
           <AdminMediaViewer media={listing.media || []} title={listing.title} />
         </div>
 
-        <div className="min-w-0 space-y-4 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2">
+        <div className="min-w-0 space-y-4 lg:col-span-5 lg:col-start-8 lg:row-start-1">
           {/* Overview */}
           <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -535,10 +535,8 @@ export default function PropertyViewPage() {
               </div>
             </div>
           </section>
-        </div>
 
-        {/* Owner: under the gallery on desktop to balance the taller right column (same slot as the client's landlord card) */}
-        <div className="min-w-0 lg:col-span-7 lg:col-start-1 lg:row-start-2">
+          {/* Owner: dưới card tổng quan ở cột phải (cùng vị trí thẻ chủ nhà bên Client) */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-xs space-y-4">
             <div className="flex items-center gap-3">
               <div className="shrink-0">

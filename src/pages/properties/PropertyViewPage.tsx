@@ -37,6 +37,7 @@ import {
 import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
 import ListingStatusHistoryTimeline from "@/components/properties/ListingStatusHistoryTimeline";
+import { useStickyTop } from "@/hooks/useStickyTop";
 import AdminMediaViewer from "@/components/properties/AdminMediaViewer";
 import UserAvatar from "@/components/common/UserAvatar";
 import { useAuth } from "@/features/auth/useAuth";
@@ -204,6 +205,8 @@ export default function PropertyViewPage() {
   // Moderation Dialog State
   const [moderationTarget, setModerationTarget] = useState<ListingStatus | null>(null);
   const [descExpanded, setDescExpanded] = useState(false);
+  // Header is sticky h-20 (80px); stick 16px below it.
+  const [setAsideEl, asideTop] = useStickyTop<HTMLDivElement>(96);
 
   useBreadcrumbTitle(data?.listing?.title);
 
@@ -454,7 +457,11 @@ export default function PropertyViewPage() {
           <AdminMediaViewer media={listing.media || []} title={listing.title} />
         </div>
 
-        <div className="min-w-0 space-y-4 lg:col-span-5 lg:col-start-8 lg:row-start-1">
+        <div
+          ref={setAsideEl}
+          style={{ top: asideTop }}
+          className="min-w-0 space-y-4 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 lg:sticky lg:self-start"
+        >
           {/* Overview */}
           <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -568,10 +575,9 @@ export default function PropertyViewPage() {
             )}
           </div>
         </div>
-      </div>
 
-      {/* Detail sections (full width below the top grid) */}
-      <div className="space-y-6">
+        {/* Detail sections: left column under the gallery (mobile: after the right column) */}
+        <div className="min-w-0 space-y-6 lg:col-span-7 lg:col-start-1 lg:row-start-2">
         <SectionCard title="Thông tin cơ bản" icon={Layers}>
           <div role="list" className={DETAIL_GRID_CLASS}>
             <DetailItem label="Mã tin đăng" value={<span className="font-mono text-xs break-all">{listing.id}</span>} />
@@ -1183,6 +1189,7 @@ export default function PropertyViewPage() {
           </div>
         </SectionCard>
         </div>
+      </div>
 
       {/* Moderation Action Dialog */}
       <ListingModerationDialog

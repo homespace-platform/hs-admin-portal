@@ -123,7 +123,7 @@ export default function AdminLayout() {
         <ProfileReminder />
 
         {/* Page Content Container with Breadcrumb below Header */}
-        <div className="flex-1 p-6 lg:p-8 bg-slate-50/50 dark:bg-background overflow-x-hidden space-y-4">
+        <div className="flex-1 p-6 lg:p-8 bg-slate-50/50 dark:bg-background overflow-x-clip space-y-4">
           <AdminBreadcrumb />
 
           {/* Page Outlet */}

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/useAuth";
 import UserAvatar from "@/components/common/UserAvatar";
+import SettingsModal from "@/components/settings/SettingsModal";
 import {
   LayoutGrid,
   ShieldCheck,
@@ -20,6 +21,11 @@ import {
 export default function UserDropdown() {
   const { username, fullName, avatarUrl, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const openSettings = () => {
+    setIsOpen(false);
+    setSettingsOpen(true);
+  };
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -90,14 +96,14 @@ export default function UserDropdown() {
                   QUẢN TRỊ VIÊN
                 </span>
               </div>
-              <Link
-                to="/settings/profile"
-                onClick={() => setIsOpen(false)}
-                className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5"
+              <button
+                type="button"
+                onClick={openSettings}
+                className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
               >
                 <span>Hồ sơ</span>
                 <ArrowRight className="w-3 h-3" />
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -179,17 +185,17 @@ export default function UserDropdown() {
             <div className="h-px bg-border my-1" />
 
             {/* Cài đặt */}
-            <Link
-              to="/settings/profile"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-foreground hover:bg-muted transition-colors group"
+            <button
+              type="button"
+              onClick={openSettings}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-foreground hover:bg-muted transition-colors group text-left cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <Settings className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 <span className="text-xs font-semibold">Cài đặt</span>
               </div>
               <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-            </Link>
+            </button>
 
             {/* Đăng xuất */}
             <button
@@ -209,6 +215,7 @@ export default function UserDropdown() {
           </nav>
         </div>
       )}
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

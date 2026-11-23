@@ -20,6 +20,8 @@ import {
   RotateCcw,
   ExternalLink,
   Unlock,
+  ShieldCheck,
+  History,
 } from "lucide-react";
 import ListingStatusBadge from "@/components/properties/ListingStatusBadge";
 import ListingModerationDialog from "@/components/properties/ListingModerationDialog";
@@ -69,6 +71,9 @@ const CATEGORY_ICONS: Record<ListingCategory, React.ReactNode> = {
   ROOM: <DoorOpen className="h-4 w-4" />,
 };
 
+const ACTION_BTN =
+  "inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50";
+
 function mapsEmbedSrc(query: string) {
   return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
 }
@@ -108,19 +113,19 @@ function DetailItem({
   const empty = value === undefined || value === null || value === "";
   if (empty && !showWhenEmpty) return null;
   return (
-    <div className="flex flex-col gap-0.5 rounded-xl border border-border/80 bg-muted/20 p-3 text-xs">
-      <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
-      <span
-        className={`font-semibold ${
+    <div className="min-w-0 rounded-xl border border-border/70 bg-muted/30 px-4 py-3">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div
+        className={`mt-1 text-sm font-semibold break-words ${
           empty
             ? "text-amber-600 dark:text-amber-400 italic"
             : highlight
-            ? "text-primary text-sm font-bold"
+            ? "text-primary"
             : "text-foreground"
         }`}
       >
         {empty ? "Chưa cập nhật" : value}
-      </span>
+      </div>
     </div>
   );
 }
@@ -128,21 +133,23 @@ function DetailItem({
 function SectionCard({
   title,
   stepNumber,
+  icon,
   children,
 }: {
   title: string;
   stepNumber?: number;
+  icon?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xs space-y-4">
-      <div className="flex items-center gap-2.5 pb-2 border-b border-border/60">
-        {stepNumber != null && (
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-            {stepNumber}
+    <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
+      <div className="mb-5 flex items-center gap-3">
+        {(stepNumber != null || icon) && (
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+            {stepNumber ?? icon}
           </span>
         )}
-        <h2 className="text-base font-bold text-foreground">{title}</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-foreground">{title}</h2>
       </div>
       {children}
     </div>
@@ -265,11 +272,6 @@ export default function PropertyViewPage() {
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2.5 pt-1">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary border border-primary/20">
-              {CATEGORY_ICONS[listing.category]}
-              {CATEGORY_NAMES[listing.category] || listing.category}
-            </span>
-            <ListingStatusBadge status={listing.status} />
             {listing.branchName && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                 <Building className="h-3.5 w-3.5 text-blue-600" />
@@ -289,11 +291,11 @@ export default function PropertyViewPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-1 sm:justify-end">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted shadow-2xs transition-all"
+            className={`${ACTION_BTN} border border-border bg-card text-foreground hover:bg-muted`}
           >
             <ArrowLeft className="h-4 w-4" />
             Danh sách tin
@@ -305,7 +307,7 @@ export default function PropertyViewPage() {
               <button
                 type="button"
                 onClick={() => setModerationTarget("REJECTED")}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/30 px-3.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 transition-colors"
+                className={`${ACTION_BTN} border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100`}
               >
                 <XCircle className="h-4 w-4" />
                 Từ chối
@@ -314,7 +316,7 @@ export default function PropertyViewPage() {
                 type="button"
                 onClick={() => setModerationTarget("PUBLISHED")}
                 disabled={Boolean(data.reviewError || data.protectedRental && !data.pendingEditId)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition-all disabled:opacity-50"
+                className={`${ACTION_BTN} bg-emerald-600 text-white hover:bg-emerald-700`}
               >
                 <CheckCircle className="h-4 w-4" />
                 Phê duyệt
@@ -328,7 +330,7 @@ export default function PropertyViewPage() {
               <button
                 type="button"
                 onClick={() => setModerationTarget("RENTED_EXTERNALLY")}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-3.5 py-2 text-xs font-bold text-violet-700 dark:text-violet-300 hover:bg-violet-100 transition-colors"
+                className={`${ACTION_BTN} border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100`}
               >
                 <ExternalLink className="h-4 w-4" />
                 Cho thuê ngoài hệ thống
@@ -336,19 +338,21 @@ export default function PropertyViewPage() {
               <button
                 type="button"
                 onClick={() => setModerationTarget("HIDDEN")}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3.5 py-2 text-xs font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-colors"
+                className={`${ACTION_BTN} border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100`}
               >
                 <EyeOff className="h-4 w-4" />
                 Ẩn tin
               </button>
-              <button
-                type="button"
-                onClick={() => setModerationTarget("VIOLATION")}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 shadow-sm transition-all"
-              >
-                <AlertTriangle className="h-4 w-4" />
-                Khóa vi phạm
-              </button>
+              <div className="ml-auto border-l border-border pl-3 sm:ml-2">
+                <button
+                  type="button"
+                  onClick={() => setModerationTarget("VIOLATION")}
+                  className={`${ACTION_BTN} bg-red-600 text-white hover:bg-red-700`}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Khóa vi phạm
+                </button>
+              </div>
             </>
           )}
 
@@ -358,7 +362,7 @@ export default function PropertyViewPage() {
                 type="button"
                 onClick={() => setModerationTarget("PENDING_REVIEW")}
                 disabled={Boolean(data.protectedRental)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3.5 py-2 text-xs font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-colors"
+                className={`${ACTION_BTN} border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100`}
               >
                 <Unlock className="h-4 w-4" />
                 Mở khóa
@@ -367,7 +371,7 @@ export default function PropertyViewPage() {
                 type="button"
                 onClick={() => setModerationTarget("PUBLISHED")}
                 disabled={Boolean(data.protectedRental)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm transition-all"
+                className={`${ACTION_BTN} bg-emerald-600 text-white hover:bg-emerald-700`}
               >
                 <CheckCircle className="h-4 w-4" />
                 Hiển thị lại
@@ -383,7 +387,7 @@ export default function PropertyViewPage() {
             <button
               type="button"
               onClick={() => setModerationTarget("PENDING_REVIEW")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors"
+              className={`${ACTION_BTN} border border-border bg-card text-foreground hover:bg-muted`}
             >
               <RotateCcw className="h-4 w-4 text-amber-500" />
               Chuyển chờ duyệt

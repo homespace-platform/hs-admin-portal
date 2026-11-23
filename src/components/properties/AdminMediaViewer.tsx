@@ -100,21 +100,10 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
             </button>
           )}
         </div>
-
-        <button
-          type="button"
-          onClick={() => setIsLightboxOpen(true)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 border border-primary/20 px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-2xs"
-          title="Phóng to xem chi tiết toàn màn hình"
-        >
-          <Maximize2 className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Phóng to xem chi tiết</span>
-          <span className="sm:hidden">Phóng to</span>
-        </button>
       </div>
 
       {/* ── Main Stage ── */}
-      <div className="relative aspect-16/10 w-full overflow-hidden rounded-2xl border border-border bg-slate-950 shadow-sm group select-none">
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-slate-950 group select-none">
         {currentItem?.mediaType === "VIDEO" ? (
           <div className="relative h-full w-full flex items-center justify-center bg-black">
             <video
@@ -134,21 +123,16 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
           <div className="relative h-full w-full">
             <img
               src={currentItem.url}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-2xl"
+            />
+            <img
+              src={currentItem.url}
               alt={title || `Ảnh ${selectedIndex + 1}`}
-              className="h-full w-full object-contain cursor-zoom-in transition-transform duration-500 group-hover:scale-102"
+              className="relative h-full w-full cursor-zoom-in object-contain"
               onClick={() => setIsLightboxOpen(true)}
             />
-
-            {/* Hover overlay button to zoom */}
-            <div
-              onClick={() => setIsLightboxOpen(true)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute inset-0 bg-black/25 flex items-center justify-center cursor-zoom-in"
-            >
-              <div className="px-4 py-2 rounded-full bg-black/75 text-white text-xs font-bold flex items-center gap-2 shadow-xl backdrop-blur-md">
-                <Maximize2 className="h-4 w-4" />
-                <span>Bấm để phóng to xem ảnh</span>
-              </div>
-            </div>
 
             {/* Badges */}
             {currentItem.cover && (
@@ -173,7 +157,8 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
                 e.stopPropagation();
                 handlePrev();
               }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-md shadow-md transition-all hover:scale-105 cursor-pointer z-10"
+              aria-label="Xem mục trước"
+              className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               title="Xem mục trước"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -184,7 +169,8 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
                 e.stopPropagation();
                 handleNext();
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-md shadow-md transition-all hover:scale-105 cursor-pointer z-10"
+              aria-label="Xem mục sau"
+              className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               title="Xem mục sau"
             >
               <ChevronRight className="h-5 w-5" />
@@ -193,14 +179,25 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
         )}
 
         {/* Counter Badge */}
-        <div className="absolute bottom-3 right-3 rounded-full bg-black/70 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-white pointer-events-none">
-          {currentItem?.mediaType === "VIDEO" ? "Video" : "Ảnh"} {selectedIndex + 1} / {displayedMedia.length}
+        <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/65 px-3 py-1 text-xs font-semibold tabular-nums text-white">
+          {selectedIndex + 1} / {displayedMedia.length}
         </div>
+
+        {/* Fullscreen (same handler as before) */}
+        <button
+          type="button"
+          onClick={() => setIsLightboxOpen(true)}
+          className="absolute bottom-3 right-3 z-10 inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full bg-white/95 px-3 text-xs font-semibold text-slate-900 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          title="Phóng to xem chi tiết toàn màn hình"
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+          Toàn màn hình
+        </button>
       </div>
 
       {/* ── Thumbnails Strip ── */}
       {displayedMedia.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1.5 pt-0.5 max-w-full">
+        <div className="mt-3 flex max-w-full gap-2 overflow-x-auto p-1">
           {displayedMedia.map((m, idx) => {
             const isSelected = idx === selectedIndex;
             const isVid = m.mediaType === "VIDEO";
@@ -210,10 +207,11 @@ export default function AdminMediaViewer({ media = [], title = "" }: AdminMediaV
                 key={m.id || `${m.url}-${idx}`}
                 type="button"
                 onClick={() => setSelectedIndex(idx)}
-                className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 transition-all cursor-pointer ${
+                aria-label={`Xem mục ${idx + 1}`}
+                className={`relative h-16 w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                   isSelected
-                    ? "border-primary ring-2 ring-primary/30 scale-95 shadow-md"
-                    : "border-transparent opacity-65 hover:opacity-100"
+                    ? "opacity-100 ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    : "opacity-60 hover:opacity-100"
                 }`}
               >
                 {isVid ? (

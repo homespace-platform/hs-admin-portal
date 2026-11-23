@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useBreadcrumbTitle } from "@/components/common/BreadcrumbTitle";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -34,6 +35,7 @@ export default function ContractTemplateDetailPage() {
   const navigate = useNavigate();
 
   const [template, setTemplate] = useState<ContractTemplateResponse | null>(null);
+  useBreadcrumbTitle(template?.name);
   const [versions, setVersions] = useState<ContractTemplateVersionResponse[]>([]);
   const [loading, setLoading] = useState(true);
 

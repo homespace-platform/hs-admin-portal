@@ -32,6 +32,8 @@ export interface MediaLightboxModalProps {
   title?: string;
   alwaysShowThumbnails?: boolean;
   primaryAction?: MediaLightboxPrimaryAction;
+  /** Báo chỉ số đang xem để gallery bên ngoài đồng bộ theo. */
+  onIndexChange?: (index: number) => void;
 }
 
 /**
@@ -46,9 +48,14 @@ export function MediaLightboxModal({
   title = "Chi tiết hình ảnh",
   alwaysShowThumbnails = false,
   primaryAction,
+  onIndexChange,
 }: MediaLightboxModalProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(initialIndex);
   const total = mediaItems.length;
+
+  useEffect(() => {
+    if (isOpen) onIndexChange?.(selectedIndex);
+  }, [isOpen, selectedIndex, onIndexChange]);
 
   useEffect(() => {
     if (isOpen) {

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useBreadcrumbTitle } from "@/components/common/BreadcrumbTitle";
 import NewsRichEditor, {
   type EditorBlock,
 } from "@/components/news/NewsRichEditor";
@@ -88,6 +89,7 @@ export default function NewsEditorPage() {
   const { newsId } = useParams();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
+  useBreadcrumbTitle(newsId ? title : null);
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
   const [summary, setSummary] = useState("");

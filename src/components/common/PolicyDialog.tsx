@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { AlertTriangle, Info, ScrollText, X, type LucideIcon } from "lucide-react";
+import { AlertTriangle, BookOpenText, Info, ScrollText, X, type LucideIcon } from "lucide-react";
 
 /** Policy codes like "RESERVATION_DEFAULT_V3" are internal; users only see "Phiên bản 3". */
 function versionLabel(version?: string) {
@@ -102,20 +102,21 @@ interface PolicyNoticeProps extends Pick<PolicyDialogProps, "title" | "subtitle"
   tone?: keyof typeof TONES;
   icon?: LucideIcon;
   dialogIcon?: LucideIcon;
+  /** Used only as aria-label/tooltip prefix, never visible text. */
   actionLabel?: string;
   className?: string;
 }
 
-export function PolicyNotice({ summary, tone = "info", icon, dialogIcon, actionLabel = "Xem chi tiết", className = "", ...dialog }: PolicyNoticeProps) {
+export function PolicyNotice({ summary, tone = "info", icon, dialogIcon, actionLabel = "Xem nội dung đầy đủ", className = "", ...dialog }: PolicyNoticeProps) {
   const [open, setOpen] = useState(false);
   const t = TONES[tone];
   const Icon = icon ?? t.Icon;
   return (
     <>
-      <div className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-xs sm:text-sm ${t.row} ${className}`}>
+      <div onClick={() => setOpen(true)} className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-xs sm:text-sm ${t.row} ${className}`}>
         <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${t.tile}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
         <p className="min-w-0 flex-1 truncate font-semibold" title={typeof summary === "string" ? summary : undefined}>{summary}</p>
-        <button type="button" onClick={() => setOpen(true)} className="shrink-0 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-semibold text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">{actionLabel}</button>
+        <button type="button" onClick={(e) => { e.stopPropagation(); setOpen(true); }} aria-label={`${actionLabel}: ${dialog.title}`} title={actionLabel} aria-haspopup="dialog" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"><BookOpenText className="h-4 w-4" aria-hidden="true" /></button>
       </div>
       <PolicyDialog open={open} onClose={() => setOpen(false)} icon={dialogIcon ?? icon} {...dialog} />
     </>

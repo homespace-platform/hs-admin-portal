@@ -1,12 +1,27 @@
 import axiosClient from "@/lib/axios-client";
 import type { ApiResponse } from "@/types/api.type";
 import type {
+  Bank,
   BankAccount,
   BankAccountRequest,
   UpdateBankAccountDefaultsRequest,
 } from "@/types/bank-account.type";
 
+let banksCache: Promise<Bank[]> | null = null;
+
 export const bankAccountService = {
+  /** Public bank catalog; one request per session, cache cleared on failure so it can be retried. */
+  getBanks(): Promise<Bank[]> {
+    banksCache ??= axiosClient
+      .get<ApiResponse<Bank[]>>("/api/v1/public/banks")
+      .then((r) => r.data.result ?? [])
+      .catch((e) => {
+        banksCache = null;
+        throw e;
+      });
+    return banksCache;
+  },
+
   async getBankAccounts(): Promise<BankAccount[]> {
     const response = await axiosClient.get<ApiResponse<BankAccount[]>>(
       "/api/v1/bank-accounts"
@@ -29,6 +44,14 @@ export const bankAccountService = {
     const response = await axiosClient.put<ApiResponse<BankAccount>>(
       `/api/v1/bank-accounts/${id}`,
       data
+    );
+    return response.data.result!;
+  },
+
+  /** Owner-only: returns the full (unmasked) account number. Never cache or log the result. */
+  async revealBankAccount(id: string): Promise<BankAccount> {
+    const response = await axiosClient.get<ApiResponse<BankAccount>>(
+      `/api/v1/bank-accounts/${encodeURIComponent(id)}/reveal`
     );
     return response.data.result!;
   },

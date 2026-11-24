@@ -7,6 +7,7 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import { useAuth } from "@/features/auth/useAuth";
 import { PERMISSIONS } from "@/config/permissions";
 import { useHasPermission } from "@/hooks/usePermission";
+import InfoDisclosure from "@/components/common/InfoDisclosure";
 
 const date = (value?: string) => value ? new Date(value).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }) : "—";
 const statusLabels = { OPEN: "Hai bên đối soát", ESCALATED: "Chuyển quản trị viên", RESOLVED: "Đã mở hướng xử lý" };
@@ -71,7 +72,7 @@ export default function PaymentDisputesPanel() {
     {current && <section aria-label="Chi tiết hồ sơ đối soát" className="space-y-4 rounded-xl border p-5">
       <div className="flex items-center justify-between"><h2 className="text-lg font-bold">Hồ sơ đối soát · {statusLabels[current.status]}</h2><button type="button" className={button} onClick={() => { detailGeneration.current++; setCurrent(null); }}>Đóng</button></div>
       <p>{current.reason}</p><p className="text-sm">Giá trị lúc mở: <strong>{current.amount.toLocaleString("vi-VN")} {current.currency}</strong>. Bên chuyển: {current.direction === "LANDLORD_TO_TENANT" ? "Chủ nhà" : "Người thuê"}. Bên nhận: {current.direction === "LANDLORD_TO_TENANT" ? "Người thuê" : "Chủ nhà"}.</p>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Quyết định chỉ mở lại bước gửi hoặc kiểm tra chứng từ. Bên nhận phải tự xác nhận tiền thực nhận; không đổi số tiền, xóa nghĩa vụ hay hoàn tiền tự động.</p>
+      <InfoDisclosure tone="warning" summary="Quyết định chỉ mở lại bước gửi hoặc kiểm tra chứng từ."><p>Bên nhận phải tự xác nhận tiền thực nhận; không đổi số tiền, xóa nghĩa vụ hay hoàn tiền tự động.</p></InfoDisclosure>
       <div className="flex flex-wrap gap-2">{canViewFiles && current.evidences.map((e,i) => <button type="button" className={button} key={`${e.storageId}-${i}`} onClick={() => void proof(e.storageId)}>Xem chứng cứ {i+1}</button>)}</div>
       <ol className="max-h-96 space-y-2 overflow-y-auto text-sm">{current.events.map(e => <li className="rounded-lg border bg-muted/20 p-3" key={e.revision}><strong>{actionLabels[e.action] ?? e.action}</strong> · {e.actorRole === "ADMIN" ? "Quản trị viên" : e.actorRole === "LANDLORD" ? "Chủ nhà" : "Người thuê"} · {date(e.occurredAt)}<p>{e.reason}</p>{eventResolution(e.metadataJson) && <p>{eventResolution(e.metadataJson)}</p>}</li>)}</ol>
       {current.resolution && <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-950"><strong>{resolutionLabels[current.resolution]}</strong><p>{current.resolutionReason}</p><p>Bên nhận vẫn cần xác nhận thực nhận qua thao tác thanh toán riêng.</p></div>}

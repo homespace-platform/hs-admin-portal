@@ -4,6 +4,7 @@ import axiosClient from "@/lib/axios-client";
 import type { ApiResponse } from "@/types/api.type";
 import { PERMISSIONS } from "@/config/permissions";
 import { useHasPermission } from "@/hooks/usePermission";
+import InfoDisclosure from "@/components/common/InfoDisclosure";
 
 type Job = {id: string; listing_id: string; radius_m: number; status: string; attempts: number; next_attempt_at: string; last_error_code?: string; updated_at: string};
 type ScanStatus = {syncEnabled: boolean; queryEnabled: boolean; jobs: Job[]};
@@ -60,6 +61,6 @@ export default function NearbyScansPage() {
    <tbody>{data?.jobs.map(job => <tr key={job.id} className="border-t"><td className="p-3 font-mono text-xs">{job.listing_id}</td><td className="p-3">{job.radius_m / 1000} km</td><td className="p-3">{labels[job.status] ?? job.status}</td><td className="p-3">{job.attempts}</td><td className="p-3 text-xs">{job.last_error_code ?? "—"}</td><td className="p-3">{new Date(job.updated_at).toLocaleString("vi-VN")}</td><td className="p-3">{canManage && <><button type="button" disabled={busy || !data.syncEnabled || job.status === "RUNNING"} onClick={() => void enqueue(job.listing_id, job.radius_m)} className="text-primary disabled:opacity-40">Đồng bộ lại</button>{["PENDING", "RUNNING", "RETRY_WAIT", "PARTIAL"].includes(job.status) && <button type="button" disabled={busy} onClick={() => void cancel(job.id)} className="ml-3 text-destructive disabled:opacity-40">Hủy</button>}</>}</td></tr>)}</tbody></table>
    {data?.jobs.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Chưa có công việc đồng bộ tiện ích.</p>}
   </div>
-  <p className="text-xs text-muted-foreground">Dữ liệu một phần chưa chứng minh đã có đủ địa điểm trong bán kính. Khoảng cách là đường chim bay; không dùng để cam kết thời gian đi lại.</p>
+  <InfoDisclosure summary="Dữ liệu một phần chưa chứng minh đã có đủ địa điểm trong bán kính."><p>Khoảng cách là đường chim bay; không dùng để cam kết thời gian đi lại.</p></InfoDisclosure>
  </div>;
 }

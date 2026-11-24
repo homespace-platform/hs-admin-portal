@@ -2,6 +2,12 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle, Info, ScrollText, X, type LucideIcon } from "lucide-react";
 
+/** Policy codes like "RESERVATION_DEFAULT_V3" are internal; users only see "Phiên bản 3". */
+function versionLabel(version?: string) {
+  const n = version?.trim().match(/v?(\d+(?:\.\d+)*)$/i)?.[1];
+  return n ? `Phiên bản ${n}` : null;
+}
+
 interface PolicyDialogProps {
   open: boolean;
   onClose: () => void;
@@ -66,7 +72,7 @@ export function PolicyDialog({ open, onClose, title, subtitle, version, icon: Ic
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 id={titleId} className="text-base font-bold">{title}</h2>
-              {version && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{version}</span>}
+              {versionLabel(version) && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{versionLabel(version)}</span>}
             </div>
             {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
           </div>

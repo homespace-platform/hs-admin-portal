@@ -4,6 +4,7 @@ import { usePersonalNotifications } from "@/features/notifications/personalNotif
 import { PERMISSIONS } from "@/config/permissions";
 import { useHasPermission } from "@/hooks/usePermission";
 import { listOperationalIncidents, type OperationalIncident } from "@/services/personal-notification.service";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 export default function SystemAlertsPage() {
   const { owner, version, refresh } = usePersonalNotifications();
@@ -24,7 +25,7 @@ export default function SystemAlertsPage() {
   }, [owner, version, canView]);
   return <section className="max-w-3xl space-y-4">
     <div className="flex items-center justify-between"><h1 className="text-xl font-bold">Cảnh báo vận hành</h1><button type="button" onClick={refresh}>Tải lại</button></div>
-    <p className="text-sm text-muted-foreground">Tối đa 100 sự cố gần nhất. Thông báo phục hồi không thay thế việc kiểm tra hồ sơ liên quan.</p>
+    <PolicyNotice tone="neutral" title="Lưu ý về cảnh báo vận hành" summary="Tối đa 100 sự cố gần nhất." text="Tối đa 100 sự cố gần nhất. Thông báo phục hồi không thay thế việc kiểm tra hồ sơ liên quan." />
     {error && <p role="alert">{error}</p>}
     {!canView && <p role="alert">Bạn không có quyền xem cảnh báo vận hành.</p>}
     {canView && !mine && !error && <p role="status">Đang tải cảnh báo…</p>}

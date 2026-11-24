@@ -10,6 +10,7 @@ import {complaintCategories,complaintStages,type ComplaintCase,type ComplaintAct
 import ComplaintHistory from "@/components/complaint/ComplaintHistory";
 import {useSearchParams} from "react-router-dom";
 import {usePersonalNotifications} from "@/features/notifications/personalNotificationContext";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 const button="rounded-lg border px-3 py-2 text-sm disabled:opacity-50";
 const date=(value?:string)=>value?new Date(value).toLocaleString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"}):"—";
 export default function RentalComplaintsPanel(){
@@ -83,7 +84,7 @@ export default function RentalComplaintsPanel(){
     }catch(cause){tab.close();toast.error(getApiErrorMessage(cause,"Không mở được chứng cứ."));}
   }
   return <div className="space-y-4">
-    <p className="text-sm text-muted-foreground">Tiếp nhận hồ sơ, trao đổi với hai bên và ghi kết luận hỗ trợ. Khiếu nại không sửa hợp đồng hay quyết toán.</p>
+    <PolicyNotice tone="neutral" title="Phạm vi xử lý khiếu nại" summary="Tiếp nhận hồ sơ, trao đổi với hai bên và ghi kết luận hỗ trợ." text="Tiếp nhận hồ sơ, trao đổi với hai bên và ghi kết luận hỗ trợ. Khiếu nại không sửa hợp đồng hay quyết toán." />
     <div className="flex flex-wrap gap-3">
       <label>Trạng thái <select aria-label="Trạng thái khiếu nại" value={status} className="rounded border p-2" onChange={e=>{setLoading(true);setStatus(e.target.value);setPage(1);}}><option value="">Tất cả</option><option value="OPEN">Hai bên trao đổi</option><option value="ESCALATED">HomeSpace xử lý</option><option value="RESOLVED">Đã đóng / thống nhất</option></select></label>
       <label>Nhóm <select aria-label="Nhóm khiếu nại" value={category} className="rounded border p-2" onChange={e=>{setLoading(true);setCategory(e.target.value);setPage(1);}}><option value="">Tất cả</option>{Object.entries(complaintCategories).map(([v,label])=><option key={v} value={v}>{label}</option>)}</select></label>
@@ -97,8 +98,8 @@ export default function RentalComplaintsPanel(){
       <div className="flex justify-between gap-3"><h2 id="complaint-admin-title" className="font-bold">{complaintCategories[current.category]} · {complaintStages[current.stage]??current.stage}</h2><button type="button" className={button} onClick={()=>{detailScope.current++;setCurrent(null);}}>Đóng</button></div>
       <p className="text-sm text-muted-foreground">Admin đã kết luận {current.adminReviewCount??0}/{current.adminReviewLimit??2} lần.</p>
       {[current.tenantId,current.landlordId].includes(profile?.id??"")&&<p role="status" className="rounded-lg border p-3 text-sm">Bạn là một bên của hợp đồng này nên chỉ được xem, không được tự xử lý khiếu nại.</p>}
-      {current.finalClosed&&<p role="status" className="rounded-lg border p-3 text-sm">Đã kết luận lần 2 và đóng hồ sơ. Hồ sơ chỉ còn để xem lịch sử.</p>}
-      {current.status==="OPEN"&&(current.adminReviewCount??0)===1&&<p role="status" className="rounded-lg border p-3 text-sm">Đã kết luận lần 1. Hai bên tiếp tục trao đổi; admin chỉ xử lý lần 2 khi một bên chuyển lại hồ sơ.</p>}
+      {current.finalClosed&&<PolicyNotice tone="neutral" title="Hồ sơ đã đóng" summary="Đã kết luận lần 2 và đóng hồ sơ." text="Đã kết luận lần 2 và đóng hồ sơ. Hồ sơ chỉ còn để xem lịch sử." />}
+      {current.status==="OPEN"&&(current.adminReviewCount??0)===1&&<PolicyNotice tone="neutral" title="Đã kết luận lần 1" summary="Đã kết luận lần 1. Hai bên tiếp tục trao đổi." text="Đã kết luận lần 1. Hai bên tiếp tục trao đổi; admin chỉ xử lý lần 2 khi một bên chuyển lại hồ sơ." />}
       <p>{current.reason}</p><p className="text-xs text-muted-foreground">Hồ sơ thuê: {current.rentalRequestId}{current.contractId?" · Hợp đồng: "+current.contractId:""}</p>
       {current.decision&&<div className="rounded border bg-blue-50 p-3 text-sm text-blue-950"><strong>Kết luận HomeSpace · Lần {current.adminReviewCount??1}</strong><p>{current.decision}</p><p>Đã có kết luận chưa đồng nghĩa đã nhận tiền.</p></div>}
       <div className="flex flex-wrap gap-2">{canStorage&&current.evidenceIds.map((id,i)=><button type="button" key={id} className={button} onClick={()=>void proof(id)}>Xem chứng cứ {i+1}</button>)}</div>

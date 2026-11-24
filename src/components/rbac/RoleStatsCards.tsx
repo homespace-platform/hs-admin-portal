@@ -1,3 +1,4 @@
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 interface RoleStatsCardsProps {
   totalElements: number;
   adminCount: number;
@@ -18,9 +19,7 @@ export default function RoleStatsCards({
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
           Vai trò hệ thống
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          Quản lý danh sách vai trò (Roles), cấu hình chính sách bảo mật và gán quyền hạn truy cập (Permissions) cho từng nhóm tài khoản.
-        </p>
+        <PolicyNotice tone="neutral" title="Vai trò hệ thống" summary="Quản lý danh sách vai trò (Roles)." text="Quản lý danh sách vai trò (Roles), cấu hình chính sách bảo mật và gán quyền hạn truy cập (Permissions) cho từng nhóm tài khoản." className="max-w-2xl" />
       </div>
 
       {/* Right: Compact Minimalist Stats (No bulky icons, clean typography) */}

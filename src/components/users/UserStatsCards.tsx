@@ -1,3 +1,4 @@
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 interface UserStatsCardsProps {
   totalElements: number;
   activeCount: number;
@@ -18,9 +19,7 @@ export default function UserStatsCards({
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
           Người dùng hệ thống
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          Quản lý tài khoản người dùng, phân quyền vai trò (Role & Permission) và kiểm soát trạng thái hoạt động trên toàn hệ thống HomeSpace.
-        </p>
+        <PolicyNotice tone="neutral" title="Người dùng hệ thống" summary="Quản lý tài khoản người dùng." text="Quản lý tài khoản người dùng, phân quyền vai trò (Role & Permission) và kiểm soát trạng thái hoạt động trên toàn hệ thống HomeSpace." className="max-w-2xl" />
       </div>
 
       {/* Right: Compact Minimalist Stats (No bulky icons, clean & focused) */}

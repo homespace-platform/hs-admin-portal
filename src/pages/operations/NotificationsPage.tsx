@@ -8,6 +8,7 @@ import {
 import { getApiErrorMessage } from "@/utils/apiError";
 import Can from "@/components/common/Can";
 import { PERMISSIONS } from "@/config/permissions";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 export default function NotificationsPage() {
   const [title, setTitle] = useState("");
@@ -57,9 +58,7 @@ export default function NotificationsPage() {
         <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-foreground">
           Thông báo hệ thống
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Gửi thông báo tới toàn bộ tài khoản người dùng. Thông báo sẽ xuất hiện trong trung tâm thông báo của họ.
-        </p>
+        <PolicyNotice tone="neutral" title="Thông báo hệ thống" summary="Gửi thông báo tới toàn bộ tài khoản người dùng." text="Gửi thông báo tới toàn bộ tài khoản người dùng. Thông báo sẽ xuất hiện trong trung tâm thông báo của họ." className="mt-2" />
       </div>
 
       <Can permission={PERMISSIONS.NOTIFICATION_BROADCAST} fallback={<p role="alert" className="text-sm text-muted-foreground">Bạn không có quyền gửi thông báo hệ thống.</p>}>

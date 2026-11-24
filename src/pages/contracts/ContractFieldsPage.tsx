@@ -21,6 +21,7 @@ function isRequiredForAllCategories(field: TemplateFieldDefinition): boolean {
 }
 
 import ContractModuleNav,{useAgreementKind} from "./ContractModuleNav";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 export default function ContractFieldsPage() {
   const {kind,changeKind}=useAgreementKind();
@@ -91,17 +92,8 @@ export default function ContractFieldsPage() {
         </div>
       </div>
 
-      {/* Guide Card */}
-      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
-            <HelpCircle className="w-5 h-5" />
-          </div>
-          <div className="space-y-2 text-xs sm:text-sm text-foreground/90">
-            <h3 className="font-semibold text-foreground text-sm sm:text-base">
-              Quy tắc soạn file mẫu Word (.docx) cho Quản trị viên
-            </h3>
-            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+      <PolicyNotice icon={HelpCircle} title="Quy tắc soạn file mẫu Word (.docx) cho Quản trị viên" summary="Quy tắc soạn file mẫu Word (.docx) cho Quản trị viên">
+            <ul className="list-disc list-inside space-y-1 text-foreground/90">
               <li>
                 Đặt placeholder trong dấu ngoặc nhọn kép, ví dụ:{" "}
                 <code className="px-1.5 py-0.5 rounded bg-background border font-mono text-primary font-semibold">
@@ -121,9 +113,7 @@ export default function ContractFieldsPage() {
                 khi tải file lên. Những mã không nằm trong danh mục này sẽ bị báo lỗi.
               </li>
             </ul>
-          </div>
-        </div>
-      </div>
+      </PolicyNotice>
 
       {/* Filters & Search */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">

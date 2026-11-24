@@ -5,6 +5,7 @@ import userService from "@/services/user.service";
 import { useAuth } from "@/features/auth/useAuth";
 import { toast } from "sonner";
 import KycSection from "./KycSection";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 export default function AccountSecuritySection() {
   const { logout } = useAuth();
@@ -66,9 +67,7 @@ export default function AccountSecuritySection() {
           <Lock className="w-4 h-4 text-primary" />
           <span>Thay đổi mật khẩu</span>
         </h3>
-        <p className="text-xs text-muted-foreground">
-          Để bảo vệ tài khoản quản trị, hãy sử dụng mật khẩu mạnh bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
-        </p>
+        <PolicyNotice tone="neutral" title="Quy tắc mật khẩu" summary="Hãy sử dụng mật khẩu mạnh để bảo vệ tài khoản quản trị." text="Để bảo vệ tài khoản quản trị, hãy sử dụng mật khẩu mạnh bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt." />
 
         <form
           onSubmit={handleChangePassword}

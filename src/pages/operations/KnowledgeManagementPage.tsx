@@ -30,6 +30,7 @@ import type {
 } from "@/types/knowledge.type";
 import { getApiErrorMessage } from "@/utils/apiError";
 import KnowledgeBatchUpload from "@/components/knowledge/KnowledgeBatchUpload";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 const KnowledgeMarkdownEditor = lazy(() => import("@/components/knowledge/KnowledgeMarkdownEditor"));
 
 const formatDate = (value: string) => new Date(value).toLocaleString("vi-VN");
@@ -320,9 +321,7 @@ export default function KnowledgeManagementPage() {
           <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight">
             <BookOpen className="h-7 w-7 text-primary" /> Kho tri thức AI
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Quản lý tài liệu hướng dẫn và chính sách HomeSpace. Chỉ tài liệu đã xuất bản thành công mới được AI sử dụng để trả lời người dùng.
-          </p>
+          <PolicyNotice tone="neutral" title="Kho tri thức AI" summary="Quản lý tài liệu hướng dẫn và chính sách HomeSpace." text="Quản lý tài liệu hướng dẫn và chính sách HomeSpace. Chỉ tài liệu đã xuất bản thành công mới được AI sử dụng để trả lời người dùng." className="mt-2" />
         </div>
 
         {/* Worker health badge */}
@@ -595,9 +594,7 @@ export default function KnowledgeManagementPage() {
                   <Loader2 className="h-5 w-5 animate-spin shrink-0" />
                   <div className="text-xs leading-relaxed">
                     <span className="font-semibold text-sm">Đang tạo vector embedding cho AI...</span>
-                    <p className="mt-0.5 text-muted-foreground">
-                      Hệ thống đang chia nhỏ nội dung và tính toán vector trên worker. Khi hoàn tất, phiên bản này sẽ tự động được AI sử dụng.
-                    </p>
+                    <PolicyNotice tone="neutral" title="Đang tạo vector embedding" summary="Hệ thống đang chia nhỏ nội dung và tính toán vector trên worker." text="Hệ thống đang chia nhỏ nội dung và tính toán vector trên worker. Khi hoàn tất, phiên bản này sẽ tự động được AI sử dụng." className="mt-1" />
                   </div>
                 </div>
               )}
@@ -783,9 +780,7 @@ export default function KnowledgeManagementPage() {
           <Sparkles className="h-5 w-5 text-primary" />
           <h2 className="text-base font-semibold">Thử nghiệm hỏi đáp AI</h2>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Thử đặt câu hỏi như một người dùng hoặc quản trị viên để kiểm tra câu trả lời, độ chính xác của tài liệu và các trích dẫn được sinh ra.
-        </p>
+        <PolicyNotice tone="neutral" title="Thử nghiệm hỏi đáp AI" summary="Thử đặt câu hỏi để kiểm tra câu trả lời và trích dẫn của AI." text="Thử đặt câu hỏi như một người dùng hoặc quản trị viên để kiểm tra câu trả lời, độ chính xác của tài liệu và các trích dẫn được sinh ra." className="mt-2" />
 
         <form onSubmit={handleRunTest} className="mt-4 flex flex-wrap gap-2.5">
           <input

@@ -1,4 +1,5 @@
 import type { DepositLedger } from "@/types/deposit-ledger.type";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 const money = (value?: number | null) => value == null ? "Chưa có dữ liệu" : value.toLocaleString("vi-VN") + " đ";
 const labels: Record<string, string> = {
@@ -21,6 +22,6 @@ export default function DepositLedgerSummary({ ledger }: { ledger?: DepositLedge
     <dl className="grid gap-2 sm:grid-cols-2">{rows.map(([label, value]) => <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="font-medium">{money(value)}</dd></div>)}</dl>
     {ledger.retainedReason && <p>Căn cứ giữ lại: {ledger.retainedReason}</p>}
     {ledger.retainedAt && <p className="text-xs text-muted-foreground">Chốt giữ lúc {new Date(ledger.retainedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</p>}
-    <p className="text-xs text-muted-foreground">Đã thống nhất quyết toán hoặc đã báo chuyển chưa phải đã nhận tiền hoàn. Khoản phải trả thêm vượt cọc được theo dõi riêng.</p>
+    <PolicyNotice tone="neutral" title="Lưu ý về sổ cọc" summary="Đã thống nhất quyết toán hoặc đã báo chuyển chưa phải đã nhận tiền hoàn." text="Đã thống nhất quyết toán hoặc đã báo chuyển chưa phải đã nhận tiền hoàn. Khoản phải trả thêm vượt cọc được theo dõi riêng." />
   </section>;
 }

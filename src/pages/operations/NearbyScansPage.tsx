@@ -4,7 +4,7 @@ import axiosClient from "@/lib/axios-client";
 import type { ApiResponse } from "@/types/api.type";
 import { PERMISSIONS } from "@/config/permissions";
 import { useHasPermission } from "@/hooks/usePermission";
-import InfoDisclosure from "@/components/common/InfoDisclosure";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 type Job = {id: string; listing_id: string; radius_m: number; status: string; attempts: number; next_attempt_at: string; last_error_code?: string; updated_at: string};
 type ScanStatus = {syncEnabled: boolean; queryEnabled: boolean; jobs: Job[]};
@@ -50,7 +50,7 @@ export default function NearbyScansPage() {
    <p className="mt-2 text-sm text-muted-foreground">Theo dõi dữ liệu địa điểm theo tọa độ tin đăng, thử lại khi cần và kiểm tra độ bao phủ.</p></div>
    <button type="button" onClick={() => void load()} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><RefreshCw size={15} />Làm mới</button></div>
   {data && <div className="rounded-xl border bg-card p-4 text-sm"><p>Đồng bộ nền: <strong>{data.syncEnabled ? "Đang bật" : "Đang tắt"}</strong> · Tra cứu: <strong>{data.queryEnabled ? "Đang bật" : "Đang tắt"}</strong></p>
-   {!data.syncEnabled && <p className="mt-2 text-muted-foreground">Chưa thể gửi quét mới. Người vận hành cần hoàn thành cấu hình và xác nhận quyền sử dụng dữ liệu theo hướng dẫn triển khai.</p>}</div>}
+   {!data.syncEnabled && <PolicyNotice tone="warning" title="Chưa thể gửi quét mới" summary="Chưa thể gửi quét mới." text="Chưa thể gửi quét mới. Người vận hành cần hoàn thành cấu hình và xác nhận quyền sử dụng dữ liệu theo hướng dẫn triển khai." className="mt-2" />}</div>}
   {canManage && <form onSubmit={e => {e.preventDefault(); void enqueue(listingId);}} className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4">
    <label className="flex min-w-72 flex-1 flex-col gap-2 text-sm">Mã tin đăng<input required value={listingId} onChange={e => setListingId(e.target.value)} placeholder="Mã UUID của tin đang công khai" className="rounded-lg border bg-background px-3 py-2" /></label>
    <label className="flex flex-col gap-2 text-sm">Bán kính<select value={radius} onChange={e => setRadius(Number(e.target.value))} className="rounded-lg border bg-background px-3 py-2"><option value={2000}>2 km</option><option value={3000}>3 km</option><option value={5000}>5 km</option></select></label>
@@ -61,6 +61,6 @@ export default function NearbyScansPage() {
    <tbody>{data?.jobs.map(job => <tr key={job.id} className="border-t"><td className="p-3 font-mono text-xs">{job.listing_id}</td><td className="p-3">{job.radius_m / 1000} km</td><td className="p-3">{labels[job.status] ?? job.status}</td><td className="p-3">{job.attempts}</td><td className="p-3 text-xs">{job.last_error_code ?? "—"}</td><td className="p-3">{new Date(job.updated_at).toLocaleString("vi-VN")}</td><td className="p-3">{canManage && <><button type="button" disabled={busy || !data.syncEnabled || job.status === "RUNNING"} onClick={() => void enqueue(job.listing_id, job.radius_m)} className="text-primary disabled:opacity-40">Đồng bộ lại</button>{["PENDING", "RUNNING", "RETRY_WAIT", "PARTIAL"].includes(job.status) && <button type="button" disabled={busy} onClick={() => void cancel(job.id)} className="ml-3 text-destructive disabled:opacity-40">Hủy</button>}</>}</td></tr>)}</tbody></table>
    {data?.jobs.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Chưa có công việc đồng bộ tiện ích.</p>}
   </div>
-  <InfoDisclosure summary="Dữ liệu một phần chưa chứng minh đã có đủ địa điểm trong bán kính."><p>Khoảng cách là đường chim bay; không dùng để cam kết thời gian đi lại.</p></InfoDisclosure>
+  <PolicyNotice title="Lưu ý về dữ liệu quét" summary="Dữ liệu một phần chưa chứng minh đã có đủ địa điểm trong bán kính." text="Khoảng cách là đường chim bay; không dùng để cam kết thời gian đi lại." />
  </div>;
 }

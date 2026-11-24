@@ -7,6 +7,7 @@ import userService from "@/services/user.service";
 import { useAppSelector } from "@/store/hooks";
 import type { OnboardingStatusResponse } from "@/types/user.type";
 import { toast } from "sonner";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
@@ -140,9 +141,7 @@ function PasswordStep({
   return (
     <form onSubmit={submit} className="space-y-4">
       {(localError || error) && <ErrorBox message={localError || error || ""} />}
-      <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-        Tài khoản đăng nhập mạng xã hội chưa có mật khẩu. Hãy tạo mật khẩu để có thể đăng nhập bằng email, username hoặc số điện thoại.
-      </p>
+      <PolicyNotice title="Vì sao cần tạo mật khẩu" summary="Tài khoản đăng nhập mạng xã hội chưa có mật khẩu." text="Tài khoản đăng nhập mạng xã hội chưa có mật khẩu. Hãy tạo mật khẩu để có thể đăng nhập bằng email, username hoặc số điện thoại." />
       <PasswordInput
         label="Mật khẩu mới"
         value={password}

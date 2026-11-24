@@ -4,6 +4,7 @@ import { useAdminQueue } from "@/features/admin-queue/adminQueueContext";
 import { queueBlockedMessage } from "@/features/admin-queue/pendingListing";
 import { usePendingListingRequests } from "@/features/admin-queue/usePendingListingRequests";
 import PendingListingItem from "@/features/admin-queue/PendingListingItem";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 400;
@@ -96,9 +97,7 @@ export default function NotificationCenterPage() {
           </span>
         )}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Hàng chờ duyệt đang hoạt động: tin đăng mới và bản chỉnh sửa. Mục nào được quản trị viên xử lý sẽ biến khỏi danh sách.
-      </p>
+      <PolicyNotice tone="neutral" title="Hàng chờ duyệt" summary="Hàng chờ duyệt đang hoạt động: tin đăng mới và bản chỉnh sửa." text="Hàng chờ duyệt đang hoạt động: tin đăng mới và bản chỉnh sửa. Mục nào được quản trị viên xử lý sẽ biến khỏi danh sách." />
 
       <div role="tablist" aria-label="Loại thông báo" className="flex gap-2 border-b border-border">
         <button type="button" role="tab" aria-selected="true" className="text-sm font-bold text-primary border-b-2 border-primary pb-2">

@@ -1,3 +1,4 @@
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 interface PermissionStatsCardsProps {
   totalElements: number;
   userScopeCount: number;
@@ -18,9 +19,7 @@ export default function PermissionStatsCards({
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
           Quyền hạn hệ thống
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          Quản lý danh mục quyền hạn (Permissions), định nghĩa phạm vi truy cập API và chức năng bảo mật RBAC trên toàn hệ thống HomeSpace.
-        </p>
+        <PolicyNotice tone="neutral" title="Quyền hạn hệ thống" summary="Quản lý danh mục quyền hạn (Permissions)." text="Quản lý danh mục quyền hạn (Permissions), định nghĩa phạm vi truy cập API và chức năng bảo mật RBAC trên toàn hệ thống HomeSpace." className="max-w-2xl" />
       </div>
 
       {/* Right: Compact Minimalist Stats (No bulky icons, clean typography) */}

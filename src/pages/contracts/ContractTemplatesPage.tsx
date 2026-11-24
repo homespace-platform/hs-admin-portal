@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/utils/apiError";
 
 import ContractModuleNav,{useAgreementKind} from "./ContractModuleNav";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 export default function ContractTemplatesPage() {
   const {kind,changeKind}=useAgreementKind();
@@ -159,9 +160,7 @@ export default function ContractTemplatesPage() {
             <FileCode2 className="w-6 h-6 text-primary" />
             Quản lý mẫu hợp đồng {kind==="DEPOSIT"?"đặt cọc":"thuê"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Mỗi loại bất động sản chỉ có một mẫu hệ thống. Khi thay file Word, hãy thêm phiên bản vào mẫu hiện có.
-          </p>
+          <PolicyNotice title="Quy tắc mẫu hợp đồng" summary="Mỗi loại bất động sản chỉ có một mẫu hệ thống." text="Mỗi loại bất động sản chỉ có một mẫu hệ thống. Khi thay file Word, hãy thêm phiên bản vào mẫu hiện có." className="mt-2" />
         </div>
 
         <div className="flex items-center gap-2.5">

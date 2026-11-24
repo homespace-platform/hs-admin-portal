@@ -8,6 +8,7 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import { knowledgeEditorExtensions } from "./knowledge-editor-config";
 import { splitKnowledgeMarkdown, joinKnowledgeMarkdown, isSafeKnowledgeLink } from "./knowledge-markdown";
 import "./knowledge-editor.css";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 type Props = {
   documentId: string; editable: boolean; canEdit: boolean;
@@ -163,7 +164,7 @@ function LoadedEditor({ source, editable, canEdit, onEdit, onSaved, onClose, onD
         const changed = event.target.value !== parts.body; setDirty(changed); onDirtyChange(changed);
       }} className="min-h-96 w-full resize-y p-5 font-mono text-sm leading-relaxed outline-none" /> : <EditorContent editor={editor} />}
     </div>}
-    <p className="border-t bg-muted/20 px-4 py-2 text-xs text-muted-foreground">Metadata và quyền truy cập được giữ nguyên. Mỗi lần lưu tăng 1 version; chỉ xoá vector cũ khi embedding bản mới thành công.</p>
+    <div className="border-t bg-muted/20 px-4 py-2"><PolicyNotice tone="neutral" title="Quy tắc lưu tài liệu" summary="Metadata và quyền truy cập được giữ nguyên khi lưu." text="Metadata và quyền truy cập được giữ nguyên. Mỗi lần lưu tăng 1 version; chỉ xoá vector cũ khi embedding bản mới thành công." /></div>
     {error && <p role="alert" className="p-4 text-xs text-destructive">{error}</p>}
   </section>;
 }

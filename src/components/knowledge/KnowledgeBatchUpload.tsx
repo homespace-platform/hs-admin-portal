@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { adminKnowledgeService } from "@/services/admin-knowledge.service";
 import type { KnowledgeUploadResult } from "@/types/knowledge.type";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 type Row = { file: File; status: string; error?: string; result?: KnowledgeUploadResult };
 const labels: Record<string, string> = {
@@ -94,8 +95,10 @@ export default function KnowledgeBatchUpload({ onChanged }: { onChanged: () => v
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-3"><FileUp className="h-6 w-6 text-primary" /><div>
         <h2 className="text-sm font-semibold">Kéo thả hoặc chọn nhiều tài liệu Markdown</h2>
-        <p className="text-xs text-muted-foreground">Tối đa 50 file, 1 MB/file; cần YAML metadata. Cùng tên file luôn tăng version, kể cả nội dung không đổi.</p>
-        <p className="text-xs text-muted-foreground">Tự áp dụng bản mới sau xử lý; bản cũ vẫn phục vụ AI nếu cập nhật chưa thành công.</p>
+        <PolicyNotice tone="neutral" title="Quy tắc tải tài liệu hàng loạt" summary="Tối đa 50 file, 1 MB/file; cần YAML metadata.">
+          <p>Tối đa 50 file, 1 MB/file; cần YAML metadata. Cùng tên file luôn tăng version, kể cả nội dung không đổi.</p>
+          <p className="mt-2.5">Tự áp dụng bản mới sau xử lý; bản cũ vẫn phục vụ AI nếu cập nhật chưa thành công.</p>
+        </PolicyNotice>
       </div></div>
       <div className="flex items-center gap-2">
         <input ref={input} id="knowledge-files" type="file" accept=".md,text/markdown" multiple
@@ -107,9 +110,7 @@ export default function KnowledgeBatchUpload({ onChanged }: { onChanged: () => v
         </button>
       </div>
     </div>
-    {uploading && progress >= 100 && <p role="status" className="text-xs text-muted-foreground">
-      File đã gửi xong, đang chờ API lưu tài liệu và tạo hàng đợi. Chưa có nghĩa là worker đã xử lý xong.
-    </p>}
+    {uploading && progress >= 100 && <PolicyNotice tone="neutral" title="Trạng thái tải lên" summary="File đã gửi xong, đang chờ API lưu tài liệu và tạo hàng đợi." text="File đã gửi xong, đang chờ API lưu tài liệu và tạo hàng đợi. Chưa có nghĩa là worker đã xử lý xong." />}
     {rows.length > 0 && <ul className="max-h-64 space-y-2 overflow-y-auto text-xs" aria-live="polite">
       {rows.map((row, index) => <li key={`${row.file.name}-${index}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-background p-2">
         <span className="break-all">{row.file.name}{row.result && ` · v${row.result.version}`}</span>

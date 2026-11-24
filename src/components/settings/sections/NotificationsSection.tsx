@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/features/auth/useAuth";
 import { personalNotificationService as service, type NotificationPreference } from "@/services/personal-notification.service";
 import { disablePush, enablePush, getPushStatus, isPushConfigured, isPushOptedIn, type PushStatus } from "@/services/notification-push.service";
+import { PolicyNotice } from "@/components/common/PolicyDialog";
 
 const labels: Record<string, string> = {
   SYSTEM: "Hệ thống và cảnh báo vận hành",
@@ -78,7 +79,7 @@ export default function NotificationsSection() {
   return <div className="max-w-2xl space-y-5">
     <div>
       <h3 className="flex items-center gap-2 text-sm font-bold"><Bell className="h-4 w-4 text-primary" />Cài đặt thông báo</h3>
-      <p className="mt-1 text-xs text-muted-foreground">Chọn push theo danh mục. Thông báo vẫn được lưu trong hộp thư khi bạn tắt kênh này.</p>
+      <PolicyNotice tone="neutral" title="Cài đặt thông báo push" summary="Chọn push theo danh mục." text="Chọn push theo danh mục. Thông báo vẫn được lưu trong hộp thư khi bạn tắt kênh này." className="mt-2" />
     </div>
     <div className="flex items-center justify-between gap-4 rounded-2xl border border-border p-4">
       <div>

@@ -7,6 +7,7 @@ import StoreProvider from "./store/StoreProvider.tsx";
 import AuthInitializer from "./features/auth/AuthInitializer.tsx";
 import OnboardingInitializer from "./features/onboarding/OnboardingInitializer.tsx";
 import { ThemeProvider } from "./components/theme/ThemeProvider.tsx";
+import NetworkGate from "./components/system/NetworkGate.tsx";
 import BackendHealthGate from "./components/system/BackendHealthGate.tsx";
 import "./index.css";
 
@@ -16,6 +17,7 @@ root.render(
   <StrictMode>
     <StoreProvider>
       <ThemeProvider defaultTheme="light" storageKey="hs-admin-theme">
+        <NetworkGate>
         <BackendHealthGate>
           <AuthInitializer>
             <BrowserRouter>
@@ -25,6 +27,7 @@ root.render(
             </BrowserRouter>
           </AuthInitializer>
         </BackendHealthGate>
+        </NetworkGate>
       </ThemeProvider>
     </StoreProvider>
   </StrictMode>,

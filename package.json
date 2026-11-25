@@ -8,6 +8,7 @@
     "dev:prod": "vite --mode production --host localhost --port 5000",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test:network-health": "node --test tests/network-health.test.mjs",
     "test:knowledge-editor": "node --test tests/knowledge-editor.test.mjs",
     "preview": "vite preview --port 5000"
   },

@@ -6,11 +6,12 @@ import axios from "axios";
 import kycService from "@/services/kyc.service";
 import { VNPT_KYC_STEPS, type VnptKycSession, type VnptKycStep, type KycStatusResponse } from "@/types/kyc.type";
 
-export default function VnptKycCapture({ session, onResult, onCancel }: {
+export default function VnptKycCapture({ session, onResult, onCancel, onFinalizing, onFinalizeFailed, variant = "dialog" }: {
   session: VnptKycSession; onResult: (status: KycStatusResponse) => void; onCancel: () => void;
+  onFinalizing?: () => void; onFinalizeFailed?: () => void; variant?: "dialog" | "page";
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => { const element = dialog.current; element?.showModal(); return () => element?.close(); }, []);
+  useEffect(() => { if (variant !== "dialog") return; const element = dialog.current; element?.showModal(); return () => element?.close(); }, [variant]);
   const frame = useRef<HTMLIFrameElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +59,12 @@ export default function VnptKycCapture({ session, onResult, onCancel }: {
       }
       if (data.type === "vnpt:complete" && !done.current) {
         if (firstStepError.current) return;
-        done.current = true; setBusy(true);
+        done.current = true; setBusy(true); onFinalizing?.();
         try {
           const result = await kycService.finalizeVnpt(session.sessionId);
           if (!disposed) onResult(result);
         } catch {
-          if (!disposed) setError("Chưa đủ bằng chứng xác minh. Vui lòng đóng phiên và thử lại.");
+          if (!disposed) { setError("Chưa đủ bằng chứng xác minh. Vui lòng đóng phiên và thử lại."); onFinalizeFailed?.(); }
         } finally { if (!disposed) setBusy(false); }
       }
     };
@@ -74,16 +75,18 @@ export default function VnptKycCapture({ session, onResult, onCancel }: {
     };
     window.addEventListener("message", ready);
     return () => { disposed = true; window.clearTimeout(timeout); window.removeEventListener("message", onMessage); window.removeEventListener("message", ready); };
-  }, [session, onResult]);
-  return <dialog ref={dialog} onCancel={event => { event.preventDefault(); if (!busy) onCancel(); }} className="m-auto w-[min(96vw,900px)] max-w-none border-0 bg-transparent p-0 backdrop:bg-slate-950/60" aria-label="Xác minh VNPT eKYC">
-    <div className="flex h-[min(900px,95dvh)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-      <div className="flex items-center justify-between border-b p-4 text-slate-900">
+  }, [session, onResult, onFinalizing, onFinalizeFailed]);
+  const page = variant === "page";
+  const body = <div className={page ? "mx-auto flex h-[min(900px,calc(100dvh-14rem))] min-h-[480px] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border bg-white shadow-xs" : "flex h-[min(900px,95dvh)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"}>
+    <div className="flex items-center justify-between border-b p-4 text-slate-900">
         <h3 className="font-semibold">Xác minh VNPT eKYC</h3>
         <button type="button" onClick={onCancel} disabled={busy} aria-label="Đóng và hủy phiên VNPT" className="rounded-lg p-2 hover:bg-slate-100 disabled:opacity-50"><X className="h-5 w-5" /></button>
       </div>
       {error && <p role="alert" className="bg-amber-50 p-3 text-sm text-amber-900">{error}</p>}
       {busy && <div role="status" className="flex items-center gap-2 p-3 text-sm text-slate-700"><LoaderCircle className="h-4 w-4 animate-spin" />Đang kiểm tra kết quả từ VNPT…</div>}
       <iframe ref={frame} src="/kyc/vnpt-frame.html" title="Chụp giấy tờ và khuôn mặt với VNPT" allow="camera" className="min-h-0 flex-1 border-0 bg-white" />
-    </div>
-  </dialog>;
+  </div>;
+  return page
+    ? <div className="w-full" aria-label="Xác minh VNPT eKYC">{body}</div>
+    : <dialog ref={dialog} onCancel={event => { event.preventDefault(); if (!busy) onCancel(); }} className="m-auto w-[min(96vw,900px)] max-w-none border-0 bg-transparent p-0 backdrop:bg-slate-950/60" aria-label="Xác minh VNPT eKYC">{body}</dialog>;
 }

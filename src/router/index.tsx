@@ -35,6 +35,7 @@ import StatisticsPage from "@/pages/analytics/StatisticsPage";
 import AiForecastPage from "@/pages/analytics/AiForecastPage";
 import SettingsPage, { SettingsLayout } from "@/pages/settings/SettingsPage";
 import { SettingsSectionPage } from "@/components/settings/SettingsContent";
+import KycPage from "@/pages/kyc/KycPage";
 import NotFoundPage from "@/pages/not-found/NotFoundPage";
 
 // Contract Pages
@@ -149,6 +150,9 @@ export default function AppRouter() {
           <Route index element={<SettingsPage />} />
           <Route path=":section" element={<SettingsSectionPage />} />
         </Route>
+
+        {/* Standalone VNPT eKYC flow (login-protected by AuthGuard above) */}
+        <Route path="/kyc" element={<KycPage />} />
 
         {/* 404 Inside Admin Layout */}
         <Route path="*" element={<NotFoundPage />} />

@@ -6,7 +6,11 @@ import React from 'react';
 import { load, hookRuntime, clock, events, icons, html } from './helpers/kyc-runtime.mjs';
 const flatten=node=>!node||typeof node!=='object'?[]:[node,...React.Children.toArray(node.props?.children).flatMap(flatten)];
 const detailsPanel=()=>null;
-const loadKyc=(mocks,globals={})=>load('src/components/settings/sections/KycSection.tsx',mocks,globals,'\nmodule.exports.default=AccountKycSection;');
+const navigated=[];
+const loadKyc=(mocks,globals={})=>load('src/components/settings/sections/KycSection.tsx',{
+ 'react-router-dom':{useNavigate:()=>to=>navigated.push(to),useLocation:()=>({pathname:'/settings/account-security',search:''})},
+ '@/components/kyc/kycStatusMeta':load('src/components/kyc/kycStatusMeta.ts',{'lucide-react':icons}),
+ '@/lib/kyc-return':load('src/lib/kyc-return.ts'),...mocks},globals,'\nmodule.exports.default=AccountKycSection;');
 
 test('SDK bridge pins origin/source and routes capture without provider credentials or callback PII',async()=>{
  const messages=[],listeners=new Map(),config=[],parent={postMessage:(data,origin)=>messages.push({data,origin})};
@@ -52,8 +56,11 @@ test('web defaults to VNPT and keeps upcoming providers disabled',async()=>{
  assert.equal(providers[0].props.checked,true);assert.equal(providers[0].props.disabled,false);
  assert.equal(providers[1].props.disabled,true);assert.equal(providers[2].props.disabled,true);
  assert.match(html(runtime),/FPT AI eKYC/);assert.match(html(runtime),/Viettel AI eKYC/);
+ navigated.length=0;
  flatten(runtime.tree).find(n=>n.type==='button'&&n.props.className.includes('bg-primary')).props.onClick();await runtime.settle();
- assert.deepEqual(calls,['vnpt']);assert.equal(flatten(runtime.tree).find(n=>n.type===capture).props.session.sessionId,'attempt');assert.equal(flatten(runtime.tree).find(n=>n.type==='fieldset').props.disabled,true);runtime.unmount();
+ assert.deepEqual(calls,[],'Settings must not create a VNPT session itself');
+ assert.deepEqual(navigated,['/kyc?returnTo=%2Fsettings%2Faccount-security']);
+ assert.equal(flatten(runtime.tree).find(n=>n.type===capture),undefined);runtime.unmount();
 });
 
 test('parent rejects foreign frames and arbitrary steps; failed capture does not finalize',async()=>{
@@ -92,20 +99,6 @@ test('successful SDK callback asks the backend to finalize once',async()=>{
  await runtime.settle();assert.deepEqual(calls,['attempt']);assert.equal(result.status,'VERIFIED');runtime.unmount();
 });
 
-
-test('a session response from a previous account cannot reopen its capture',async()=>{
- const runtime=hookRuntime(),capture=()=>null;let actor='alice',resolve;
- const Component=loadKyc({
- react:runtime.hooks,'lucide-react':icons,sonner:{toast:{error(){},message(){},success(){}}},
- '@/services/kyc.service':{__esModule:true,default:{getStatus:async()=>({status:'NOT_VERIFIED',provider:'VNPT'}),createVnptSession:()=>new Promise(done=>{resolve=done;})}},
- './VnptKycCapture':{__esModule:true,default:capture},'@/components/settings/KycVerifiedDetailsPanel':{__esModule:true,default:detailsPanel},'@/features/user/userSlice':{fetchCurrentUser:args=>args},
- '@/store/hooks':{useAppDispatch:()=>()=>{},useAppSelector:fn=>fn({auth:{userId:actor},user:{profile:{id:actor}}})},
- },{window:{clearInterval(){},setInterval(){}}}).default;
- runtime.mount(Component);await runtime.settle();
- flatten(runtime.tree).find(n=>n.type==='button'&&n.props.className.includes('bg-primary')).props.onClick();await runtime.settle();
- actor='bob';runtime.update();await runtime.settle();resolve({sessionId:'alice-attempt',expiresAt:'2099-01-01',maxImageMb:1});await runtime.settle();
- assert.equal(flatten(runtime.tree).find(n=>n.type===capture),undefined);assert.doesNotMatch(html(runtime),/alice-attempt/);runtime.unmount();
-});
 
 for(const provider of ['DIDIT','ADMIN'])test(`${provider} verified users stay verified without provider selection or a new session`,async()=>{
  const runtime=hookRuntime(),calls=[];

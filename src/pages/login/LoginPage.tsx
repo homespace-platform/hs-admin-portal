@@ -2,14 +2,16 @@ import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LogIn, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/features/auth/useAuth";
+import { safeReturnTo } from "@/lib/kyc-return";
 
 export default function LoginPage() {
   const { authenticated, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname;
-  const target = from && from !== "/" ? from : "/dashboard";
+  const from = (location.state as { from?: { pathname?: string; search?: string } })?.from;
+  // Keep the full URL (pathname + query) of the page the admin tried to open (including /kyc); unsafe values fall back to the dashboard.
+  const target = from?.pathname && from.pathname !== "/" ? safeReturnTo(from.pathname + (from.search ?? ""), "/dashboard", true) : "/dashboard";
 
   useEffect(() => {
     if (authenticated) {
@@ -45,7 +47,7 @@ export default function LoginPage() {
         {/* Login Action Button */}
         <button
           type="button"
-          onClick={login}
+          onClick={() => login(target)}
           className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold transition-all shadow-md shadow-primary/25 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
         >
           <LogIn className="w-4 h-4" />

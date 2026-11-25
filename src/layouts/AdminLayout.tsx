@@ -61,6 +61,7 @@ const TRAILS: Record<string, BreadcrumbItem[]> = {
   "/analytics/statistics": [{ label: "Thống kê số liệu" }],
   "/analytics/ai-forecast": [{ label: "Dự báo & AI" }],
   "/settings": [{ label: "Cài đặt" }],
+  "/kyc": [{ label: "Xác minh danh tính (KYC)" }],
 };
 
 /** Breadcrumb trail for the current admin path; mirrors src/router/index.tsx. */

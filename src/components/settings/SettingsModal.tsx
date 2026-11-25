@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useLocation } from "react-router-dom";
 import SettingsContent from "./SettingsContent";
 import type { SettingsSectionId } from "./settings-nav";
 
@@ -17,6 +18,16 @@ export default function SettingsModal({ isOpen, onClose, initialTab = "profile" 
   useEffect(() => {
     onCloseRef.current = onClose;
   });
+
+  // Navigating away from inside the dialog (e.g. to /kyc) must not leave it open on top of the new page.
+  const { pathname } = useLocation();
+  const openedAt = useRef(pathname);
+  useEffect(() => {
+    if (openedAt.current !== pathname) {
+      openedAt.current = pathname;
+      onCloseRef.current();
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (!isOpen) return;

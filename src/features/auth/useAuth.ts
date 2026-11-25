@@ -13,7 +13,8 @@ export function useAuth() {
   const user = useAppSelector((state) => state.user);
 
   const login = useCallback(
-    () => void keycloak.login({ redirectUri: window.location.origin + "/dashboard" }),
+    // `path` must already be a validated same-origin path (see safeReturnTo); it keeps deep links such as /kyc?returnTo=... across login.
+    (path = "/dashboard") => void keycloak.login({ redirectUri: window.location.origin + path }),
     [],
   );
 

@@ -9,6 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:network-health": "node --test tests/network-health.test.mjs",
+    "test:kyc": "node --test tests/kyc-return.test.mjs tests/kyc-flow.test.mjs tests/kyc-page.contract.test.mjs tests/vnpt-kyc.test.mjs",
     "test:knowledge-editor": "node --test tests/knowledge-editor.test.mjs",
     "preview": "vite preview --port 5000"
   },

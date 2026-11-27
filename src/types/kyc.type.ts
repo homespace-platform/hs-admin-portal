@@ -46,3 +46,22 @@ export type KycVerifiedDetails = {
 export type VnptKycSession = { sessionId: string; expiresAt: string; maxImageMb: number };
 export const VNPT_KYC_STEPS = ["upload", "card", "ocr", "ocr-front", "face", "compare", "mask"] as const;
 export type VnptKycStep = (typeof VNPT_KYC_STEPS)[number];
+
+/** Admin view of a user's KYC: status only, never personal data. */
+export type AdminKycStatus = {
+  verified: boolean;
+  provider: string | null;
+  providerLabel: string | null;
+  verifiedAt: string | null;
+};
+
+export type ManualKycRequest = {
+  cccd: string;
+  fullName: string;
+  birthDate: string;
+  gender: "Nam" | "Nữ";
+  permanentAddress: string;
+  issueDate: string;
+  expirationDate: string;
+  issuePlace: string;
+};

@@ -1,6 +1,6 @@
 import axiosClient from "@/lib/axios-client";
 import type { ApiResponse, PageResponse } from "@/types/api.type";
-import type { KycStatusResponse } from "@/types/kyc.type";
+import type { AdminKycStatus, ManualKycRequest } from "@/types/kyc.type";
 import type {
   AdminUser,
   CreateAdminUserRequest,
@@ -68,9 +68,17 @@ export async function resendAdminUserInvitation(userId: string): Promise<void> {
   await axiosClient.post(`/api/v1/admin/users/${userId}/resend-invitation`);
 }
 
-export async function getAdminUserKyc(userId: string): Promise<KycStatusResponse> {
-  const { data } = await axiosClient.get<ApiResponse<KycStatusResponse>>(
+export async function getAdminUserKyc(userId: string): Promise<AdminKycStatus> {
+  const { data } = await axiosClient.get<ApiResponse<AdminKycStatus>>(
     `/api/v1/admin/users/${encodeURIComponent(userId)}/kyc`,
+  );
+  return data.result;
+}
+
+export async function setAdminUserKyc(userId: string, body: ManualKycRequest): Promise<AdminKycStatus> {
+  const { data } = await axiosClient.put<ApiResponse<AdminKycStatus>>(
+    `/api/v1/admin/users/${encodeURIComponent(userId)}/kyc`,
+    body,
   );
   return data.result;
 }

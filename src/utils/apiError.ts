@@ -24,6 +24,7 @@ const API_ERROR_CODE_MESSAGES: Record<number, string> = {
   2103: "Bộ quyền của vai trò ADMIN bị khóa, không thể thay đổi.",
   2104: "Vai trò USER chỉ được cấp quyền tính năng người dùng", // UserErrorCode.ROLE_PERMISSION_SCOPE_INVALID
   2203: "Bạn không thể cấp quyền mà chính bạn không có.",
+  2512: "CCCD đã được dùng cho tài khoản khác.",
 };
 export const FORBIDDEN_MESSAGE = "Bạn không có quyền thực hiện thao tác này.";
 

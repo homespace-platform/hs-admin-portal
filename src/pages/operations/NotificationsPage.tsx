@@ -146,6 +146,7 @@ export default function NotificationsPage() {
             <Send className="h-4 w-4" /> {sending ? "Đang gửi..." : "Gửi đến tất cả người dùng"}
           </button>
         </form>
+        <p className="text-xs text-muted-foreground">Email sẽ gửi kèm tới người dùng đã bật Email cho mục Hệ thống.</p>
       </Can>
     </div>
   );

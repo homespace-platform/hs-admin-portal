@@ -25,6 +25,7 @@ const TRAILS: Record<string, BreadcrumbItem[]> = {
   "/notifications": [{ label: "Thông báo" }],
   "/notifications/feed": [NOTIFICATIONS, { label: "Thông báo cá nhân" }],
   "/users": [{ label: "Người dùng hệ thống" }],
+  "/users/kyc": [{ label: "Xác minh danh tính" }],
   "/users/members": [{ label: "Người dùng hệ thống" }],
   "/users/roles": [{ label: "Vai trò" }],
   "/users/permissions": [{ label: "Quyền hạn" }],

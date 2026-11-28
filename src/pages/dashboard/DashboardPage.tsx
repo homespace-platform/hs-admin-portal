@@ -111,6 +111,15 @@ const healthSections: {
     ],
   },
 ];
+const serviceLabels: Record<string, string> = {
+  "hs-gateway-server": "Cổng API (Gateway)",
+  "hs-core-api": "Dịch vụ lõi (Core API)",
+  "hs-chat-service": "Dịch vụ trò chuyện (Chat Service)",
+  "hs-news-service": "Dịch vụ tin tức (News Service)",
+  "hs-notification-service": "Dịch vụ thông báo (Notification Service)",
+  "hs-ai-service": "Dịch vụ AI (AI Service)",
+};
+
 const jobLabels: Record<string, string> = {
   listing_expiration: "Tin đăng hết hạn",
   rental_hold_expiry: "Giữ chỗ hết hạn",
@@ -330,13 +339,12 @@ export default function DashboardPage() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-sm font-semibold">
-                        {service.name}
+                        {serviceLabels[service.name] ?? service.name}
                       </span>
                       <Status value={service.status} />
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">
-                      {service.instances} instance · Lần gia hạn gần nhất{" "}
-                      {age(service.lastRenewalAgeSec)}
+                      {service.instances} instance đang đăng ký
                     </p>
                   </div>
                 ))}

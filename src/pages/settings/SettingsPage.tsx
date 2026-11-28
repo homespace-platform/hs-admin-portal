@@ -1,14 +1,16 @@
-import { Navigate } from "react-router-dom";
-import { SettingsShell } from "@/components/settings/SettingsContent";
+import { useEffect } from "react";
+import { Navigate, useParams } from "react-router-dom";
+import { openSettings } from "@/components/settings/open-settings";
+import { isSettingsSectionId } from "@/components/settings/settings-nav";
 
-export default function SettingsIndexPage() {
-  return <Navigate to="/settings/profile" replace />;
-}
-
-export function SettingsLayout() {
-  return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in-50 duration-200">
-      <SettingsShell />
-    </div>
-  );
+/** Deep links /settings and /settings/:section open the settings dialog (same as the web app) over the dashboard. */
+export default function SettingsRedirect() {
+  const { section } = useParams<{ section: string }>();
+  const tab = section && isSettingsSectionId(section) ? section : "profile";
+  useEffect(() => {
+    // Fire after the redirect to /dashboard has rendered (this component unmounts then), so the
+    // dialog is not closed by the route change. Not cleared on unmount on purpose.
+    window.setTimeout(() => openSettings(tab), 50);
+  }, [tab]);
+  return <Navigate to="/dashboard" replace />;
 }

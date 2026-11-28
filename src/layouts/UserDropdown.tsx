@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/useAuth";
 import UserAvatar from "@/components/common/UserAvatar";
-import SettingsModal from "@/components/settings/SettingsModal";
+import { openSettings as openSettingsDialog } from "@/components/settings/open-settings";
 import {
   LayoutGrid,
   ShieldCheck,
@@ -21,10 +21,9 @@ import {
 export default function UserDropdown() {
   const { username, fullName, avatarUrl, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const openSettings = () => {
     setIsOpen(false);
-    setSettingsOpen(true);
+    openSettingsDialog();
   };
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -215,7 +214,6 @@ export default function UserDropdown() {
           </nav>
         </div>
       )}
-      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

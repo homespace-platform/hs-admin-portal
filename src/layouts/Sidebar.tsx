@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAdminQueue } from "@/features/admin-queue/adminQueueContext";
 import { formatQueueBadge } from "@/features/admin-queue/queueController";
 import { useCanAccessPath } from "@/hooks/usePermission";
+import { openSettings } from "@/components/settings/open-settings";
 import {
   LayoutDashboard,
   Building2,
@@ -167,6 +168,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
               <Link
                 key={item.title}
                 to={item.path || "#"}
+                onClick={item.path?.startsWith("/settings") ? (e) => { e.preventDefault(); openSettings("profile"); } : undefined}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${isActive
                   ? "bg-primary/15 text-primary font-bold shadow-2xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/70"

@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import SettingsModal from "@/components/settings/SettingsModal";
+import { onOpenSettings } from "@/components/settings/open-settings";
+import type { SettingsSectionId } from "@/components/settings/settings-nav";
 import Breadcrumb, { type BreadcrumbItem } from "@/components/common/Breadcrumb";
 import {
   BreadcrumbTitleProvider,
@@ -99,6 +102,8 @@ function AdminBreadcrumb() {
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsSectionId | null>(null);
+  useEffect(() => onOpenSettings(setSettingsTab), []);
 
   return (
     <AdminQueueProvider>
@@ -132,6 +137,9 @@ export default function AdminLayout() {
           <main className="min-h-[70vh]">
             <Outlet />
           </main>
+          {settingsTab && (
+            <SettingsModal key={settingsTab} isOpen initialTab={settingsTab} onClose={() => setSettingsTab(null)} />
+          )}
         </div>
       </div>
     </div>

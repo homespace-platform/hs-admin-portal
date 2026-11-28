@@ -34,8 +34,7 @@ import SystemAlertsPage from "@/pages/operations/SystemAlertsPage";
 import BlockchainExplorerPage from "@/pages/blockchain/BlockchainExplorerPage";
 import StatisticsPage from "@/pages/analytics/StatisticsPage";
 import AiForecastPage from "@/pages/analytics/AiForecastPage";
-import SettingsPage, { SettingsLayout } from "@/pages/settings/SettingsPage";
-import { SettingsSectionPage } from "@/components/settings/SettingsContent";
+import SettingsRedirect from "@/pages/settings/SettingsPage";
 import KycPage from "@/pages/kyc/KycPage";
 import NotFoundPage from "@/pages/not-found/NotFoundPage";
 
@@ -148,10 +147,8 @@ export default function AppRouter() {
         </Route>
 
         {/* Settings */}
-        <Route path="settings" element={<SettingsLayout />}>
-          <Route index element={<SettingsPage />} />
-          <Route path=":section" element={<SettingsSectionPage />} />
-        </Route>
+        <Route path="settings" element={<SettingsRedirect />} />
+        <Route path="settings/:section" element={<SettingsRedirect />} />
 
         {/* Standalone VNPT eKYC flow (login-protected by AuthGuard above) */}
         <Route path="/kyc" element={<KycPage />} />

@@ -1,7 +1,7 @@
+import { openSettings } from "@/components/settings/open-settings";
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Camera, Check, LoaderCircle, ShieldCheck, ShieldAlert } from "lucide-react";
-import { Link } from "react-router-dom";
 import userService from "@/services/user.service";
 import storageService from "@/services/storage.service";
 import AddressEditor from "@/components/settings/AddressEditor";
@@ -325,10 +325,10 @@ function ProfileContent({
               <span>Tài khoản này đã xác minh danh tính</span>
             </div>
           ) : (
-            <Link to="/settings/account-security" className="inline-flex items-start gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-[11px] text-amber-800 dark:text-amber-200">
+            <button type="button" onClick={() => openSettings("account-security")} className="inline-flex items-start gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-left text-[11px] text-amber-800 dark:text-amber-200">
               <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               Tài khoản chưa xác minh danh tính. Xác minh KYC ngay
-            </Link>
+            </button>
           )}
         </div>
       </div>

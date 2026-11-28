@@ -97,7 +97,7 @@ export default function NotificationsSection() {
         {items.map(item => <div key={item.category} className="flex items-center justify-between gap-4 p-4">
           <div>
             <p className="text-sm font-semibold">{labels[item.category] ?? item.category}</p>
-            <p className="text-xs text-muted-foreground">Email: sắp ra mắt</p>
+
           </div>
           <label className="flex shrink-0 items-center gap-2 text-xs">
             <span>Push</span>

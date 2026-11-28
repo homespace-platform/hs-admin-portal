@@ -1,5 +1,5 @@
+import { openSettings } from "@/components/settings/open-settings";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { TriangleAlert } from "lucide-react";
 import userService from "@/services/user.service";
 import { useAppSelector } from "@/store/hooks";
@@ -37,12 +37,13 @@ export default function ProfileReminder() {
       <p className="min-w-0 flex-1 leading-5">
         Bổ sung thông tin cá nhân (họ tên, số điện thoại…) để phục vụ truy vết thao tác quản trị.
       </p>
-      <Link
-        to="/settings/profile"
+      <button
+        type="button"
+        onClick={() => openSettings("profile")}
         className="shrink-0 font-bold underline underline-offset-2 hover:text-amber-700 dark:hover:text-amber-100"
       >
         Cập nhật ngay
-      </Link>
+      </button>
     </div>
   );
 }

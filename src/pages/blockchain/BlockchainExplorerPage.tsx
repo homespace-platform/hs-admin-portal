@@ -99,7 +99,7 @@ export default function BlockchainExplorerPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
   const [paymentPage, setPaymentPage] = useState(1);
-  const [unsettled, setUnsettled] = useState(true);
+  const [unsettled, setUnsettled] = useState(false);
   const [filterError, setFilterError] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [check, setCheck] = useState<{
@@ -133,14 +133,14 @@ export default function BlockchainExplorerPage() {
   const refreshSummary = summary.refresh;
   const refreshCurrentPage = tab === "proofs" ? proofs.refresh : payments.refresh;
   useEffect(() => {
-    if (!hasOpenProofs) return;
+    if (!hasOpenProofs && tab !== "payments") return;
     const timer = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
       refreshSummary();
       refreshCurrentPage();
     }, 15000);
     return () => window.clearInterval(timer);
-  }, [hasOpenProofs, refreshSummary, refreshCurrentPage]);
+  }, [hasOpenProofs, tab, refreshSummary, refreshCurrentPage]);
   function filterStatus(status: string) {
     const params = new URLSearchParams(query);
     params.set("status", status);
@@ -217,7 +217,7 @@ export default function BlockchainExplorerPage() {
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm">
             <span className="font-semibold">{data.network.name}</span>
             <span className="rounded-full bg-muted px-3 py-1 text-xs">
-              {data.network.enabled ? "Ghi nhận đã bật" : "Ghi nhận đang tắt"}
+              {data.network.enabled ? "Bằng chứng hợp đồng đã bật" : "Bằng chứng hợp đồng đang tắt"}
             </span>
             {data.network.registryAddress && (
               <span className="min-w-0 break-all font-mono text-xs text-muted-foreground">
@@ -225,6 +225,15 @@ export default function BlockchainExplorerPage() {
               </span>
             )}
           </div>
+          <section aria-labelledby="eth-payment-summary" className="space-y-3">
+            <h2 id="eth-payment-summary" className="text-base font-semibold">Thanh toán hội viên bằng ETH</h2>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <MetricCard label="Tổng giao dịch ETH" value={count(data.ethTotal)} />
+              <MetricCard label="ETH đã thanh toán" value={count(data.ethPaid)} />
+              <MetricCard label="ETH chờ đối soát" value={count(data.ethUnsettled)} />
+            </div>
+          </section>
+          <h2 className="text-base font-semibold">Bằng chứng hợp đồng</h2>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {["PENDING", "SUBMITTED", "CONFIRMED", "FAILED"].map((status) => (
               <button
@@ -242,15 +251,11 @@ export default function BlockchainExplorerPage() {
               </button>
             ))}
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <MetricCard
               label="Chờ quá 15 phút"
               value={count(data.stuck)}
               note={`Hồ sơ mở lâu nhất ${age(data.oldestOpenAgeSeconds)}`}
-            />
-            <MetricCard
-              label="ETH chờ đối soát"
-              value={count(data.ethUnsettled)}
             />
             <MetricCard
               label="Sự cố đang mở"
@@ -427,7 +432,7 @@ export default function BlockchainExplorerPage() {
             <>
               {payments.data.result.length ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[680px] text-left text-sm">
+                  <table className="w-full min-w-[900px] text-left text-sm">
                     <thead className="text-xs text-muted-foreground">
                       <tr>
                         {[
@@ -436,7 +441,8 @@ export default function BlockchainExplorerPage() {
                           "ETH theo wei",
                           "Trạng thái",
                           "Giao dịch",
-                          "Đã chờ",
+                          "Tạo đơn lúc",
+                          "Xác nhận lúc",
                         ].map((text) => (
                           <th key={text} className="px-3 pb-3 font-medium">
                             {text}
@@ -452,7 +458,7 @@ export default function BlockchainExplorerPage() {
                         >
                           <td className="p-3">
                             <p className="font-medium">
-                              {row.tier ?? label(row.kind)}
+                              {row.kind === "ADDON" ? "Mua thêm lượt đăng tin" : row.tier ? `Gói ${row.tier}` : label(row.kind)}
                             </p>
                             <p
                               className="mt-1 max-w-40 truncate font-mono text-xs text-muted-foreground"
@@ -476,14 +482,15 @@ export default function BlockchainExplorerPage() {
                               chainId={row.chainId}
                             />
                           </td>
-                          <td className="p-3 text-xs">{age(row.ageSeconds)}</td>
+                          <td className="p-3 text-xs">{dateTime(row.orderCreatedAt)}</td>
+                          <td className="p-3 text-xs">{dateTime(row.confirmedAt)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <Empty>Chưa có thanh toán ETH khớp bộ lọc.</Empty>
+                <Empty>{unsettled ? "Không có giao dịch ETH chờ đối soát. Bỏ chọn bộ lọc để xem cả giao dịch đã thanh toán." : "Chưa ghi nhận giao dịch thanh toán ETH."}</Empty>
               )}
               <Pagination
                 page={paymentPage}

@@ -75,6 +75,8 @@ export interface BlockchainSummary {
   senderLeaseHeldUntil: string | null;
   integrity: { counts: Record<string, number>; note: string };
   ethUnsettled: number;
+  ethTotal: number;
+  ethPaid: number;
   workerLastRunAgeSeconds: number | null;
   sourceCapabilities: Record<string, string>;
 }

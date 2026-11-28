@@ -156,6 +156,68 @@ test('Blockchain refreshes only the visible current page while proofs are open a
   assert.equal(timer.size, 0);
 });
 
+test('Paid ETH is visible by default and refreshes without any contract proofs', async () => {
+  const runtime = hookRuntime();
+  const timer = clock();
+  const paths = [];
+  const refreshed = [];
+  const document = { visibilityState: 'visible' };
+  const stub = () => null;
+  const summary = {
+    network: { name: 'Sepolia', chainId: 11155111, enabled: false },
+    counts: { PENDING: 0, SUBMITTED: 0, CONFIRMED: 0, FAILED: 0 },
+    ethTotal: 1, ethPaid: 1, ethUnsettled: 0,
+    integrity: { counts: {} }, byErrorCode: {},
+  };
+  const paid = { orderId: 'paid-order', tier: null, kind: 'ADDON', amountVnd: '80000', amountWei: '123456789123456789',
+    transactionHash: `0x${'a'.repeat(64)}`, status: 'PAID', chainId: 11155111,
+    orderCreatedAt: '2026-11-28T11:20:00Z', confirmedAt: '2026-11-28T11:23:19Z' };
+  const { default: BlockchainPage } = load('src/pages/blockchain/BlockchainExplorerPage.tsx', {
+    react: runtime.hooks,
+    'lucide-react': icons,
+    '@/components/ui/button': { Button: stub },
+    '@/config/permissions': permissions,
+    '@/hooks/usePermission': { useHasPermission: () => true },
+    '@/components/dashboard/DashboardParts': { Empty: stub, MetricCard: stub, PageHeading: stub, QueryFeedback: stub, Section: stub, Status: stub, controlClass: '' },
+    '@/components/dashboard/ReportDialog': { __esModule: true, default: stub },
+    '@/lib/dashboard-report': report,
+    '@/services/admin-dashboard.service': { getDashboardPage: stub, checkProof: stub },
+    '@/utils/userUtils': { getApiErrorMessage: () => 'Request failed' },
+    '@/hooks/useDashboardData': { useDashboardData: path => {
+      paths.push(path);
+      if (path?.endsWith('/summary')) return { data: summary, refresh: () => refreshed.push('summary') };
+      if (path?.includes('membership-eth-payments')) return {
+        data: { result: path.includes('unsettled=true') ? [] : [paid], totalElements: path.includes('unsettled=true') ? 0 : 1, totalPages: 1 },
+        refresh: () => refreshed.push('payments'),
+      };
+      return { refresh: stub };
+    } },
+  }, { window: timer.globals, document });
+  const elements = node => Array.isArray(node) ? node.flatMap(elements) : node?.props ? [node, ...elements(node.props.children)] : [];
+  runtime.mount(BlockchainPage);
+  assert.equal(timer.size, 0);
+  assert.equal(elements(runtime.tree).find(node => node.props.label === 'ETH đã thanh toán').props.value, '1');
+  elements(runtime.tree).find(node => node.props.role === 'tab' && node.props.children === 'Thanh toán ETH').props.onClick();
+  runtime.update();
+  assert.ok(paths.includes('/api/v1/admin/blockchain/membership-eth-payments?unsettled=false&page=1&size=20'));
+  assert.equal(elements(runtime.tree).find(node => node.props.type === 'checkbox').props.checked, false);
+  assert.ok(elements(runtime.tree).some(node => node.props.value === 'PAID'));
+  assert.ok(elements(runtime.tree).some(node => node.type === 'p' && node.props.children === 'Mua thêm lượt đăng tin'));
+  assert.ok(elements(runtime.tree).some(node => node.props.hash === paid.transactionHash));
+  assert.ok(elements(runtime.tree).some(node => node.type === 'td' && node.props.children === report.dateTime(paid.confirmedAt)));
+  await timer.advance(15000);
+  assert.deepEqual(refreshed, ['summary', 'payments']);
+  document.visibilityState = 'hidden';
+  await timer.advance(15000);
+  assert.equal(refreshed.length, 2);
+  elements(runtime.tree).find(node => node.props.type === 'checkbox').props.onChange({ target: { checked: true } });
+  runtime.update();
+  assert.ok(paths.includes('/api/v1/admin/blockchain/membership-eth-payments?unsettled=true&page=1&size=20'));
+  assert.ok(elements(runtime.tree).some(node => typeof node.props.children === 'string' && node.props.children.includes('Bỏ chọn bộ lọc')));
+  runtime.unmount();
+  assert.equal(timer.size, 0);
+});
+
 test('KYC queue applies the same filters to totals and zero-based pages and opens the selected account only', () => {
   const runtime = hookRuntime();
   const paths = [];

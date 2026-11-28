@@ -99,7 +99,7 @@ export default function KycQueuePage() {
             <select name="provider" className={controlClass}>
               <option value="">Tất cả</option>
               <option value="VNPT">VNPT eKYC</option>
-              <option value="ADMIN">Thủ công</option>
+              <option value="ADMIN">Quản trị viên</option>
             </select>
           </label>
           <label className="grid gap-1.5 text-xs font-medium">
@@ -151,7 +151,7 @@ export default function KycQueuePage() {
                         </td>
                         <td className="p-3">
                           {row.provider === "ADMIN"
-                            ? "Thủ công"
+                            ? "Quản trị viên"
                             : label(row.provider)}
                         </td>
                         <td className="p-3 text-xs text-muted-foreground">

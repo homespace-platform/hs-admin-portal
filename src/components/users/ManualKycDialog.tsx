@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LoaderCircle, X } from "lucide-react";
+import { Dialog } from "radix-ui";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,12 +52,18 @@ export default function ManualKycDialog({ userId, overwrite, onClose, onDone }: 
   const date = (key: keyof ManualKycForm, label: string, max?: string) => text(key, label, { type: "date", max });
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Xác thực KYC thủ công">
-      <form onSubmit={submit} className="max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto rounded-3xl border border-border bg-card p-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-border/80 pb-3">
-          <h3 className="text-base font-bold">{overwrite ? "Xác thực lại KYC (ghi đè)" : "Xác thực KYC thủ công"}</h3>
+    // A portal of its own: nested inside another (transformed) dialog, a plain fixed overlay gets clipped by it.
+    <Dialog.Root open onOpenChange={(value) => { if (!value && !busy) onClose(); }}>
+     <Dialog.Portal>
+      <Dialog.Overlay className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm" />
+      <Dialog.Content aria-describedby={undefined} onInteractOutside={(e) => e.preventDefault()}
+        className="fixed left-1/2 top-1/2 z-[111] flex max-h-[92dvh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+      <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+        <div className="flex items-center justify-between gap-3 border-b border-border/80 px-6 py-4">
+          <Dialog.Title className="text-base font-bold">{overwrite ? "Xác thực lại KYC (ghi đè)" : "Xác thực KYC thủ công"}</Dialog.Title>
           <button type="button" onClick={onClose} disabled={busy} aria-label="Đóng" className="cursor-pointer rounded-full p-2 text-muted-foreground hover:bg-muted"><X className="h-5 w-5" /></button>
         </div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
         {overwrite && <p role="alert" className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400">Người dùng đã được xác minh. Toàn bộ dữ liệu KYC hiện có sẽ bị ghi đè bằng thông tin bạn nhập bên dưới.</p>}
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           {text("cccd", "CCCD (12 chữ số)", { inputMode: "numeric", maxLength: 12 })}
@@ -68,7 +75,7 @@ export default function ManualKycDialog({ userId, overwrite, onClose, onDone }: 
             </select>)}
           {date("issueDate", "Ngày cấp", todayVn())}
           {date("expirationDate", "Ngày hết hạn")}
-          {text("issuePlace", "Nơi cấp")}
+          <div className="sm:col-span-2">{text("issuePlace", "Nơi cấp")}</div>
         </div>
         {field("permanentAddress", "Nơi thường trú",
           <textarea id="kyc-permanentAddress" rows={2} value={form.permanentAddress} disabled={busy} onChange={(e) => set("permanentAddress", e.target.value)} className="w-full rounded-xl border border-input bg-muted/40 px-3 py-2 text-xs sm:text-sm" />)}
@@ -78,11 +85,14 @@ export default function ManualKycDialog({ userId, overwrite, onClose, onDone }: 
           <p>Kết quả kiểm tra: <b className="text-foreground">tất cả Đạt</b></p>
         </div>
         {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
-        <div className="flex justify-end gap-2">
+        </div>
+        <div className="flex justify-end gap-2 border-t border-border/80 px-6 py-3">
           <Button type="button" variant="outline" onClick={onClose} disabled={busy}>Hủy</Button>
           <Button type="submit" disabled={busy}>{busy && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}{overwrite ? "Ghi đè KYC" : "Xác thực"}</Button>
         </div>
       </form>
-    </div>
+      </Dialog.Content>
+     </Dialog.Portal>
+    </Dialog.Root>
   );
 }

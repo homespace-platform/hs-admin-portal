@@ -20,6 +20,7 @@ import HiddenPropertiesPage from "@/pages/properties/HiddenPropertiesPage";
 import ViolationPropertiesPage from "@/pages/properties/ViolationPropertiesPage";
 import PropertyViewPage from "@/pages/properties/PropertyViewPage";
 import UsersPage from "@/pages/users/UsersPage";
+import KycQueuePage from "@/pages/users/KycQueuePage";
 import RolesPage from "@/pages/users/RolesPage";
 import PermissionsPage from "@/pages/users/PermissionsPage";
 import ComplaintsPage from "@/pages/operations/ComplaintsPage";
@@ -67,7 +68,7 @@ export default function AppRouter() {
       >
         {/* Dashboard Route -> http://localhost:5000/dashboard */}
         <Route path="/operations/nearby" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={guard("/dashboard", <DashboardPage />)} />
 
         {/* Admin pending-review notification center */}
         <Route path="/notifications" element={<RequirePermission permission={PERMISSIONS.LISTING_VIEW}><NotificationCenterPage /></RequirePermission>} />
@@ -76,6 +77,7 @@ export default function AppRouter() {
         {/* User Management */}
         <Route path="users">
           <Route index element={guard("/users", <UsersPage />)} />
+          <Route path="kyc" element={guard("/users/kyc", <KycQueuePage />)} />
           <Route path="members" element={<Navigate to="/users" replace />} />
           <Route path="roles" element={guard("/users/roles", <RolesPage />)} />
           <Route path="permissions" element={guard("/users/permissions", <PermissionsPage />)} />
@@ -133,7 +135,7 @@ export default function AppRouter() {
         </Route>
 
         {/* Blockchain Explorer */}
-        <Route path="blockchain" element={<BlockchainExplorerPage />} />
+        <Route path="blockchain" element={guard("/blockchain", <BlockchainExplorerPage />)} />
 
         {/* Analytics & Reports */}
         <Route path="analytics">
@@ -141,7 +143,7 @@ export default function AppRouter() {
             index
             element={<Navigate to="/analytics/statistics" replace />}
           />
-          <Route path="statistics" element={<StatisticsPage />} />
+          <Route path="statistics" element={guard("/analytics/statistics", <StatisticsPage />)} />
           <Route path="ai-forecast" element={<AiForecastPage />} />
         </Route>
 

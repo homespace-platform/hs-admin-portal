@@ -24,6 +24,11 @@ export const PERMISSIONS = {
   NOTIFICATION_BROADCAST: "NOTIFICATION_BROADCAST",
   INCIDENT_VIEW: "INCIDENT_VIEW",
   STORAGE_VIEW: "STORAGE_VIEW",
+  STATISTICS_VIEW: "STATISTICS_VIEW",
+  SYSTEM_HEALTH_VIEW: "SYSTEM_HEALTH_VIEW",
+  PAYMENT_VIEW: "PAYMENT_VIEW",
+  BLOCKCHAIN_VIEW: "BLOCKCHAIN_VIEW",
+  BLOCKCHAIN_MANAGE: "BLOCKCHAIN_MANAGE",
   // User scope: feature toggles an admin can grant/revoke on the USER role.
   LISTING_POST: "LISTING_POST",
   APPOINTMENT_BOOK: "APPOINTMENT_BOOK",
@@ -81,7 +86,9 @@ export function hasPermission(
  * Keys are path prefixes (longest match wins); paths with no match need ADMIN only.
  */
 export const ROUTE_PERMISSIONS = {
+  "/dashboard": { permission: [PERMISSIONS.LISTING_VIEW, PERMISSIONS.USER_VIEW, PERMISSIONS.KYC_VIEW, PERMISSIONS.COMPLAINT_VIEW, PERMISSIONS.INCIDENT_VIEW, PERMISSIONS.PAYMENT_VIEW, PERMISSIONS.CONTRACT_VIEW, PERMISSIONS.STATISTICS_VIEW, PERMISSIONS.SYSTEM_HEALTH_VIEW], mode: "any" },
   "/users": { permission: PERMISSIONS.USER_VIEW },
+  "/users/kyc": { permission: PERMISSIONS.KYC_VIEW },
   "/users/roles": { permission: PERMISSIONS.ROLE_VIEW },
   "/users/permissions": { permission: PERMISSIONS.PERMISSION_VIEW },
   "/properties": { permission: PERMISSIONS.LISTING_VIEW },
@@ -91,6 +98,8 @@ export const ROUTE_PERMISSIONS = {
   "/operations/complaints": { permission: PERMISSIONS.COMPLAINT_VIEW },
   "/operations/notifications": { permission: PERMISSIONS.NOTIFICATION_BROADCAST },
   "/operations/system-alerts": { permission: PERMISSIONS.INCIDENT_VIEW },
+  "/analytics/statistics": { permission: PERMISSIONS.STATISTICS_VIEW },
+  "/blockchain": { permission: PERMISSIONS.BLOCKCHAIN_VIEW },
 } as const satisfies Record<string, PermissionRule>;
 
 export type RouteKey = keyof typeof ROUTE_PERMISSIONS;
